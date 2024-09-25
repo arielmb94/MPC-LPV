@@ -132,52 +132,52 @@ function [u0,J,x] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps,t)
 
         % state inequalities
         if ~isempty(mpc.x_min)
-            hess_s_min_Ind_x0 = hess_linear_Ind(fi_s_min_x0,mpc.gradXmin);
+            hess_s_min_Ind_x0 = hess_linear_Ind(fi_s_min_x0,mpc.hessXmin);
 
             hess_fi_Ind = hess_fi_Ind + hess_s_min_Ind_x0;
         end
 
         if ~isempty(mpc.x_max)
-            hess_s_max_Ind_x0 = hess_linear_Ind(fi_s_max_x0,mpc.gradXmax);
+            hess_s_max_Ind_x0 = hess_linear_Ind(fi_s_max_x0,mpc.hessXmax);
 
             hess_fi_Ind = hess_fi_Ind + hess_s_max_Ind_x0;
         end
 
         % control inequalities
         if ~isempty(mpc.u_min)
-            hess_u_min_Ind_x0 = hess_linear_Ind(fi_u_min_x0,mpc.gradUmin);
+            hess_u_min_Ind_x0 = hess_linear_Ind(fi_u_min_x0,mpc.hessUmin);
 
             hess_fi_Ind = hess_fi_Ind + hess_u_min_Ind_x0;
         end
 
         if ~isempty(mpc.u_max)
-            hess_u_max_Ind_x0 = hess_linear_Ind(fi_u_max_x0,mpc.gradUmax);
+            hess_u_max_Ind_x0 = hess_linear_Ind(fi_u_max_x0,mpc.hessUmax);
 
             hess_fi_Ind = hess_fi_Ind + hess_u_max_Ind_x0;
         end
 
         % control differential inequalities
         if ~isempty(mpc.du_min)
-            hess_du_min_Ind_x0 = hess_linear_Ind(fi_du_min_x0,mpc.gradDeltaUmin);
+            hess_du_min_Ind_x0 = hess_linear_Ind(fi_du_min_x0,mpc.hessDeltaUmin);
 
             hess_fi_Ind = hess_fi_Ind + hess_du_min_Ind_x0;
         end
 
         if ~isempty(mpc.du_max)
-            hess_du_max_Ind_x0 = hess_linear_Ind(fi_du_max_x0,mpc.gradDeltaUmax);
+            hess_du_max_Ind_x0 = hess_linear_Ind(fi_du_max_x0,mpc.hessDeltaUmax);
 
             hess_fi_Ind = hess_fi_Ind + hess_du_max_Ind_x0;
         end
 
         % output inequalities
         if ~isempty(mpc.y_min)
-            hess_y_min_Ind_x0 = hess_linear_Ind(fi_y_min_x0,mpc.gradYmin);
+            hess_y_min_Ind_x0 = hess_linear_Ind(fi_y_min_x0,mpc.hessYmin);
 
             hess_fi_Ind = hess_fi_Ind + hess_y_min_Ind_x0;
         end
 
         if ~isempty(mpc.y_max)
-            hess_y_max_Ind_x0 = hess_linear_Ind(fi_y_max_x0,mpc.gradYmax);
+            hess_y_max_Ind_x0 = hess_linear_Ind(fi_y_max_x0,mpc.hessYmax);
 
             hess_fi_Ind = hess_fi_Ind + hess_y_max_Ind_x0;
         end
