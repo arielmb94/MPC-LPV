@@ -1,18 +1,18 @@
 clear yk rk tk
-r = -1*ones(ny,1);
+r = -2*ones(ny,1);
 tic
 for k = 1:100
 
 dist = randn*0.1;
 
 if k>50
-    r=1.5*ones(ny,1);
+    r=2.5*ones(ny,1);
 end
 
 y = C*x_prev + D*u_prev + Dd*dist;
 
 
-[u_prev,J,x0,t] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,1e-2,0.01);
+[u_prev,J,x0,t] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,1e-2,1);
 mpc.t = t;
 
 x_prev = A*x_prev + B*u_prev + Bd*dist;

@@ -15,7 +15,9 @@ function [u0,J,x,t] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps,t)
 
     t = mpc.t;
 
-    while forward_iter<1
+    search_feas = false;
+
+    while forward_iter<mpc.max_iter
 
         lambda2 = 1;
         while eps <= lambda2/2
@@ -255,16 +257,21 @@ function [u0,J,x,t] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps,t)
         end
 
         if feas
-            if t < mpc.t_max
-                t = t * mpc.eta_fwd;
-                if t > mpc.t_max
-                    t = mpc.t_max;
+            if search_feas
+                forward_iter = mpc.max_iter;
+            else
+                if t < mpc.t_max
+                    t = t * mpc.eta_fwd;
+                    if t > mpc.t_max
+                        t = mpc.t_max;
+                    end
                 end
-            end
-            forward_iter = forward_iter + 1;
+                forward_iter = forward_iter + 1;
+            end     
         else
             x = x0;
             t = t / mpc.eta_bck;
+            search_feas = true;
         end
 
     end
