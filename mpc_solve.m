@@ -254,18 +254,17 @@ function [u0,J,x,t] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps,t)
             end
         end
 
-        if feas && t>mpc.t_max
-            t = mpc.t_max;
-            forward_iter = forward_iter+1;
-        elseif  feas
-            t = t*mpc.eta_fwd;
-            if t>mpc.t_max
-                t = mpc.t_max;
+        if feas
+            if t < mpc.t_max
+                t = t * mpc.eta_fwd;
+                if t > mpc.t_max
+                    t = mpc.t_max;
+                end
             end
-            forward_iter = forward_iter+1;
+            forward_iter = forward_iter + 1;
         else
             x = x0;
-            t = t/mpc.eta_bck;
+            t = t / mpc.eta_bck;
         end
 
     end
