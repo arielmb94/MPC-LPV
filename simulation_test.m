@@ -1,5 +1,5 @@
 clear yk rk tk
-r = -2*ones(ny,1);
+r = -1*ones(ny,1);
 tic
 for k = 1:100
 

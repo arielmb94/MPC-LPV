@@ -1,6 +1,6 @@
 % Initialize random system
 
-sys = drss(3,1,2)
+sys = drss(5,2,3)
 %%
 N = 10;              %prediction horizon
 
@@ -42,14 +42,14 @@ r = ones(ny,1);
 
 % mpc structure
 
-x_min = -10*ones(nx,1);
-x_max = 10*ones(nx,1);
+x_min = [];%-10*ones(nx,1);
+x_max = [];%10*ones(nx,1);
 u_min = -10*ones(nu,1);
 u_max = 10*ones(nu,1);
 du_min = -1*ones(nu,1);
 du_max = 1*ones(nu,1);
-y_min = -5*ones(ny,1);
-y_max = 5*ones(ny,1);
+y_min = [];%-5*ones(ny,1);
+y_max = [];%5*ones(ny,1);
 
 
 
@@ -59,7 +59,7 @@ mpc = defLtiMpc(N,A,B,C,D,Bd,Dd,Qe,R,x_min,x_max,u_min,u_max,du_min,du_max,y_min
 %%
 
 sigma = 1e-3;
-eps_ipopt = 1e-1;
+eps_ipopt = 1e-0;
 
 % Compute inequality functions at x0 to compute duality measure
 mpc.t = init_t(x0,u_prev,mpc.C,mpc.D,mpc.Dd,d,sigma,mpc.x_min,mpc.x_max,...
@@ -67,7 +67,7 @@ mpc.t = init_t(x0,u_prev,mpc.C,mpc.D,mpc.Dd,d,sigma,mpc.x_min,mpc.x_max,...
     mpc.N,mpc.Nx,mpc.Nu,mpc.Ny,mpc.nx,mpc.nu,mpc.ny,mpc.nd);
 
 mpc.eta_fwd = 3;
-mpc.eta_bck= 10;
+mpc.eta_bck= 5;
 mpc.t_max = mpc.m/eps_ipopt;
 
 mpc.max_iter = 1;
