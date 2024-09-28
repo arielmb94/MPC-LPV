@@ -220,8 +220,6 @@ function [u0,J,x,t] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps,t)
         % system outputs
         y = get_y(s,u,d,mpc.nx,mpc.nu,mpc.ny,mpc.nd,mpc.N,mpc.Ny,...
             mpc.C,mpc.D,mpc.Dd);
-        % error signal
-        err = get_error(r,y,mpc.N,mpc.Ny);
 
         feas = 1;
         % State box constraints
