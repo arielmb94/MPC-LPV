@@ -85,6 +85,19 @@ function [u0,J,x,t] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps,t)
                 grad_fi_Ind = grad_fi_Ind + grad_x_max_Ind_x0;
             end
 
+            % terminal state inequalities
+            if ~isempty(mpc.x_ter_min)
+                grad_s_ter_min_Ind_x0 = grad_box_Ind(fi_s_ter_min_x0,mpc.gradXtermin);
+
+                grad_fi_Ind = grad_fi_Ind + grad_s_ter_min_Ind_x0;
+            end
+
+            if ~isempty(mpc.x_ter_max)
+                grad_x_ter_max_Ind_x0 = grad_box_Ind(fi_s_ter_max_x0,mpc.gradXtermax);
+
+                grad_fi_Ind = grad_fi_Ind + grad_x_ter_max_Ind_x0;
+            end
+
             % control inequalities
             if ~isempty(mpc.u_min)
                 grad_u_min_Ind_x0 = grad_box_Ind(fi_u_min_x0,mpc.gradUmin);
@@ -148,6 +161,19 @@ function [u0,J,x,t] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps,t)
                 hess_s_max_Ind_x0 = hess_linear_Ind(fi_s_max_x0,mpc.hessXmax);
 
                 hess_fi_Ind = hess_fi_Ind + hess_s_max_Ind_x0;
+            end
+
+            % terminal state inequalities
+            if ~isempty(mpc.x_ter_min)
+                hess_s_ter_min_Ind_x0 = hess_linear_Ind(fi_s_ter_min_x0,mpc.hessXtermin);
+
+                hess_fi_Ind = hess_fi_Ind + hess_s_ter_min_Ind_x0;
+            end
+
+            if ~isempty(mpc.x_ter_max)
+                hess_s_ter_max_Ind_x0 = hess_linear_Ind(fi_s_ter_max_x0,mpc.hessXtermax);
+
+                hess_fi_Ind = hess_fi_Ind + hess_s_ter_max_Ind_x0;
             end
 
             % control inequalities
@@ -216,7 +242,7 @@ function [u0,J,x,t] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps,t)
 
 
         %states
-        s = get_x(x,mpc.nx,mpc.nu,mpc.N,mpc.Nx);
+        [s,s_ter] = get_x(x,mpc.nx,mpc.nu,mpc.N,mpc.Nx);
         % control actions
         u = get_u(x,mpc.nx,mpc.nu,mpc.N,mpc.Nu);
         u0 = u(1:mpc.nu);
