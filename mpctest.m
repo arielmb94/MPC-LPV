@@ -42,8 +42,8 @@ r = ones(ny,1);
 
 % mpc structure
 
-x_min = -10*ones(nx,1);
-x_max = 10*ones(nx,1);
+x_min = [];%-10*ones(nx,1);
+x_max = [];%10*ones(nx,1);
 x_ter_min = -10*ones(nx,1);
 x_ter_max = 10*ones(nx,1);
 u_min = -10*ones(nu,1);

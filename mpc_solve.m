@@ -48,7 +48,7 @@ function [u0,J,x,t] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps,t)
 
             % Terminal State box constraints
             if ~isempty(mpc.x_ter_min) & ~isempty(mpc.x_ter_max)
-                [fi_s_ter_min_x0,fi_s_ter_max_x0] = fi_box_fun(s_ter,mpc.x_min,mpc.x_max,mpc.nx,mpc.nx);
+                [fi_s_ter_min_x0,fi_s_ter_max_x0] = fi_box_fun(s_ter,mpc.x_ter_min,mpc.x_ter_max,mpc.nx,mpc.nx);
             end
 
             % Control box constraints
@@ -257,6 +257,14 @@ function [u0,J,x,t] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps,t)
         if ~isempty(mpc.x_min) & ~isempty(mpc.x_max)
             [fi_s_min_x0,fi_s_max_x0] = fi_box_fun(s,mpc.x_min,mpc.x_max,mpc.Nx,mpc.nx);
             if any(fi_s_min_x0>0) || any(fi_s_max_x0>0)
+                feas = 0;
+            end
+        end
+
+        % Terminal State box constraints
+        if ~isempty(mpc.x_ter_min) & ~isempty(mpc.x_ter_max) & feas
+            [fi_s_ter_min_x0,fi_s_ter_max_x0] = fi_box_fun(s_ter,mpc.x_min,mpc.x_max,mpc.nx,mpc.nx);
+            if any(fi_s_ter_min_x0>0) || any(fi_s_ter_max_x0>0)
                 feas = 0;
             end
         end
