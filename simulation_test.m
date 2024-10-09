@@ -57,7 +57,7 @@ feas = 1;
 % State box constraints
 if ~isempty(mpc.x_min) & ~isempty(mpc.x_max)
     [fi_s_min_x0,fi_s_max_x0] = fi_box_fun(s,mpc.x_min,mpc.x_max,mpc.Nx,mpc.nx);
-    if max(fi_s_min_x0)>0 || max(fi_s_max_x0)>0
+    if any(fi_s_min_x0>0) || any(fi_s_max_x0>0)
         feas = 0;
     end
 end
@@ -65,7 +65,7 @@ end
 % Control box constraints
 if ~isempty(mpc.u_min) & ~isempty(mpc.u_max) & feas
     [fi_u_min_x0,fi_u_max_x0] = fi_box_fun(u,mpc.u_min,mpc.u_max,mpc.Nu,mpc.nu);
-    if max(fi_u_min_x0)>0 || max(fi_u_max_x0)>0
+    if any(fi_u_min_x0>0) || any(fi_u_max_x0>0)
         feas = 0;
     end
 end
@@ -73,7 +73,7 @@ end
 % Differential Control box constraints
 if ~isempty(mpc.du_min) & ~isempty(mpc.du_max) & feas
     [fi_du_min_x0,fi_du_max_x0] = fi_box_fun(du,mpc.du_min,mpc.du_max,mpc.Nu,mpc.nu);
-    if max(fi_du_min_x0)>0 || max(fi_du_max_x0)>0
+    if any(fi_du_min_x0>0) || any(fi_du_max_x0>0)
         feas = 0;
     end
 end
@@ -81,11 +81,10 @@ end
 % Outputs box constraints
 if ~isempty(mpc.y_min) & ~isempty(mpc.y_max) & feas
     [fi_y_min_x0,fi_y_max_x0] = fi_box_fun(y,mpc.y_min,mpc.y_max,mpc.Ny,mpc.ny);
-    if max(fi_y_min_x0)>0 || max(fi_y_max_x0)>0
+    if any(fi_y_min_x0>0) || any(fi_y_max_x0>0)
         feas = 0;
     end
 end
-
 feas
 
 

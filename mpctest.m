@@ -1,6 +1,6 @@
 % Initialize random system
 
-sys = drss(5,2,3)
+sys = drss(3,1,2)
 %%
 N = 10;              %prediction horizon
 
@@ -42,14 +42,14 @@ r = ones(ny,1);
 
 % mpc structure
 
-x_min = [];%-10*ones(nx,1);
-x_max = [];%10*ones(nx,1);
+x_min = -10*ones(nx,1);
+x_max = 10*ones(nx,1);
 u_min = -10*ones(nu,1);
 u_max = 10*ones(nu,1);
 du_min = -1*ones(nu,1);
 du_max = 1*ones(nu,1);
-y_min = [];%-5*ones(ny,1);
-y_max = [];%5*ones(ny,1);
+y_min = -5*ones(ny,1);
+y_max = 5*ones(ny,1);
 
 
 
@@ -66,8 +66,8 @@ mpc.t = init_t(x0,u_prev,mpc.C,mpc.D,mpc.Dd,d,sigma,mpc.x_min,mpc.x_max,...
     mpc.u_min,mpc.u_max,mpc.du_min,mpc.du_max,mpc.y_min,mpc.y_max, ...
     mpc.N,mpc.Nx,mpc.Nu,mpc.Ny,mpc.nx,mpc.nu,mpc.ny,mpc.nd);
 
-mpc.eta_fwd = 3;
-mpc.eta_bck= 5;
+mpc.eta_fwd = 4;
+mpc.eta_bck= 10;
 mpc.t_max = mpc.m/eps_ipopt;
 
 mpc.max_iter = 1;
