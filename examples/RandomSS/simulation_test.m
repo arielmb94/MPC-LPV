@@ -6,7 +6,7 @@ for k = 1:100
 dist = randn*0.1;
 
 if k>50
-    r=2.5*ones(ny,1);
+    r=4.5*ones(ny,1);
 end
 
 y = C*x_prev + D*u_prev + Dd*dist;
