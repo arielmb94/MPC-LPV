@@ -22,7 +22,7 @@ sys = c2d(sys_ct,Ts)
 
 
 %%
-N = 50;              %prediction horizon
+N = 30;              %prediction horizon
 
 A = sys.A;
 B = sys.B;
@@ -49,8 +49,10 @@ R = diag(2*ones(nu,1));
 
 % mpc structure
 
-x_min = 0.05*ones(nx,1);
-x_max = 1*ones(nx,1);
+x_min = [];%0.05*ones(nx,1);
+x_max = [];%1*ones(nx,1);
+x_ter_min = 0.05*ones(nx,1);
+x_ter_max = 1*ones(nx,1);
 u_min = 0*ones(nu,1);
 u_max = 10*ones(nu,1);
 du_min = -1*ones(nu,1);
@@ -59,7 +61,7 @@ y_min = [];
 y_max = [];
 
 %
-mpc = defLtiMpc(N,A,B,C,D,B*0,D*0,Qe,R,x_min,x_max,u_min,u_max,du_min,du_max,y_min,y_max)
+mpc = defLtiMpc(N,A,B,C,D,B*0,D*0,Qe,R,x_min,x_max,x_ter_min,x_ter_max,u_min,u_max,du_min,du_max,y_min,y_max)
 
 %%
 

@@ -7,7 +7,7 @@ tic
 for k = 1:500
 
 if k>250
-    r=0.45*ones(ny,1);
+    r=0.25*ones(ny,1);
 end
 
 y = C*x_prev ;
@@ -27,6 +27,7 @@ rk(:,k) = r;
 h1k(:,k) = h1;
 tk(k) = t;
 Jk(k) = J;
+uk(k) = u_prev;
 
 end
 toc/500
@@ -43,4 +44,7 @@ legend('y(h2)','r','h1')
 ylim([0 1])
 figure
 plot(1:k,tk)
+grid on
+figure
+plot(1:k,uk)
 grid on
