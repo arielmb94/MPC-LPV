@@ -1,4 +1,5 @@
-function mpc = defLtiMpc(N,A,B,C,D,Bd,Dd,Qe,R,x_min,x_max,u_min,u_max,du_min,du_max,y_min,y_max)
+function mpc = defLtiMpc(N,A,B,C,D,Bd,Dd,Qe,R,...
+    x_min,x_max,x_ter_min,x_ter_max,u_min,u_max,du_min,du_max,y_min,y_max)
 
 mpc.N = N;              %prediction horizon
 
@@ -24,6 +25,8 @@ mpc.Nd = (N+1)*mpc.nd;
 
 mpc.x_min = x_min;
 mpc.x_max = x_max;
+mpc.x_ter_min = x_ter_min; 
+mpc.x_ter_max = x_ter_max;
 mpc.u_min = u_min;
 mpc.u_max = u_max;
 mpc.du_min = du_min;
@@ -55,6 +58,20 @@ if ~isempty(mpc.x_min) & ~isempty(mpc.x_max)
     end
     if ~isempty(mpc.x_max)
         [mpc.hessXmax,mi] = genHessIneq(mpc.gradXmax);
+        m = m+mi;
+    end
+end
+
+% Terminal State box constraints
+if ~isempty(mpc.x_ter_min) & ~isempty(mpc.x_ter_max)
+    [mpc.gradXtermin,mpc.gradXtermax] = genGradXter(N,mpc.Nx,mpc.Nu,mpc.nx,mpc.nu);
+
+    if ~isempty(mpc.x_ter_min)
+        [mpc.hessXtermin,mi] = genHessIneq(mpc.gradXtermin);
+        m = m+mi;
+    end
+    if ~isempty(mpc.x_ter_max)
+        [mpc.hessXtermax,mi] = genHessIneq(mpc.gradXtermax);
         m = m+mi;
     end
 end
