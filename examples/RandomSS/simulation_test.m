@@ -41,7 +41,7 @@ plot(1:k,tk)
 %%
 
 %states
-s = get_x(x0,mpc.nx,mpc.nu,mpc.N,mpc.Nx)
+[s,s_ter] = get_x(x0,mpc.nx,mpc.nu,mpc.N,mpc.Nx)
 % control actions
 u = get_u(x0,mpc.nx,mpc.nu,mpc.N,mpc.Nu)
 u0 = u(1:mpc.nu)
@@ -58,6 +58,14 @@ feas = 1;
 if ~isempty(mpc.x_min) & ~isempty(mpc.x_max)
     [fi_s_min_x0,fi_s_max_x0] = fi_box_fun(s,mpc.x_min,mpc.x_max,mpc.Nx,mpc.nx);
     if any(fi_s_min_x0>0) || any(fi_s_max_x0>0)
+        feas = 0;
+    end
+end
+
+% Terminal State box constraints
+if ~isempty(mpc.x_ter_min) & ~isempty(mpc.x_ter_max) & feas
+    [fi_s_ter_min_x0,fi_s_ter_max_x0] = fi_box_fun(s_ter,mpc.x_ter_min,mpc.x_ter_max,mpc.nx,mpc.nx);
+    if any(fi_s_ter_min_x0>0) || any(fi_s_ter_max_x0>0)
         feas = 0;
     end
 end

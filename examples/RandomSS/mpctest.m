@@ -1,8 +1,8 @@
 % Initialize random system
 
-sys = drss(3,1,2)
+sys = drss(5,2,5)
 %%
-N = 10;              %prediction horizon
+N = 3;              %prediction horizon
 
 A = sys.A;
 B = sys.B;
@@ -67,8 +67,8 @@ mpc.t = init_t(x0,u_prev,mpc.C,mpc.D,mpc.Dd,d,sigma,mpc.x_min,mpc.x_max,...
     mpc.u_min,mpc.u_max,mpc.du_min,mpc.du_max,mpc.y_min,mpc.y_max, ...
     mpc.N,mpc.Nx,mpc.Nu,mpc.Ny,mpc.nx,mpc.nu,mpc.ny,mpc.nd);
 
-mpc.eta_fwd = 4;
-mpc.eta_bck= 10;
+mpc.eta_fwd = 3;
+mpc.eta_bck= 4;
 mpc.t_max = mpc.m/eps_ipopt;
 
 mpc.max_iter = 1;
