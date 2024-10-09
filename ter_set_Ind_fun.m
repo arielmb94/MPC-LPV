@@ -14,5 +14,4 @@ hess_ter_Ind_x0 = zeros(Nx+Nu,Nx+Nu);
 hess_ter_Ind_x0(nx*(N) + nu*(N+1) + 1 : end,nx*(N) + nu*(N+1) + 1 : end) = ...
     (grad_ter*grad_ter')/(fi_ter_x0^2) - P/fi_ter_x0;
  
-
 end
