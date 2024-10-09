@@ -44,6 +44,8 @@ r = ones(ny,1);
 
 x_min = -10*ones(nx,1);
 x_max = 10*ones(nx,1);
+x_ter_min = -10*ones(nx,1);
+x_ter_max = 10*ones(nx,1);
 u_min = -10*ones(nu,1);
 u_max = 10*ones(nu,1);
 du_min = -1*ones(nu,1);
@@ -52,9 +54,8 @@ y_min = -5*ones(ny,1);
 y_max = 5*ones(ny,1);
 
 
-
 %
-mpc = defLtiMpc(N,A,B,C,D,Bd,Dd,Qe,R,x_min,x_max,u_min,u_max,du_min,du_max,y_min,y_max)
+mpc = defLtiMpc(N,A,B,C,D,Bd,Dd,Qe,R,x_min,x_max,x_ter_min,x_ter_max,u_min,u_max,du_min,du_max,y_min,y_max)
 
 %%
 
