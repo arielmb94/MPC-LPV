@@ -64,14 +64,14 @@ end
 
 % Terminal State box constraints
 if ~isempty(mpc.x_ter_min) & ~isempty(mpc.x_ter_max)
-    [mpc.gradXmin,mpc.gradXmax] = genGradX(N,mpc.Nx,mpc.Nu,mpc.nx,mpc.nu);
+    [mpc.gradXtermin,mpc.gradXtermax] = genGradXter(N,mpc.Nx,mpc.Nu,mpc.nx,mpc.nu);
 
-    if ~isempty(mpc.x_min)
-        [mpc.hessXmin,mi] = genHessIneq(mpc.gradXmin);
+    if ~isempty(mpc.x_ter_min)
+        [mpc.hessXtermin,mi] = genHessIneq(mpc.gradXtermin);
         m = m+mi;
     end
-    if ~isempty(mpc.x_max)
-        [mpc.hessXmax,mi] = genHessIneq(mpc.gradXmax);
+    if ~isempty(mpc.x_ter_max)
+        [mpc.hessXtermax,mi] = genHessIneq(mpc.gradXtermax);
         m = m+mi;
     end
 end
