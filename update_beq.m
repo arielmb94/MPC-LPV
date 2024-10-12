@@ -1,10 +1,15 @@
-function beq = update_beq(beq,A,x_prev,N,nx,Bd,d)
+function beq = update_beq(beq,A,x_prev,N,nx,Bd,d,Nd)
 
     if isempty(d) || isempty(Bd)
 
         beq(1:nx) = -A*x_prev;
 
     else
+
+        % copy d N+1 times
+        if length(d)<Nd
+            d = repmat(d,N+1,1);
+        end
 
         for k = 1:N+1
         

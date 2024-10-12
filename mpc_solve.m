@@ -8,7 +8,7 @@ function [u0,J,x,t] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps)
     % number of equality constraints
     n_eq = size(mpc.Aeq,1); 
 
-    mpc.beq = update_beq(mpc.beq,mpc.A,x_prev,mpc.N,mpc.nx,mpc.Bd,d*0);
+    mpc.beq = update_beq(mpc.beq,mpc.A,x_prev,mpc.N,mpc.nx,mpc.Bd,d,mpc.Nd);
 
     x = x0;
     forward_iter = 0;
@@ -33,7 +33,7 @@ function [u0,J,x,t] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps)
             du = diff_u(u,u_prev,mpc.nu,mpc.N,mpc.Nu);
             % system outputs
             y = get_y(s,u,d,mpc.nx,mpc.nu,mpc.ny,mpc.nd,mpc.N,mpc.Ny,...
-                mpc.C,mpc.D,mpc.Dd);
+                mpc.C,mpc.D,mpc.Dd,mpc.Nd);
             % error signal
             err = get_error(r,y,mpc.N,mpc.Ny);
 
@@ -249,7 +249,7 @@ function [u0,J,x,t] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps)
         du = diff_u(u,u_prev,mpc.nu,mpc.N,mpc.Nu);
         % system outputs
         y = get_y(s,u,d,mpc.nx,mpc.nu,mpc.ny,mpc.nd,mpc.N,mpc.Ny,...
-            mpc.C,mpc.D,mpc.Dd);
+            mpc.C,mpc.D,mpc.Dd,mpc.Nd);
 
         feas = 1;
         % State box constraints

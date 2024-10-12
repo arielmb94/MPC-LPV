@@ -1,4 +1,4 @@
-function y = get_y(s,u,d,nx,nu,ny,nd,N,Ny,C,D,Dd)
+function y = get_y(s,u,d,nx,nu,ny,nd,N,Ny,C,D,Dd,Nd)
 
     if isempty(d) || isempty(Dd)
 
@@ -13,6 +13,11 @@ function y = get_y(s,u,d,nx,nu,ny,nd,N,Ny,C,D,Dd)
         end
     
     else
+
+        % copy d N+1 times
+        if length(d)<Nd
+            d = repmat(d,N+1,1);
+        end
 
         y = zeros(Ny,1);
         for k = 1:N
