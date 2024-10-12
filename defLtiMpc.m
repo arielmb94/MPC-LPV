@@ -23,24 +23,6 @@ mpc.Nu = (N+1)*mpc.nu;
 mpc.Ny = N*mpc.ny;
 mpc.Nd = (N+1)*mpc.nd;
 
-if mpc.Nd
-    % if there are known disturbances signals, lets set the Bd and Dd
-    % matrices to 0 if they are not needed
-    if isempty(Bd)
-        mpc.Bd = zeros(mpc.nx,1);
-    end
-
-    if isempty(Dd)
-        mpc.Dd = zeros(mpc.ny,1);
-    end
-else
-    % if there are not known disturbances we set the Bd and Dd matrices to
-    % 0
-    mpc.Bd = zeros(mpc.nx,1);
-    mpc.Dd = zeros(mpc.ny,1);
-end
-
-
 mpc.x_min = x_min;
 mpc.x_max = x_max;
 mpc.x_ter_min = x_ter_min; 
