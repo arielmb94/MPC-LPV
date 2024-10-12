@@ -13,7 +13,7 @@ end
 y = C*x_prev ;
 
 
-[u_prev,J,x0,t] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,1e-2,1);
+[u_prev,J,x0,t] = mpc_solve(x0,x_prev,u_prev,r,[],mpc,1e-2);
 mpc.t = t;
 
 h1 = h1 + Ts*(u_prev-sqrt(2*g)*sqrt(h1));
