@@ -1,6 +1,6 @@
 % m is number of inequalities -> to be precomputed
 
-function [u0,J,x,t] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps,t)
+function [u0,J,x,t] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps)
 
     % number of variables
     n = length(x0);
