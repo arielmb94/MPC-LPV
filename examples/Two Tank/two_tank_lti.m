@@ -20,19 +20,20 @@ C = [0 1];
 sys_ct = ss(A,B,C,0);
 sys = c2d(sys_ct,Ts)
 
-
-%%
 N = 30;              %prediction horizon
 
 A = sys.A;
 B = sys.B;
+Bd = [];
 C = sys.C;
 D = sys.D;
+Dd = [];
+%%
 
-nx = 2;  %number of states
-nd = 0;          %number of distrubance inputs
-nu = 1;  %number of control inputs
-ny = 1;  %number of measurements
+nx = length(A);  % number of states
+nu = size(B,2);  % number of control inputs
+ny = size(C,1);  % number of measurements
+nd = size(Bd,2);  % number of distrubance inputs
 
 Nx = (N+1)*nx;
 Nu = (N+1)*nu;
@@ -43,7 +44,6 @@ x0 = 0.45*ones(Nu+Nx,1);
 x_prev = [h1; h2];
 u_prev = zeros(nu,1);
 
-d = zeros(Nu,1);
 Qe = diag(10*ones(ny,1));
 R = diag(2*ones(nu,1));
 
@@ -61,7 +61,7 @@ y_min = [];
 y_max = [];
 
 %
-mpc = defLtiMpc(N,A,B,C,D,B*0,D*0,Qe,R,x_min,x_max,x_ter_min,x_ter_max,u_min,u_max,du_min,du_max,y_min,y_max)
+mpc = defLtiMpc(N,A,B,C,D,Bd,Dd,Qe,R,x_min,x_max,x_ter_min,x_ter_max,u_min,u_max,du_min,du_max,y_min,y_max)
 
 %%
 
