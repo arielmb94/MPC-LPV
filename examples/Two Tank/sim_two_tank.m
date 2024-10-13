@@ -46,5 +46,5 @@ figure
 plot(1:k,tk)
 grid on
 figure
-plot(1:k,uk)
+plot(1:k,uk,1:k-1,diff(uk))
 grid on

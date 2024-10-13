@@ -55,8 +55,8 @@ x_ter_min = 0.05*ones(nx,1);
 x_ter_max = 1*ones(nx,1);
 u_min = 0*ones(nu,1);
 u_max = 10*ones(nu,1);
-du_min = -0.1*ones(nu,1);
-du_max = 0.1*ones(nu,1);
+du_min = -0.2*ones(nu,1);
+du_max = 0.2*ones(nu,1);
 y_min = [];
 y_max = [];
 
@@ -73,8 +73,8 @@ mpc.t = init_t(x0,u_prev,mpc.C,mpc.D,mpc.Dd,[],sigma,mpc.x_min,mpc.x_max,...
     mpc.u_min,mpc.u_max,mpc.du_min,mpc.du_max,mpc.y_min,mpc.y_max, ...
     mpc.N,mpc.Nx,mpc.Nu,mpc.Ny,mpc.Nd,mpc.nx,mpc.nu,mpc.ny,mpc.nd);
 
-mpc.eta_fwd = 4;
-mpc.eta_bck= 10;
+mpc.eta_fwd = 2;
+mpc.eta_bck= 3;
 mpc.t_max = mpc.m/eps_ipopt;
 
 mpc.Beta = 0.75;
