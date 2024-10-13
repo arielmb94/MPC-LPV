@@ -22,9 +22,7 @@ function [u0,J,x,t] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps)
         lambda2 = 1;
         while eps <= lambda2/2
 
-
-            % Get variables
-
+            % Get variables:
             %states
             [s,s_ter] = get_x(x,mpc.nx,mpc.nu,mpc.N,mpc.Nx);
             % control actions
