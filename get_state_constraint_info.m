@@ -2,7 +2,7 @@ function [s,s_ter,u,du,y,err,...
     fi_s_min_x0,fi_s_max_x0,fi_s_ter_min_x0,fi_s_ter_max_x0,...
     fi_u_min_x0,fi_u_max_x0,fi_du_min_x0,fi_du_max_x0,...
     fi_y_min_x0,fi_y_max_x0,feas] = ...
-    compute_box_constraints(x,mpc,check_feas)
+    get_state_constraint_info(x,mpc,check_feas)
 
 %states
 [s,s_ter] = get_x(x,mpc.nx,mpc.nu,mpc.N,mpc.Nx);
@@ -26,7 +26,7 @@ if ~isempty(mpc.x_min) && ~isempty(mpc.x_max)
 end
 
 % Terminal State box constraints
-if ~isempty(mpc.x_ter_min) && ~isempty(mpc.x_ter_max) && feas
+if feas && ~isempty(mpc.x_ter_min) && ~isempty(mpc.x_ter_max) 
     [fi_s_ter_min_x0,fi_s_ter_max_x0] = fi_box_fun(s_ter,mpc.x_ter_min,mpc.x_ter_max,mpc.nx,mpc.nx);
     if check_feas && ( any(fi_s_ter_min_x0>0) || any(fi_s_ter_max_x0>0) )
         feas = 0;
@@ -34,7 +34,7 @@ if ~isempty(mpc.x_ter_min) && ~isempty(mpc.x_ter_max) && feas
 end
 
 % Control box constraints
-if ~isempty(mpc.u_min) && ~isempty(mpc.u_max) && feas
+if feas && ~isempty(mpc.u_min) && ~isempty(mpc.u_max)
     [fi_u_min_x0,fi_u_max_x0] = fi_box_fun(u,mpc.u_min,mpc.u_max,mpc.Nu,mpc.nu);
     if check_feas && ( any(fi_u_min_x0>0) || any(fi_u_max_x0>0) )
         feas = 0;
@@ -42,7 +42,7 @@ if ~isempty(mpc.u_min) && ~isempty(mpc.u_max) && feas
 end
 
 % Differential Control box constraints
-if ~isempty(mpc.du_min) && ~isempty(mpc.du_max) && feas
+if feas && ~isempty(mpc.du_min) && ~isempty(mpc.du_max)
     [fi_du_min_x0,fi_du_max_x0] = fi_box_fun(du,mpc.du_min,mpc.du_max,mpc.Nu,mpc.nu);
     if check_feas && ( any(fi_du_min_x0>0) || any(fi_du_max_x0>0) )
         feas = 0;
@@ -50,7 +50,7 @@ if ~isempty(mpc.du_min) && ~isempty(mpc.du_max) && feas
 end
 
 % Outputs box constraints
-if ~isempty(mpc.y_min) && ~isempty(mpc.y_max) && feas
+if feas && ~isempty(mpc.y_min) && ~isempty(mpc.y_max)
     [fi_y_min_x0,fi_y_max_x0] = fi_box_fun(y,mpc.y_min,mpc.y_max,mpc.Ny,mpc.ny);
     if check_feas && ( any(fi_y_min_x0>0) || any(fi_y_max_x0>0) )
         feas = 0;
