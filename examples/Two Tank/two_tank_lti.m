@@ -42,7 +42,7 @@ Nd = (N+1)*nd;
 
 x0 = 0.45*ones(Nu+Nx,1);
 x_prev = [h1; h2];
-u_prev = zeros(nu,1);
+u_prev = 0.45;
 
 Qe = diag(10*ones(ny,1));
 R = diag(2*ones(nu,1));
@@ -55,8 +55,8 @@ x_ter_min = 0.05*ones(nx,1);
 x_ter_max = 1*ones(nx,1);
 u_min = 0*ones(nu,1);
 u_max = 10*ones(nu,1);
-du_min = -1*ones(nu,1);
-du_max = 1*ones(nu,1);
+du_min = -0.1*ones(nu,1);
+du_max = 0.1*ones(nu,1);
 y_min = [];
 y_max = [];
 
@@ -76,6 +76,8 @@ mpc.t = init_t(x0,u_prev,mpc.C,mpc.D,mpc.Dd,[],sigma,mpc.x_min,mpc.x_max,...
 mpc.eta_fwd = 4;
 mpc.eta_bck= 10;
 mpc.t_max = mpc.m/eps_ipopt;
+
+mpc.Beta = 0.75;
 
 mpc.max_iter = 1;
 

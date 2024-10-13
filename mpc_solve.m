@@ -19,54 +19,25 @@ function [u0,J,x,t] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps)
 
     while forward_iter<mpc.max_iter
 
+        % for first iteration we assume x0 is feasible and wont check
+        check_feas = false;
+        % get mpc variables from optimimization vector x and constraint
+        % information
+        [s,s_ter,u,du,y,err,...
+            fi_s_min_x0,fi_s_max_x0,fi_s_ter_min_x0,fi_s_ter_max_x0,...
+            fi_u_min_x0,fi_u_max_x0,fi_du_min_x0,fi_du_max_x0,...
+            fi_y_min_x0,fi_y_max_x0,feas] = ...
+            get_state_constraint_info(x,u_prev,r,d,mpc,check_feas);
+        % for following iteration check feasibility
+        check_feas = true;
+
         lambda2 = 1;
         while eps <= lambda2/2
 
-            % Get variables:
-            %states
-            [s,s_ter] = get_x(x,mpc.nx,mpc.nu,mpc.N,mpc.Nx);
-            % control actions
-            u = get_u(x,mpc.nx,mpc.nu,mpc.N,mpc.Nu);
-            % differential control action
-            du = diff_u(u,u_prev,mpc.nu,mpc.N,mpc.Nu);
-            % system outputs
-            y = get_y(s,u,d,mpc.nx,mpc.nu,mpc.ny,mpc.nd,mpc.N,mpc.Ny,...
-                mpc.C,mpc.D,mpc.Dd,mpc.Nd);
-            % error signal
-            err = get_error(r,y,mpc.N,mpc.Ny);
 
             % Compute gradient:
 
-            % 1. Compute Values of each box Ineq. Function fi(x)
-
-            % State box constraints
-            if ~isempty(mpc.x_min) & ~isempty(mpc.x_max)
-                [fi_s_min_x0,fi_s_max_x0] = fi_box_fun(s,mpc.x_min,mpc.x_max,mpc.Nx,mpc.nx);
-            end
-
-            % Terminal State box constraints
-            if ~isempty(mpc.x_ter_min) & ~isempty(mpc.x_ter_max)
-                [fi_s_ter_min_x0,fi_s_ter_max_x0] = fi_box_fun(s_ter,mpc.x_ter_min,mpc.x_ter_max,mpc.nx,mpc.nx);
-            end
-
-            % Control box constraints
-            if ~isempty(mpc.u_min) & ~isempty(mpc.u_max)
-                [fi_u_min_x0,fi_u_max_x0] = fi_box_fun(u,mpc.u_min,mpc.u_max,mpc.Nu,mpc.nu);
-            end
-
-            % Differential Control box constraints
-            if ~isempty(mpc.du_min) & ~isempty(mpc.du_max)
-                [fi_du_min_x0,fi_du_max_x0] = fi_box_fun(du,mpc.du_min,mpc.du_max,mpc.Nu,mpc.nu);
-            end
-
-            % Outputs box constraints
-            if ~isempty(mpc.y_min) & ~isempty(mpc.y_max)
-                [fi_y_min_x0,fi_y_max_x0] = fi_box_fun(y,mpc.y_min,mpc.y_max,mpc.Ny,mpc.ny);
-            end
-
-
-            % 2. Compute gradient of box inequalities at x0:
-
+            % 1. Compute gradient of box inequalities at x0:
             % init inequalities gradient vector
             grad_fi_Ind = zeros(n,1);
 
@@ -229,12 +200,35 @@ function [u0,J,x,t] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps)
             % compute lambda^2
             lambda2 = -grad_J_x0'*delta_x_prim;
 
-            % line search using backtracking
-            %l = linesearch_backtracking(x0,@f0_fun,@fi_fun,grad_x0,delta_x_prim,t,m,alpha,beta);
+            % Feasibility line search
+
             l = 1;
-            % update x0
-            x = x+l*delta_x_prim;
-            %J = f0_fun_MPC(Qe,err,N,ny,R,du,nu,[],[]);
+            xhat = x+l*delta_x_prim;
+
+            [s,s_ter,u,du,y,err,...
+            fi_s_min_x0,fi_s_max_x0,fi_s_ter_min_x0,fi_s_ter_max_x0,...
+            fi_u_min_x0,fi_u_max_x0,fi_du_min_x0,fi_du_max_x0,...
+            fi_y_min_x0,fi_y_max_x0,feas] = ...
+            get_state_constraint_info(xhat,u_prev,r,d,mpc,check_feas);
+
+            if feas
+                x = xhat;
+            else
+                while ~feas
+                    l = l*mpc.Beta;
+
+                    xhat = x+l*delta_x_prim;
+
+                    [s,s_ter,u,du,y,err,...
+                        fi_s_min_x0,fi_s_max_x0,fi_s_ter_min_x0,fi_s_ter_max_x0,...
+                        fi_u_min_x0,fi_u_max_x0,fi_du_min_x0,fi_du_max_x0,...
+                        fi_y_min_x0,fi_y_max_x0,feas] = ...
+                        get_state_constraint_info(xhat,u_prev,r,d,mpc,check_feas);
+                end
+                x = xhat;
+                t = t / mpc.eta_bck;
+                search_feas = true;
+            end
 
         end
 
