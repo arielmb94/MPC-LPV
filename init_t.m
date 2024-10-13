@@ -1,5 +1,5 @@
 function t = init_t(x0,u_prev,C,D,Dd,d,sigma,x_low,x_up,u_low,u_up,du_low,du_up,y_low,y_up, ...
-    N,Nx,Nu,Ny,nx,nu,ny,nd)
+    N,Nx,Nu,Ny,Nd,nx,nu,ny,nd)
 
     s = get_x(x0,nx,nu,N,Nx);
 
@@ -7,7 +7,7 @@ function t = init_t(x0,u_prev,C,D,Dd,d,sigma,x_low,x_up,u_low,u_up,du_low,du_up,
 
     du = diff_u(u,u_prev,nu,N,Nu);
 
-    y = get_y(s,u,d,nx,nu,ny,nd,N,Ny,C,D,Dd);
+    y = get_y(s,u,d,nx,nu,ny,nd,N,Ny,C,D,Dd,Nd);
 
     fi_sum = 0;
     ni = 0;
