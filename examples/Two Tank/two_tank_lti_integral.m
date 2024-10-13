@@ -10,23 +10,27 @@ Ts = 0.01;
 
 %% LTI system
 
-A = [-sqrt(2*g)*sqrt(h1)/(Ab*h1) 0;
-     sqrt(2*g)*sqrt(h1)/(Ab*h1) -sqrt(2*g)*sqrt(h2)/(Ab*h2)];
+A = [-sqrt(2*g)*sqrt(h1)/(Ab*h1) 0 0;
+     sqrt(2*g)*sqrt(h1)/(Ab*h1) -sqrt(2*g)*sqrt(h2)/(Ab*h2) 0;
+     0 -1 0];
 
-B = [1/Ab; 0];
+B = [1/Ab; 0; 0];
 
-C = [0 1];
+Bd = [0 0 1]';
 
-sys_ct = ss(A,B,C,0);
+C = [0 1 0;
+     0 0 1];
+
+sys_ct = ss(A,[B Bd],C,0);
 sys = c2d(sys_ct,Ts)
 
-N = 30;              %prediction horizon
+N = 25;              %prediction horizon
 
 A = sys.A;
-B = sys.B;
-Bd = [];
+B = sys.B(:,1);
+Bd = sys.B(:,2);
 C = sys.C;
-D = sys.D;
+D = sys.D(:,1);
 Dd = [];
 %%
 
@@ -41,18 +45,18 @@ Ny = N*ny;
 Nd = (N+1)*nd;
 
 x0 = 0.45*ones(Nu+Nx,1);
-x_prev = [h1; h2];
+x_prev = [h1; h2; 0];
 u_prev = zeros(nu,1);
 
-Qe = diag(10*ones(ny,1));
-R = diag(2*ones(nu,1));
+Qe = [1 0; 0 15];
+R = diag(1*ones(nu,1));
 
 % mpc structure
 
-x_min = [];%0.05*ones(nx,1);
-x_max = [];%1*ones(nx,1);
-x_ter_min = 0.05*ones(nx,1);
-x_ter_max = 1*ones(nx,1);
+x_min = [0.05 0.05 -100]';
+x_max = [1 1 100]';
+x_ter_min = [];%[0.05 0.05 -100]';
+x_ter_max = [];%[1 1 100]';
 u_min = 0*ones(nu,1);
 u_max = 10*ones(nu,1);
 du_min = -1*ones(nu,1);
@@ -66,7 +70,7 @@ mpc = defLtiMpc(N,A,B,C,D,Bd,Dd,Qe,R,x_min,x_max,x_ter_min,x_ter_max,u_min,u_max
 %%
 
 sigma = 1e-3;
-eps_ipopt = 1e-0;
+eps_ipopt = 2e-0;
 
 % Compute inequality functions at x0 to compute duality measure
 mpc.t = init_t(x0,u_prev,mpc.C,mpc.D,mpc.Dd,[],sigma,mpc.x_min,mpc.x_max,...
