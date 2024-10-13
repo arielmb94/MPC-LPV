@@ -49,14 +49,14 @@ R = diag(2*ones(nu,1));
 
 % mpc structure
 
-x_min = [];%0.05*ones(nx,1);
-x_max = [];%1*ones(nx,1);
-x_ter_min = 0.05*ones(nx,1);
-x_ter_max = 1*ones(nx,1);
+x_min = 0.05*ones(nx,1);
+x_max = 1*ones(nx,1);
+x_ter_min = [];%0.05*ones(nx,1);
+x_ter_max = [];%1*ones(nx,1);
 u_min = 0*ones(nu,1);
 u_max = 10*ones(nu,1);
-du_min = -0.2*ones(nu,1);
-du_max = 0.2*ones(nu,1);
+du_min = -1*ones(nu,1);
+du_max = 1*ones(nu,1);
 y_min = [];
 y_max = [];
 
@@ -65,8 +65,8 @@ mpc = defLtiMpc(N,A,B,C,D,Bd,Dd,Qe,R,x_min,x_max,x_ter_min,x_ter_max,u_min,u_max
 
 %%
 
-sigma = 1e-3;
-eps_ipopt = 1e-0;
+sigma = 1e-1;
+eps_ipopt = 1e-1;
 
 % Compute inequality functions at x0 to compute duality measure
 mpc.t = init_t(x0,u_prev,mpc.C,mpc.D,mpc.Dd,[],sigma,mpc.x_min,mpc.x_max,...
@@ -74,11 +74,10 @@ mpc.t = init_t(x0,u_prev,mpc.C,mpc.D,mpc.Dd,[],sigma,mpc.x_min,mpc.x_max,...
     mpc.N,mpc.Nx,mpc.Nu,mpc.Ny,mpc.Nd,mpc.nx,mpc.nu,mpc.ny,mpc.nd);
 
 mpc.eta_fwd = 2;
-mpc.eta_bck= 3;
+mpc.eta_bck= 1.025;
 mpc.t_max = mpc.m/eps_ipopt;
 
 mpc.Beta = 0.75;
 
 mpc.max_iter = 1;
-
 
