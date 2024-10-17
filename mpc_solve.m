@@ -17,6 +17,8 @@ function [u0,J,x,t] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps)
 
     search_feas = false;
 
+    opts.SYM = true;
+
     while forward_iter<mpc.max_iter
 
         % for first iteration we assume x0 is feasible and wont check
@@ -192,9 +194,9 @@ function [u0,J,x,t] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps)
             % solve KKT system
             KKT = [hess_J_x0 mpc.Aeq';mpc.Aeq zeros(n_eq)];
 
-            %delta_x = - linsolve(KKT,[grad_J_x0;Aeq*x-beq],opts);
+            delta_x = - linsolve(KKT,[grad_J_x0;mpc.Aeq*x-mpc.beq],opts);
             %delta_x = - linsolve(KKT,[grad_J_x0;zeros(n_eq,1)],opts);
-            delta_x = - KKT\[grad_J_x0;mpc.Aeq*x-mpc.beq];
+            %delta_x = - KKT\[grad_J_x0;mpc.Aeq*x-mpc.beq];
             delta_x_prim = delta_x(1:n);
 
             % compute lambda^2
