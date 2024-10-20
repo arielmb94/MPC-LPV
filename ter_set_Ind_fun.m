@@ -1,13 +1,15 @@
-function [fi_ter_x0,grad_ter,grad_ter_Ind_x0,hess_ter_Ind_x0] = ter_set_Ind_fun(s_ter,P,Nx,Nu,nx,nu,N)
+function [fi_ter_x0,grad_ter,grad_ter_Ind_x0,hess_ter_Ind_x0] = ter_set_Ind_fun(x_ref,s_ter,P,Nx,Nu,nx,nu,N)
 
-% Terminal Set Constraint Evaluation
-fi_ter_x0 = s_ter'*P*s_ter-1;
+% Get value for terminal constraint (x_ref-s_ter)'P(x_ref-s_ter)-1
+fi_ter_x0 = get_terConst_val(x_ref,s_ter,P);
 
 % Gradient of Terminal Set Constraint
-grad_ter = P*s_ter;
+grad_ter = P*x_err; % grad_ter = -I*P*x_err -> negative I to be considered 
+                    % by substraction from global gradient 
 % Gradient of Indicator Function for Terminal Set Constraint
 grad_ter_Ind_x0 = zeros(Nx+Nu,1);
-grad_ter_Ind_x0(nx*(N) + nu*(N+1) + 1 : end) = -grad_ter/fi_ter_x0;
+% -I * -grad_ter/fi_ter_x0 = grad_ter/fi_ter_x0
+grad_ter_Ind_x0(nx*(N) + nu*(N+1) + 1 : end) = grad_ter/fi_ter_x0;
 
 % Hessian of Indicator Function for Terminal Set Constraint
 hess_ter_Ind_x0 = zeros(Nx+Nu,Nx+Nu);
