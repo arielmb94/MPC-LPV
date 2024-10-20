@@ -1,8 +1,8 @@
 function [s,s_ter,u,du,y,err,...
     fi_s_min_x0,fi_s_max_x0,fi_s_ter_min_x0,fi_s_ter_max_x0,...
     fi_u_min_x0,fi_u_max_x0,fi_du_min_x0,fi_du_max_x0,...
-    fi_y_min_x0,fi_y_max_x0,feas] = ...
-    get_state_constraint_info(x,u_prev,r,d,mpc,check_feas)
+    fi_y_min_x0,fi_y_max_x0,fi_ter_x0,feas] = ...
+    get_state_constraint_info(x,u_prev,r,x_ref,d,mpc,check_feas)
 
 %states
 [s,s_ter] = get_x(x,mpc.nx,mpc.nu,mpc.N,mpc.Nx);
@@ -70,6 +70,16 @@ if feas && ~isempty(mpc.y_min) && ~isempty(mpc.y_max)
 else
     fi_y_min_x0 = [];
     fi_y_max_x0 = [];
+end
+
+% Terminal Constraint
+if feas && mpc.ter_ingredients
+    fi_ter_x0 = get_terConst_val(x_ref,s_ter,mpc.P);
+    if check_feas && ( fi_ter_x0>0 )
+        feas = 0;
+    end
+else
+    fi_ter_x0 = [];
 end
 
 end

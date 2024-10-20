@@ -69,3 +69,5 @@ mpc.t = 50;
 
 mpc.Beta = 0.75;
 mpc.min_l = 0.99;
+
+mpc.ter_ingredients = 0;

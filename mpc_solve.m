@@ -1,4 +1,4 @@
-function [u0,J,x] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps)
+function [u0,J,x] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps,x_ref)
 
     % number of variables
     n = length(x0);
@@ -6,26 +6,34 @@ function [u0,J,x] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps)
     % number of equality constraints
     n_eq = size(mpc.Aeq,1); 
 
+    % update b matrix from equality condition
     mpc.beq = update_beq(mpc.beq,mpc.A,x_prev,mpc.N,mpc.nx,mpc.Bd,d,mpc.Nd);
 
     x = x0;
 
-    continue_Newton = true;
-
-    opts.SYM = true;
+    if mpc.ter_ingredients
+        if mpc.x_ref_is_y && isempty(x_ref)
+            x_ref = r;
+            % TODO: account for reference being a sequence
+        end    
+    else 
+        x_ref = [];
+    end
 
     % for first iteration we assume x0 is feasible and wont check
     check_feas = false;
     % get mpc variables from optimimization vector x and constraint
     % information
     [s,s_ter,u,du,y,err,...
-        fi_s_min_x0,fi_s_max_x0,fi_s_ter_min_x0,fi_s_ter_max_x0,...
-        fi_u_min_x0,fi_u_max_x0,fi_du_min_x0,fi_du_max_x0,...
-        fi_y_min_x0,fi_y_max_x0,feas] = ...
-        get_state_constraint_info(x,u_prev,r,d,mpc,check_feas);
+    fi_s_min_x0,fi_s_max_x0,fi_s_ter_min_x0,fi_s_ter_max_x0,...
+    fi_u_min_x0,fi_u_max_x0,fi_du_min_x0,fi_du_max_x0,...
+    fi_y_min_x0,fi_y_max_x0,fi_ter_x0,feas] = ...
+    get_state_constraint_info(x,u_prev,r,x_ref,d,mpc,check_feas);
     % for following iteration check feasibility
     check_feas = true;
 
+    continue_Newton = true;
+    opts.SYM = true;
     lambda2 = 1;
     while eps <= lambda2*0.5 && continue_Newton
 
@@ -202,8 +210,8 @@ function [u0,J,x] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps)
         [s,s_ter,u,du,y,err,...
             fi_s_min_x0,fi_s_max_x0,fi_s_ter_min_x0,fi_s_ter_max_x0,...
             fi_u_min_x0,fi_u_max_x0,fi_du_min_x0,fi_du_max_x0,...
-            fi_y_min_x0,fi_y_max_x0,feas] = ...
-            get_state_constraint_info(xhat,u_prev,r,d,mpc,check_feas);
+            fi_y_min_x0,fi_y_max_x0,fi_ter_x0,feas] = ...
+            get_state_constraint_info(xhat,u_prev,r,x_ref,d,mpc,check_feas);
 
         if feas
             x = xhat;
@@ -217,8 +225,8 @@ function [u0,J,x] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps)
                 [s,s_ter,u,du,y,err,...
                     fi_s_min_x0,fi_s_max_x0,fi_s_ter_min_x0,fi_s_ter_max_x0,...
                     fi_u_min_x0,fi_u_max_x0,fi_du_min_x0,fi_du_max_x0,...
-                    fi_y_min_x0,fi_y_max_x0,feas] = ...
-                    get_state_constraint_info(xhat,u_prev,r,d,mpc,check_feas);
+                    fi_y_min_x0,fi_y_max_x0,fi_ter_x0,feas] = ...
+                    get_state_constraint_info(xhat,u_prev,r,x_ref,d,mpc,check_feas);
             end
             x = xhat;
 
