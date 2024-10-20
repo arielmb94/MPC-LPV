@@ -3,17 +3,20 @@ r = 0.7*ones(ny,1);
 h1 = x_prev(1);
 h2 = x_prev(2);
 
+x_ref = [r;r];
+
 tic
 for k = 1:500
 
 if k>250
     r=0.25*ones(ny,1);
+    x_ref = [r;r];
 end
 
 y = C*x_prev ;
 
 
-[u_prev,J,x0] = mpc_solve(x0,x_prev,u_prev,r,[],mpc,1e-1);
+[u_prev,J,x0] = mpc_solve(x0,x_prev,u_prev,r,[],mpc,1e-1,[]);
 
 h1 = h1 + Ts*(u_prev-sqrt(2*g)*sqrt(h1));
 h2 = h2 + Ts*(sqrt(2*g)*sqrt(h1)-sqrt(2*g)*sqrt(h2));
@@ -21,7 +24,7 @@ h2 = h2 + Ts*(sqrt(2*g)*sqrt(h1)-sqrt(2*g)*sqrt(h2));
 x_prev = [h1;h2];
 
 
-yk(:,k) = y;
+yk(:,k) = y(1);
 rk(:,k) = r;
 h1k(:,k) = h1;
 Jk(k) = J;
@@ -33,7 +36,7 @@ toc/500
 J
 
 close all
-for y = 1:ny
+for y = 1:1
     figure
     plot(1:k,yk(y,:),1:k,rk(y,:),1:k,h1k(y,:),'g')
     grid on

@@ -18,6 +18,7 @@ function [u0,J,x] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps,x_ref)
         end    
     else 
         x_ref = [];
+        grad_ter = [];
     end
 
     % for first iteration we assume x0 is feasible and wont check
@@ -108,9 +109,21 @@ function [u0,J,x] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps,x_ref)
             grad_fi_Ind = grad_fi_Ind + grad_y_max_Ind_x0;
         end
 
-        % 4. Compute gradient of cost function at x0
-        grad_f0 = grad_f0_MPC(mpc.Nx,mpc.Nu,mpc.gradErrQe,err,mpc.gradCtlrR,du,[],[],[]);
-        % 5. Compute gradient at x0 : grad(J) = t*grad(f0)+grad(Phi)
+        % 2. If enabled, compute terminal ingredients 
+        if mpc.ter_ingredients
+            [grad_ter,grad_ter_Ind_x0,hess_ter_Ind_x0] = ...
+                ter_set_Ind_fun(x_ref,s_ter,fi_ter_x0,...
+                mpc.P,mpc.Nx,mpc.Nu,mpc.nx,mpc.nu,mpc.N);
+
+            grad_fi_Ind = grad_fi_Ind + grad_ter_Ind_x0; 
+        end
+        
+
+        % 3. Compute gradient of cost function at x0
+        grad_f0 = grad_f0_MPC(mpc.Nx,mpc.Nu,...
+            mpc.gradErrQe,err,mpc.gradCtlrR,du,...
+            mpc.nx,mpc.ter_ingredients,grad_ter);
+        % 4. Compute gradient at x0 : grad(J) = t*grad(f0)+grad(Phi)
         grad_J_x0 = mpc.t*grad_f0+grad_fi_Ind;
 
 
@@ -186,8 +199,17 @@ function [u0,J,x] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps,x_ref)
             hess_fi_Ind = hess_fi_Ind + hess_y_max_Ind_x0;
         end
 
+        % 2. If enabled, add terminal constraint hessian term
+        if mpc.ter_ingredients
+            hess_fi_Ind = hess_fi_Ind + hess_ter_Ind_x0;
+        end
+
         % 2. Compute Hessian of cost Function
-        hess_f0 = mpc.hessCtrlTerm + mpc.hessErrTerm;
+        if mpc.ter_ingredients
+            hess_f0 = mpc.hessCtrlTerm + mpc.hessErrTerm + mpc.hessTerminalCost;
+        else
+            hess_f0 = mpc.hessCtrlTerm + mpc.hessErrTerm;
+        end
         % 3. Compute Hessian of f(x0,t):
         hess_J_x0 = mpc.t*hess_f0+hess_fi_Ind;
 
