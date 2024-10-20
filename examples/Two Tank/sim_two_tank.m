@@ -13,8 +13,7 @@ end
 y = C*x_prev ;
 
 
-[u_prev,J,x0,t] = mpc_solve(x0,x_prev,u_prev,r,[],mpc,1e-2);
-mpc.t = t;
+[u_prev,J,x0] = mpc_solve(x0,x_prev,u_prev,r,[],mpc,1e-1);
 
 h1 = h1 + Ts*(u_prev-sqrt(2*g)*sqrt(h1));
 h2 = h2 + Ts*(sqrt(2*g)*sqrt(h1)-sqrt(2*g)*sqrt(h2));
@@ -25,7 +24,6 @@ x_prev = [h1;h2];
 yk(:,k) = y;
 rk(:,k) = r;
 h1k(:,k) = h1;
-tk(k) = t;
 Jk(k) = J;
 uk(k) = u_prev;
 
@@ -43,8 +41,5 @@ end
 legend('y(h2)','r','h1')
 ylim([0 1])
 figure
-plot(1:k,tk)
-grid on
-figure
-plot(1:k,uk)
+plot(1:k,uk,1:k-1,diff(uk))
 grid on
