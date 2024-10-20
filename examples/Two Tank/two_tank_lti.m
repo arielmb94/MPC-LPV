@@ -20,7 +20,7 @@ C = [0 1];
 sys_ct = ss(A,B,C,0);
 sys = c2d(sys_ct,Ts)
 
-N = 20;              %prediction horizon
+N = 30;              %prediction horizon
 
 A = sys.A;
 B = sys.B;
@@ -65,23 +65,7 @@ mpc = defLtiMpc(N,A,B,C,D,Bd,Dd,Qe,R,x_min,x_max,x_ter_min,x_ter_max,u_min,u_max
 
 %%
 
-sigma = 1e-1;
-eps_ipopt = 1e-1;
-
-% Compute inequality functions at x0 to compute duality measure
-mpc.t = init_t(x0,u_prev,mpc.C,mpc.D,mpc.Dd,[],sigma,mpc.x_min,mpc.x_max,...
-    mpc.u_min,mpc.u_max,mpc.du_min,mpc.du_max,mpc.y_min,mpc.y_max, ...
-    mpc.N,mpc.Nx,mpc.Nu,mpc.Ny,mpc.Nd,mpc.nx,mpc.nu,mpc.ny,mpc.nd);
-
-mpc.eta_fwd = 2;
-mpc.eta_bck= 1.025;
-mpc.t_max = mpc.m/eps_ipopt;
-mpc.t = mpc.m/eps_ipopt;
-
 mpc.t = 50;
-mpc.t_max = mpc.t;
 
 mpc.Beta = 0.75;
-
-mpc.max_iter = 1;
-
+mpc.min_l = 0.99;
