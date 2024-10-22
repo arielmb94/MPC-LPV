@@ -1,25 +1,29 @@
 clear yk rk tk h1k
-r = 0.7*ones(ny,1);
+r = 0.7;
 h1 = x_prev(1);
 h2 = x_prev(2);
 
-x_ref = [r;r];
+xf = h2;
+tau = 0.2;
 
 tic
 for k = 1:500
 
 if k>250
-    r=0.25*ones(ny,1);
-    x_ref = [r;r];
+    r=0.25;
 end
 
 y = C*x_prev ;
 
+xf = xf + Ts*(-xf/tau+r/tau);
+xref = [xf;xf];
 
-[u_prev,J,x0] = mpc_solve(x0,x_prev,u_prev,r,[],mpc,1e-1,[]);
+[u_prev,J,x0] = mpc_solve(x0,x_prev,u_prev,xref,[],mpc,1e-1,[]);
 
 h1 = h1 + Ts*(u_prev-sqrt(2*g)*sqrt(h1));
 h2 = h2 + Ts*(sqrt(2*g)*sqrt(h1)-sqrt(2*g)*sqrt(h2));
+
+
 
 x_prev = [h1;h2];
 
