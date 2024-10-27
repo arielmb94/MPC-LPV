@@ -113,9 +113,10 @@ function [u0,J,x] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps,x_ref)
         if mpc.ter_ingredients
             [grad_ter,grad_ter_Ind_x0,hess_ter_Ind_x0] = ...
                 ter_set_Ind_fun(x_ref,s_ter,fi_ter_x0,...
-                mpc.P,mpc.Nx,mpc.Nu,mpc.nx,mpc.nu,mpc.N);
-
-            grad_fi_Ind = grad_fi_Ind + grad_ter_Ind_x0; 
+                mpc.P,mpc.Nx,mpc.Nu,mpc.nx,mpc.nu,mpc.N,mpc.ter_constraint);
+            if mpc.ter_constraint
+                grad_fi_Ind = grad_fi_Ind + grad_ter_Ind_x0; 
+            end
         end
         
 
@@ -200,7 +201,7 @@ function [u0,J,x] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps,x_ref)
         end
 
         % 2. If enabled, add terminal constraint hessian term
-        if mpc.ter_ingredients
+        if mpc.ter_ingredients && mpc.ter_constraint
             hess_fi_Ind = hess_fi_Ind + hess_ter_Ind_x0;
         end
 

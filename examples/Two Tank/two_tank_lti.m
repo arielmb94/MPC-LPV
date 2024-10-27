@@ -15,13 +15,13 @@ A = [-sqrt(2*g)*sqrt(h1)/(Ab*h1) 0;
 
 B = [1/Ab; 0];
 
-%C = [0 1];
-C = eye(2);
+C = [0 1];
+%C = eye(2);
 
 sys_ct = ss(A,B,C,0);
 sys = c2d(sys_ct,Ts)
 
-N = 3;              %prediction horizon
+N = 2;              %prediction horizon
 
 A = sys.A;
 B = sys.B;
@@ -45,14 +45,14 @@ x0 = 0.45*ones(Nu+Nx,1);
 x_prev = [h1; h2];
 u_prev = 0.45;
 
-Qe = diag(300*ones(ny,1));
+Qe = diag(30*ones(ny,1));
 R = diag(1*ones(nu,1));
 
 % mpc structure
 
 x_min = 0.05*ones(nx,1);
 x_max = 1*ones(nx,1);
-x_ter_min = [];%0.05*ones(nx,1);
+x_ter_min = [];%;0.05*ones(nx,1);
 x_ter_max = [];%1*ones(nx,1);
 u_min = 0*ones(nu,1);
 u_max = 10*ones(nu,1);
@@ -69,13 +69,14 @@ mpc = defLtiMpc(N,A,B,C,D,Bd,Dd,Qe,R,x_min,x_max,x_ter_min,x_ter_max,u_min,u_max
 mpc.t = 50;
 
 mpc.Beta = 0.75;
-mpc.min_l = 0.00000099;
+mpc.min_l = 0.99;
 
 %%
 mpc.ter_ingredients = 1;
-mpc.x_ref_is_y = 1;
+mpc.ter_constraint = 0;
+mpc.x_ref_is_y = 0;
 
-[K,S] = dlqr(A,B,diag([0 0.8]),R)
+[K,S] = dlqr(A,B,diag([30 30]),R)
 
 mpc.P = S;
 mpc.hessTerminalCost = zeros(Nx+Nu,Nx+Nu);

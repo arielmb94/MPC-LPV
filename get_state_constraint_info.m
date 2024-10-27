@@ -73,7 +73,7 @@ else
 end
 
 % Terminal Constraint
-if feas && mpc.ter_ingredients
+if feas && mpc.ter_ingredients && mpc.ter_constraint
     fi_ter_x0 = get_terConst_val(x_ref,s_ter,mpc.P);
     if check_feas && fi_ter_x0>=0 
         feas = 0;
