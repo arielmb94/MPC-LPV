@@ -40,11 +40,25 @@ mpc.Aeq = genEqualities(A,B,N,mpc.Nx,mpc.Nu,mpc.nx,mpc.nu);
 mpc.beq = zeros(size(mpc.Aeq,1),1);
 
 % Cost Function Terms
-[mpc.gradErrQe,mpc.hessErrTerm] = genErrorGradHess(Qe,C,D,N,...
-    mpc.Nx,mpc.Nu,mpc.Ny,mpc.nx,mpc.nu,mpc.ny);
+mpc.hessCost = zeros(mpc.Nu+mpc.Nx);
 
-[mpc.gradDiffCtlrRdu,mpc.hessDiffCtrlTerm] = genDiffControlGradHess(Rdu,N,...
-    mpc.Nx,mpc.Nu,mpc.nx,mpc.nu);
+if ~isempty(Qe)
+    [mpc.gradErrQe,mpc.hessErrTerm] = genErrorGradHess(Qe,C,D,N,...
+        mpc.Nx,mpc.Nu,mpc.Ny,mpc.nx,mpc.nu,mpc.ny);
+    mpc.hessCost = mpc.hessCost + mpc.hessErrTerm;
+end
+
+if ~isempty(Rdu)
+    [mpc.gradDiffCtlrRdu,mpc.hessDiffCtrlTerm] = genDiffControlGradHess(Rdu,N,...
+        mpc.Nx,mpc.Nu,mpc.nx,mpc.nu);
+    mpc.hessCost = mpc.hessCost + mpc.hessDiffCtrlTerm;
+end
+
+if ~isempty(Ru)
+    [mpc.gradCtlrRu,mpc.hessCtrlTerm] = genControlGradHess(Ru,N,...
+        mpc.Nx,mpc.Nu,mpc.nx,mpc.nu);
+    mpc.hessCost = mpc.hessCost + mpc.hessCtrlTerm;
+end
 
 % Box Constraint Terms
 m = 0; %constraint counter
