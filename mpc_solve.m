@@ -1,4 +1,4 @@
-function [u0,J,x] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps)
+function [u0,J,x] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps,x_ref)
 
     % number of variables
     n = length(x0);
@@ -6,26 +6,35 @@ function [u0,J,x] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps)
     % number of equality constraints
     n_eq = size(mpc.Aeq,1); 
 
+    % update b matrix from equality condition
     mpc.beq = update_beq(mpc.beq,mpc.A,x_prev,mpc.N,mpc.nx,mpc.Bd,d,mpc.Nd);
 
     x = x0;
 
-    continue_Newton = true;
-
-    opts.SYM = true;
+    if mpc.ter_ingredients
+        if mpc.x_ref_is_y && isempty(x_ref)
+            x_ref = r;
+            % TODO: account for reference being a sequence
+        end    
+    else 
+        x_ref = [];
+        grad_ter = [];
+    end
 
     % for first iteration we assume x0 is feasible and wont check
     check_feas = false;
     % get mpc variables from optimimization vector x and constraint
     % information
     [s,s_ter,u,du,y,err,...
-        fi_s_min_x0,fi_s_max_x0,fi_s_ter_min_x0,fi_s_ter_max_x0,...
-        fi_u_min_x0,fi_u_max_x0,fi_du_min_x0,fi_du_max_x0,...
-        fi_y_min_x0,fi_y_max_x0,feas] = ...
-        get_state_constraint_info(x,u_prev,r,d,mpc,check_feas);
+    fi_s_min_x0,fi_s_max_x0,fi_s_ter_min_x0,fi_s_ter_max_x0,...
+    fi_u_min_x0,fi_u_max_x0,fi_du_min_x0,fi_du_max_x0,...
+    fi_y_min_x0,fi_y_max_x0,fi_ter_x0,feas] = ...
+    get_state_constraint_info(x,u_prev,r,x_ref,d,mpc,check_feas);
     % for following iteration check feasibility
     check_feas = true;
 
+    continue_Newton = true;
+    opts.SYM = true;
     lambda2 = 1;
     while eps <= lambda2*0.5 && continue_Newton
 
@@ -100,9 +109,22 @@ function [u0,J,x] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps)
             grad_fi_Ind = grad_fi_Ind + grad_y_max_Ind_x0;
         end
 
-        % 4. Compute gradient of cost function at x0
-        grad_f0 = grad_f0_MPC(mpc.Nx,mpc.Nu,mpc.gradErrQe,err,mpc.gradCtlrR,du,[],[],[]);
-        % 5. Compute gradient at x0 : grad(J) = t*grad(f0)+grad(Phi)
+        % 2. If enabled, compute terminal ingredients 
+        if mpc.ter_ingredients
+            [grad_ter,grad_ter_Ind_x0,hess_ter_Ind_x0] = ...
+                ter_set_Ind_fun(x_ref,s_ter,fi_ter_x0,...
+                mpc.P,mpc.Nx,mpc.Nu,mpc.nx,mpc.nu,mpc.N,mpc.ter_constraint);
+            if mpc.ter_constraint
+                grad_fi_Ind = grad_fi_Ind + grad_ter_Ind_x0; 
+            end
+        end
+        
+
+        % 3. Compute gradient of cost function at x0
+        grad_f0 = grad_f0_MPC(mpc.Nx,mpc.Nu,...
+            mpc.gradErrQe,err,mpc.gradCtlrR,du,...
+            mpc.nx,mpc.ter_ingredients,grad_ter);
+        % 4. Compute gradient at x0 : grad(J) = t*grad(f0)+grad(Phi)
         grad_J_x0 = mpc.t*grad_f0+grad_fi_Ind;
 
 
@@ -178,8 +200,17 @@ function [u0,J,x] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps)
             hess_fi_Ind = hess_fi_Ind + hess_y_max_Ind_x0;
         end
 
+        % 2. If enabled, add terminal constraint hessian term
+        if mpc.ter_ingredients && mpc.ter_constraint
+            hess_fi_Ind = hess_fi_Ind + hess_ter_Ind_x0;
+        end
+
         % 2. Compute Hessian of cost Function
-        hess_f0 = mpc.hessCtrlTerm + mpc.hessErrTerm;
+        if mpc.ter_ingredients
+            hess_f0 = mpc.hessCtrlTerm + mpc.hessErrTerm + mpc.hessTerminalCost;
+        else
+            hess_f0 = mpc.hessCtrlTerm + mpc.hessErrTerm;
+        end
         % 3. Compute Hessian of f(x0,t):
         hess_J_x0 = mpc.t*hess_f0+hess_fi_Ind;
 
@@ -202,8 +233,8 @@ function [u0,J,x] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps)
         [s,s_ter,u,du,y,err,...
             fi_s_min_x0,fi_s_max_x0,fi_s_ter_min_x0,fi_s_ter_max_x0,...
             fi_u_min_x0,fi_u_max_x0,fi_du_min_x0,fi_du_max_x0,...
-            fi_y_min_x0,fi_y_max_x0,feas] = ...
-            get_state_constraint_info(xhat,u_prev,r,d,mpc,check_feas);
+            fi_y_min_x0,fi_y_max_x0,fi_ter_x0,feas] = ...
+            get_state_constraint_info(xhat,u_prev,r,x_ref,d,mpc,check_feas);
 
         if feas
             x = xhat;
@@ -217,8 +248,8 @@ function [u0,J,x] = mpc_solve(x0,x_prev,u_prev,r,d,mpc,eps)
                 [s,s_ter,u,du,y,err,...
                     fi_s_min_x0,fi_s_max_x0,fi_s_ter_min_x0,fi_s_ter_max_x0,...
                     fi_u_min_x0,fi_u_max_x0,fi_du_min_x0,fi_du_max_x0,...
-                    fi_y_min_x0,fi_y_max_x0,feas] = ...
-                    get_state_constraint_info(xhat,u_prev,r,d,mpc,check_feas);
+                    fi_y_min_x0,fi_y_max_x0,fi_ter_x0,feas] = ...
+                    get_state_constraint_info(xhat,u_prev,r,x_ref,d,mpc,check_feas);
             end
             x = xhat;
 
