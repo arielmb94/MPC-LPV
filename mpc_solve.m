@@ -119,11 +119,9 @@ function [u0,J,x] = mpc_solve(x0,s_prev,u_prev,r,d,mpc,eps,x_ref)
             end
         end
         
-
         % 3. Compute gradient of cost function at x0
-        grad_f0 = grad_f0_MPC(mpc.Nx,mpc.Nu,...
-            mpc.gradErrQe,err,mpc.gradDiffCtlrRdu,du,...
-            mpc.nx,mpc.ter_ingredients,grad_ter);
+        grad_f0 = grad_f0_MPC(mpc,err,du,u,grad_ter);
+        
         % 4. Compute gradient at x0 : grad(J) = t*grad(f0)+grad(Phi)
         grad_J_x0 = mpc.t*grad_f0+grad_fi_Ind;
 

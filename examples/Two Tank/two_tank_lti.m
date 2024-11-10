@@ -45,9 +45,9 @@ x0 = 0.45*ones(Nu+Nx,1);
 x_prev = [h1; h2];
 u_prev = 0.45;
 
-Qe = diag(30*ones(ny,1));
-Rdu = diag(1*ones(nu,1));
-Ru = [];
+Qe = diag(50*ones(ny,1));
+Rdu = 1;
+Ru = 0.03;
 
 % mpc structure
 

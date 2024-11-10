@@ -1,28 +1,21 @@
-function grad_J = grad_f0_MPC(Nx,Nu,gradErrQe,err,gradDiffCtlrRdu,deltaU,...
-    nx,ter_ingredients,grad_ter)
+function grad_J = grad_f0_MPC(mpc,err,deltaU,U,grad_ter)
 
-    grad_J = zeros(Nx+Nu,1);
+    grad_J = zeros(mpc.Nx+mpc.Nu,1);
 
-    if ~isempty(gradErrQe)
-
-        grad_J = grad_J - gradErrQe*err;
-
+    if ~isempty(mpc.gradErrQe)
+        grad_J = grad_J - mpc.gradErrQe*err;
     end    
 
-    if ~isempty(gradDiffCtlrRdu)
-
-        grad_J = grad_J + gradDiffCtlrRdu*deltaU;
-
+    if ~isempty(mpc.gradDiffCtlrRdu)
+        grad_J = grad_J + mpc.gradDiffCtlrRdu*deltaU;
     end  
 
-    if ter_ingredients
-
-        grad_J(end-nx+1:end) = grad_J(end-nx+1:end) - grad_ter;
-
+    if ~isempty(mpc.gradCtlrRu)
+        grad_J = grad_J + mpc.gradCtlrRu*U;
     end  
 
-        
+    if mpc.ter_ingredients
+        grad_J(end-mpc.nx+1:end) = grad_J(end-mpc.nx+1:end) - grad_ter;
+    end  
+
 end
-
-
-

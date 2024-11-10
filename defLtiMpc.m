@@ -46,18 +46,24 @@ if ~isempty(Qe)
     [mpc.gradErrQe,mpc.hessErrTerm] = genErrorGradHess(Qe,C,D,N,...
         mpc.Nx,mpc.Nu,mpc.Ny,mpc.nx,mpc.nu,mpc.ny);
     mpc.hessCost = mpc.hessCost + mpc.hessErrTerm;
+else
+    mpc.gradErrQe = [];
 end
 
 if ~isempty(Rdu)
     [mpc.gradDiffCtlrRdu,mpc.hessDiffCtrlTerm] = genDiffControlGradHess(Rdu,N,...
         mpc.Nx,mpc.Nu,mpc.nx,mpc.nu);
     mpc.hessCost = mpc.hessCost + mpc.hessDiffCtrlTerm;
+else
+    mpc.gradDiffCtlrRdu = [];
 end
 
 if ~isempty(Ru)
     [mpc.gradCtlrRu,mpc.hessCtrlTerm] = genControlGradHess(Ru,N,...
         mpc.Nx,mpc.Nu,mpc.nx,mpc.nu);
     mpc.hessCost = mpc.hessCost + mpc.hessCtrlTerm;
+else
+    mpc.gradCtlrRu = [];
 end
 
 % Box Constraint Terms
