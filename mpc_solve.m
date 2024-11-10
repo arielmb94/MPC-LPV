@@ -205,9 +205,9 @@ function [u0,J,x] = mpc_solve(x0,s_prev,u_prev,r,d,mpc,eps,x_ref)
 
         % 2. Compute Hessian of cost Function
         if mpc.ter_ingredients
-            hess_f0 = mpc.hessDiffCtrlTerm + mpc.hessErrTerm + mpc.hessTerminalCost;
+            hess_f0 = mpc.hessCost + mpc.hessTerminalCost;
         else
-            hess_f0 = mpc.hessDiffCtrlTerm + mpc.hessErrTerm;
+            hess_f0 = mpc.hessCost;
         end
         % 3. Compute Hessian of f(x0,t):
         hess_J_x0 = mpc.t*hess_f0+hess_fi_Ind;
