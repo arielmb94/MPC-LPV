@@ -1,10 +1,11 @@
-function mpc = defLtiMpc(N,A,B,C,D,Bd,Dd,Qe,R,...
+function mpc = defLtiMpc(N,A,B,C,D,Bd,Dd,Qe,Rdu,Ru,...
     x_min,x_max,x_ter_min,x_ter_max,u_min,u_max,du_min,du_max,y_min,y_max)
 
 mpc.N = N;              %prediction horizon
 
 mpc.Qe = Qe;
-mpc.R = R;
+mpc.Rdu = Rdu;
+mpc.Ru = Ru;
 
 mpc.A = A;
 mpc.B = B;
@@ -42,14 +43,14 @@ mpc.beq = zeros(size(mpc.Aeq,1),1);
 [mpc.gradErrQe,mpc.hessErrTerm] = genErrorGradHess(Qe,C,D,N,...
     mpc.Nx,mpc.Nu,mpc.Ny,mpc.nx,mpc.nu,mpc.ny);
 
-[mpc.gradCtlrR,mpc.hessCtrlTerm] = genControlGradHess(R,N,...
+[mpc.gradDiffCtlrRdu,mpc.hessDiffCtrlTerm] = genDiffControlGradHess(Rdu,N,...
     mpc.Nx,mpc.Nu,mpc.nx,mpc.nu);
 
 % Box Constraint Terms
 m = 0; %constraint counter
 
 % State box constraints
-if ~isempty(mpc.x_min) & ~isempty(mpc.x_max)
+if ~isempty(mpc.x_min) && ~isempty(mpc.x_max)
     [mpc.gradXmin,mpc.gradXmax] = genGradX(N,mpc.Nx,mpc.Nu,mpc.nx,mpc.nu);
 
     if ~isempty(mpc.x_min)
@@ -63,7 +64,7 @@ if ~isempty(mpc.x_min) & ~isempty(mpc.x_max)
 end
 
 % Terminal State box constraints
-if ~isempty(mpc.x_ter_min) & ~isempty(mpc.x_ter_max)
+if ~isempty(mpc.x_ter_min) && ~isempty(mpc.x_ter_max)
     [mpc.gradXtermin,mpc.gradXtermax] = genGradXter(N,mpc.Nx,mpc.Nu,mpc.nx,mpc.nu);
 
     if ~isempty(mpc.x_ter_min)
@@ -77,7 +78,7 @@ if ~isempty(mpc.x_ter_min) & ~isempty(mpc.x_ter_max)
 end
 
 % Control box constraints
-if ~isempty(mpc.u_min) & ~isempty(mpc.u_max)
+if ~isempty(mpc.u_min) && ~isempty(mpc.u_max)
     [mpc.gradUmin,mpc.gradUmax] = genGradU(N,mpc.Nx,mpc.Nu,mpc.nx,mpc.nu);
 
     if ~isempty(mpc.u_min)
@@ -91,7 +92,7 @@ if ~isempty(mpc.u_min) & ~isempty(mpc.u_max)
 end
 
 % Differential Control box constraints
-if ~isempty(mpc.du_min) & ~isempty(mpc.du_max)
+if ~isempty(mpc.du_min) && ~isempty(mpc.du_max)
     [mpc.gradDeltaUmin,mpc.gradDeltaUmax] = genGradDeltaU(N,mpc.Nx,mpc.Nu,mpc.nx,mpc.nu);
 
     if ~isempty(mpc.du_min)
@@ -105,7 +106,7 @@ if ~isempty(mpc.du_min) & ~isempty(mpc.du_max)
 end
 
 % Outputs box constraints
-if ~isempty(mpc.y_min) & ~isempty(mpc.y_max)
+if ~isempty(mpc.y_min) && ~isempty(mpc.y_max)
     [mpc.gradYmin,mpc.gradYmax] = genGradY(C,D,N,mpc.Nx,mpc.Nu,mpc.Ny,...
         mpc.nx,mpc.nu,mpc.ny);
 

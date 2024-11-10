@@ -46,7 +46,8 @@ x_prev = [h1; h2];
 u_prev = 0.45;
 
 Qe = diag(30*ones(ny,1));
-R = diag(1*ones(nu,1));
+Rdu = diag(1*ones(nu,1));
+Ru = [];
 
 % mpc structure
 
@@ -62,7 +63,8 @@ y_min = [];
 y_max = [];
 
 %
-mpc = defLtiMpc(N,A,B,C,D,Bd,Dd,Qe,R,x_min,x_max,x_ter_min,x_ter_max,u_min,u_max,du_min,du_max,y_min,y_max)
+mpc = defLtiMpc(N,A,B,C,D,Bd,Dd,Qe,Rdu,Ru,...
+    x_min,x_max,x_ter_min,x_ter_max,u_min,u_max,du_min,du_max,y_min,y_max)
 
 %%
 
@@ -76,7 +78,7 @@ mpc.ter_ingredients = 1;
 mpc.ter_constraint = 0;
 mpc.x_ref_is_y = 0;
 
-[K,S] = dlqr(A,B,diag([30 30]),R)
+[K,S] = dlqr(A,B,diag([30 30]),Rdu)
 
 mpc.P = S;
 mpc.hessTerminalCost = zeros(Nx+Nu,Nx+Nu);

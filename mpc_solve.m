@@ -122,7 +122,7 @@ function [u0,J,x] = mpc_solve(x0,s_prev,u_prev,r,d,mpc,eps,x_ref)
 
         % 3. Compute gradient of cost function at x0
         grad_f0 = grad_f0_MPC(mpc.Nx,mpc.Nu,...
-            mpc.gradErrQe,err,mpc.gradCtlrR,du,...
+            mpc.gradErrQe,err,mpc.gradDiffCtlrRdu,du,...
             mpc.nx,mpc.ter_ingredients,grad_ter);
         % 4. Compute gradient at x0 : grad(J) = t*grad(f0)+grad(Phi)
         grad_J_x0 = mpc.t*grad_f0+grad_fi_Ind;
@@ -207,9 +207,9 @@ function [u0,J,x] = mpc_solve(x0,s_prev,u_prev,r,d,mpc,eps,x_ref)
 
         % 2. Compute Hessian of cost Function
         if mpc.ter_ingredients
-            hess_f0 = mpc.hessCtrlTerm + mpc.hessErrTerm + mpc.hessTerminalCost;
+            hess_f0 = mpc.hessDiffCtrlTerm + mpc.hessErrTerm + mpc.hessTerminalCost;
         else
-            hess_f0 = mpc.hessCtrlTerm + mpc.hessErrTerm;
+            hess_f0 = mpc.hessDiffCtrlTerm + mpc.hessErrTerm;
         end
         % 3. Compute Hessian of f(x0,t):
         hess_J_x0 = mpc.t*hess_f0+hess_fi_Ind;
@@ -263,6 +263,6 @@ function [u0,J,x] = mpc_solve(x0,s_prev,u_prev,r,d,mpc,eps,x_ref)
     % Get first control action
     u0 = u(1:mpc.nu);
 
-    J = f0_fun_MPC(mpc.Qe,err,mpc.N,mpc.ny,mpc.R,du,mpc.nu,[],[]);
+    J = f0_fun_MPC(mpc.Qe,err,mpc.N,mpc.ny,mpc.Rdu,du,mpc.nu,[],[]);
 
 end
