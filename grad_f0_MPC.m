@@ -1,4 +1,4 @@
-function grad_J = grad_f0_MPC(Nx,Nu,gradErrQe,err,gradCtlrR,deltaU,P,s_ter,nx)
+function grad_J = grad_f0_MPC(Nx,Nu,gradErrQe,err,gradCtlrR,deltaU,nx,ter_ingredients,grad_ter)
 
     grad_J = zeros(Nx+Nu,1);
 
@@ -14,11 +14,9 @@ function grad_J = grad_f0_MPC(Nx,Nu,gradErrQe,err,gradCtlrR,deltaU,P,s_ter,nx)
 
     end  
 
-    if ~isempty(P)
+    if ter_ingredients
 
-        gradTer = P*s_ter;
-
-        grad_J(end-nx+1:end) = grad_J(end-nx+1:end) + gradTer;
+        grad_J(end-nx+1:end) = grad_J(end-nx+1:end) - grad_ter;
 
     end  
 

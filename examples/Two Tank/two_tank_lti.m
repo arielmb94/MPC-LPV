@@ -16,11 +16,12 @@ A = [-sqrt(2*g)*sqrt(h1)/(Ab*h1) 0;
 B = [1/Ab; 0];
 
 C = [0 1];
+%C = eye(2);
 
 sys_ct = ss(A,B,C,0);
 sys = c2d(sys_ct,Ts)
 
-N = 30;              %prediction horizon
+N = 2;              %prediction horizon
 
 A = sys.A;
 B = sys.B;
@@ -51,7 +52,7 @@ R = diag(1*ones(nu,1));
 
 x_min = 0.05*ones(nx,1);
 x_max = 1*ones(nx,1);
-x_ter_min = [];%0.05*ones(nx,1);
+x_ter_min = [];%;0.05*ones(nx,1);
 x_ter_max = [];%1*ones(nx,1);
 u_min = 0*ones(nu,1);
 u_max = 10*ones(nu,1);
@@ -69,3 +70,15 @@ mpc.t = 50;
 
 mpc.Beta = 0.75;
 mpc.min_l = 0.99;
+
+%%
+mpc.ter_ingredients = 1;
+mpc.ter_constraint = 0;
+mpc.x_ref_is_y = 0;
+
+[K,S] = dlqr(A,B,diag([30 30]),R)
+
+mpc.P = S;
+mpc.hessTerminalCost = zeros(Nx+Nu,Nx+Nu);
+mpc.hessTerminalCost(nx*(N) + nu*(N+1) + 1 : end,nx*(N) + nu*(N+1) + 1 : end) = ...
+    S;
