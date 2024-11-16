@@ -1,4 +1,4 @@
-function [u0,J,x] = mpc_solve(x0,s_prev,u_prev,r,d,mpc,eps,x_ref)
+function [u0,J,x] = mpc_solve(x0,s_prev,u_prev,r,d,mpc,eps,x_ref,dz)
 
     % number of variables
     n = length(x0);
@@ -20,6 +20,14 @@ function [u0,J,x] = mpc_solve(x0,s_prev,u_prev,r,d,mpc,eps,x_ref)
         x_ref = [];
         grad_ter = [];
     end
+
+    if isempty(mpc.gradPerfQz)
+        perfCost = 0;
+        z = [];
+    else
+        perfCost = 1;
+    end
+    
 
     % for first iteration we assume x0 is feasible and wont check
     check_feas = false;
@@ -120,7 +128,12 @@ function [u0,J,x] = mpc_solve(x0,s_prev,u_prev,r,d,mpc,eps,x_ref)
         end
         
         % 3. Compute gradient of cost function at x0
-        grad_f0 = grad_f0_MPC(mpc,err,du,u,grad_ter);
+        if perfCost
+            z = get_z(s,u,dz,mpc.nx,mpc.nu,mpc.nz,mpc.ndz,mpc.N,mpc.Nz,...
+                mpc.Cz,mpc.Dz,mpc.Ddz,mpc.Ndz);
+        end
+
+        grad_f0 = grad_f0_MPC(mpc,err,du,u,grad_ter,z);
         
         % 4. Compute gradient at x0 : grad(J) = t*grad(f0)+grad(Phi)
         grad_J_x0 = mpc.t*grad_f0+grad_fi_Ind;

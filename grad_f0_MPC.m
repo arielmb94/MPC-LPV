@@ -1,4 +1,4 @@
-function grad_J = grad_f0_MPC(mpc,err,deltaU,U,grad_ter)
+function grad_J = grad_f0_MPC(mpc,err,deltaU,U,grad_ter,z)
 
     grad_J = zeros(mpc.Nx+mpc.Nu,1);
 
@@ -16,6 +16,10 @@ function grad_J = grad_f0_MPC(mpc,err,deltaU,U,grad_ter)
 
     if mpc.ter_ingredients
         grad_J(end-mpc.nx+1:end) = grad_J(end-mpc.nx+1:end) - grad_ter;
+    end  
+
+    if ~isempty(mpc.gradPerfQz)
+        grad_J = grad_J + mpc.gradPerfQz*z;
     end  
 
 end

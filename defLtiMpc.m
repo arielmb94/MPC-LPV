@@ -1,4 +1,4 @@
-function mpc = defLtiMpc(N,A,B,C,D,Bd,Dd,Qe,Rdu,Ru,...
+function mpc = defLtiMpc(N,A,B,C,D,Bd,Dd,Qe,Rdu,Ru,Cz,Dz,Ddz,Qz,...
     x_min,x_max,x_ter_min,x_ter_max,u_min,u_max,du_min,du_max,y_min,y_max)
 
 mpc.N = N;              %prediction horizon
@@ -13,16 +13,26 @@ mpc.Bd = Bd;
 mpc.C = C;
 mpc.D = D;
 mpc.Dd = Dd;
+% Performance Cost Matrix
+mpc.Cz = Cz;
+mpc.Dz = Dz;
+mpc.Ddz = Ddz;
 
 mpc.nx = size(A,1);  %number of states
 mpc.nu = size(B,2);  %number of control inputs
-mpc.nd = size(Bd,2);  %number of control inputs
+mpc.nd = size(Bd,2);  %number of disturbance inputs
 mpc.ny = size(C,1);  %number of measurements
+
+mpc.ndz = size(Ddz,2);  %number of disturbance inputs to performance cost
+mpc.nz = size(Cz,1);  %number of performances
 
 mpc.Nx = (N+1)*mpc.nx;
 mpc.Nu = (N+1)*mpc.nu;
 mpc.Ny = (N+1)*mpc.ny;
 mpc.Nd = (N+1)*mpc.nd;
+
+mpc.Nz = N*mpc.nz;
+mpc.Ndz = N*mpc.ndz;
 
 mpc.x_min = x_min;
 mpc.x_max = x_max;
@@ -64,6 +74,14 @@ if ~isempty(Ru)
     mpc.hessCost = mpc.hessCost + mpc.hessCtrlTerm;
 else
     mpc.gradCtlrRu = [];
+end
+
+if ~isempty(Qz)
+    [mpc.gradPerfQz,mpc.hessPerfTerm] = genPerfGradHess(Qz,Cz,Dz,N,...
+        mpc.Nx,mpc.Nu,mpc.Nz,mpc.nx,mpc.nu,mpc.nz);
+    mpc.hessCost = mpc.hessCost + mpc.hessPerfTerm;
+else
+    mpc.gradPerfQz = [];
 end
 
 % Box Constraint Terms
