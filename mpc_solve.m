@@ -1,4 +1,4 @@
-function [u0,J,x] = mpc_solve(x0,s_prev,u_prev,r,d,mpc,eps,x_ref,dz)
+function [u0,J,x] = mpc_solve(x0,s_prev,u_prev,r,d,mpc,eps,x_ref,dz,di)
 
     % number of variables
     n = length(x0);
@@ -33,11 +33,12 @@ function [u0,J,x] = mpc_solve(x0,s_prev,u_prev,r,d,mpc,eps,x_ref,dz)
     check_feas = false;
     % get mpc variables from optimimization vector x and constraint
     % information
-    [s,s_all,s_ter,u,du,y,err,...
+    [s,s_all,s_ter,u,du,y,err,yi,...
     fi_s_min_x0,fi_s_max_x0,fi_s_ter_min_x0,fi_s_ter_max_x0,...
     fi_u_min_x0,fi_u_max_x0,fi_du_min_x0,fi_du_max_x0,...
-    fi_y_min_x0,fi_y_max_x0,fi_ter_x0,feas] = ...
-    get_state_constraint_info(x,s_prev,u_prev,r,x_ref,d,mpc,check_feas);
+    fi_y_min_x0,fi_y_max_x0,fi_ter_x0,...
+    fi_yi_min_x0,fi_yi_max_x0,feas] = ...
+    get_state_constraint_info(x,s_prev,u_prev,r,x_ref,d,di,mpc,check_feas);
     % for following iteration check feasibility
     check_feas = true;
 
@@ -115,6 +116,19 @@ function [u0,J,x] = mpc_solve(x0,s_prev,u_prev,r,d,mpc,eps,x_ref,dz)
             grad_y_max_Ind_x0 = grad_box_Ind(fi_y_max_x0,mpc.gradYmax);
 
             grad_fi_Ind = grad_fi_Ind + grad_y_max_Ind_x0;
+        end
+
+        % General Linear inequalities
+        if ~isempty(mpc.yi_min)
+            grad_yi_min_Ind_x0 = grad_box_Ind(fi_yi_min_x0,mpc.gradYimin);
+
+            grad_fi_Ind = grad_fi_Ind + grad_yi_min_Ind_x0;
+        end
+
+        if ~isempty(mpc.yi_max)
+            grad_yi_max_Ind_x0 = grad_box_Ind(fi_yi_max_x0,mpc.gradYimax);
+
+            grad_fi_Ind = grad_fi_Ind + grad_yi_max_Ind_x0;
         end
 
         % 2. If enabled, compute terminal ingredients 
@@ -211,6 +225,19 @@ function [u0,J,x] = mpc_solve(x0,s_prev,u_prev,r,d,mpc,eps,x_ref,dz)
             hess_fi_Ind = hess_fi_Ind + hess_y_max_Ind_x0;
         end
 
+        % General Linear inequalities
+        if ~isempty(mpc.yi_min)
+            hess_yi_min_Ind_x0 = hess_linear_Ind(fi_yi_min_x0,mpc.hessYimin);
+
+            hess_fi_Ind = hess_fi_Ind + hess_yi_min_Ind_x0;
+        end
+
+        if ~isempty(mpc.yi_max)
+            hess_yi_max_Ind_x0 = hess_linear_Ind(fi_yi_max_x0,mpc.hessYimax);
+
+            hess_fi_Ind = hess_fi_Ind + hess_yi_max_Ind_x0;
+        end
+
         % 2. If enabled, add terminal constraint hessian term
         if mpc.ter_ingredients && mpc.ter_constraint
             hess_fi_Ind = hess_fi_Ind + hess_ter_Ind_x0;
@@ -241,11 +268,12 @@ function [u0,J,x] = mpc_solve(x0,s_prev,u_prev,r,d,mpc,eps,x_ref,dz)
         l = 1;
         xhat = x+l*delta_x_prim;
 
-        [s,s_all,s_ter,u,du,y,err,...
+        [s,s_all,s_ter,u,du,y,err,yi,...
         fi_s_min_x0,fi_s_max_x0,fi_s_ter_min_x0,fi_s_ter_max_x0,...
         fi_u_min_x0,fi_u_max_x0,fi_du_min_x0,fi_du_max_x0,...
-        fi_y_min_x0,fi_y_max_x0,fi_ter_x0,feas] = ...
-        get_state_constraint_info(xhat,s_prev,u_prev,r,x_ref,d,mpc,check_feas);
+        fi_y_min_x0,fi_y_max_x0,fi_ter_x0,...
+            fi_yi_min_x0,fi_yi_max_x0,feas] = ...
+        get_state_constraint_info(xhat,s_prev,u_prev,r,x_ref,d,di,mpc,check_feas);
 
         if feas
             x = xhat;
@@ -256,11 +284,12 @@ function [u0,J,x] = mpc_solve(x0,s_prev,u_prev,r,d,mpc,eps,x_ref,dz)
 
                 xhat = x+l*delta_x_prim;
 
-                [s,s_all,s_ter,u,du,y,err,...
+                [s,s_all,s_ter,u,du,y,err,yi,...
                 fi_s_min_x0,fi_s_max_x0,fi_s_ter_min_x0,fi_s_ter_max_x0,...
                 fi_u_min_x0,fi_u_max_x0,fi_du_min_x0,fi_du_max_x0,...
-                fi_y_min_x0,fi_y_max_x0,fi_ter_x0,feas] = ...
-                get_state_constraint_info(xhat,s_prev,u_prev,r,x_ref,d,mpc,check_feas);
+                fi_y_min_x0,fi_y_max_x0,fi_ter_x0,...
+                    fi_yi_min_x0,fi_yi_max_x0,feas] = ...
+                get_state_constraint_info(xhat,s_prev,u_prev,r,x_ref,d,di,mpc,check_feas);
             end
             x = xhat;
 

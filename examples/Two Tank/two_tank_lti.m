@@ -74,12 +74,21 @@ Qz = [];
 ndz = size(Ddz,2);  %number of disturbance inputs to performance cost
 nz = size(Cz,1);  %number of performances
 
-Nz = N*mpc.nz;
-Ndz = N*mpc.ndz;
+Nz = N*nz;
+Ndz = N*ndz;
+
+%% General Linear Inequalities
+
+Ci = [];
+Di = [];
+Ddi = [];
+
+yi_min = [];
+yi_max = [];
 
 %%
-mpc = defLtiMpc(N,A,B,C,D,Bd,Dd,Qe,Rdu,Ru,Cz,Dz,Ddz,Qz,...
-    x_min,x_max,x_ter_min,x_ter_max,u_min,u_max,du_min,du_max,y_min,y_max)
+mpc = defLtiMpc(N,A,B,C,D,Bd,Dd,Qe,Rdu,Ru,Cz,Dz,Ddz,Qz,Ci,Di,Ddi,...
+    x_min,x_max,x_ter_min,x_ter_max,u_min,u_max,du_min,du_max,y_min,y_max,yi_min,yi_max)
 
 %%
 
