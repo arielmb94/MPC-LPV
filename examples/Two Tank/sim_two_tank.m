@@ -18,7 +18,7 @@ y = C*x_prev ;
 xf = xf + Ts*(-xf/tau+r/tau);
 xref = [xf;xf];
 
-[u_prev,J,x0] = mpc_solve(x0,x_prev,u_prev,xf,[],mpc,1e-2,xref);
+[u_prev,J,x0] = mpc_solve(x0,x_prev,u_prev,xf,[],mpc,1e-2,xref,[],[]);
 
 h1 = h1 + Ts*(u_prev-sqrt(2*g)*sqrt(h1));
 h2 = h2 + Ts*(sqrt(2*g)*sqrt(h1)-sqrt(2*g)*sqrt(h2));

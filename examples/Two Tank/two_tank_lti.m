@@ -29,6 +29,7 @@ Bd = [];
 C = sys.C;
 D = sys.D;
 Dd = [];
+
 %%
 
 nx = length(A);  % number of states
@@ -38,15 +39,16 @@ nd = size(Bd,2);  % number of distrubance inputs
 
 Nx = (N+1)*nx;
 Nu = (N+1)*nu;
-Ny = N*ny;
+Ny = (N+1)*ny;
 Nd = (N+1)*nd;
 
 x0 = 0.45*ones(Nu+Nx,1);
 x_prev = [h1; h2];
 u_prev = 0.45;
 
-Qe = diag(30*ones(ny,1));
-R = diag(1*ones(nu,1));
+Qe = diag(50*ones(ny,1));
+Rdu = 1;
+Ru = 0.03;
 
 % mpc structure
 
@@ -61,8 +63,32 @@ du_max = 0.1*ones(nu,1);
 y_min = [];
 y_max = [];
 
-%
-mpc = defLtiMpc(N,A,B,C,D,Bd,Dd,Qe,R,x_min,x_max,x_ter_min,x_ter_max,u_min,u_max,du_min,du_max,y_min,y_max)
+%% Performance Cost Matrix
+
+Cz = [];
+Dz = [];
+Ddz = [];
+
+Qz = [];
+
+ndz = size(Ddz,2);  %number of disturbance inputs to performance cost
+nz = size(Cz,1);  %number of performances
+
+Nz = N*nz;
+Ndz = N*ndz;
+
+%% General Linear Inequalities
+
+Ci = [];
+Di = [];
+Ddi = [];
+
+yi_min = [];
+yi_max = [];
+
+%%
+mpc = defLtiMpc(N,A,B,C,D,Bd,Dd,Qe,Rdu,Ru,Cz,Dz,Ddz,Qz,Ci,Di,Ddi,...
+    x_min,x_max,x_ter_min,x_ter_max,u_min,u_max,du_min,du_max,y_min,y_max,yi_min,yi_max)
 
 %%
 
@@ -76,7 +102,7 @@ mpc.ter_ingredients = 1;
 mpc.ter_constraint = 0;
 mpc.x_ref_is_y = 0;
 
-[K,S] = dlqr(A,B,diag([30 30]),R)
+[K,S] = dlqr(A,B,diag([30 30]),Rdu)
 
 mpc.P = S;
 mpc.hessTerminalCost = zeros(Nx+Nu,Nx+Nu);
