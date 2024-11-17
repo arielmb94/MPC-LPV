@@ -38,7 +38,7 @@ nd = size(Bd,2);  % number of distrubance inputs
 
 Nx = (N+1)*nx;
 Nu = (N+1)*nu;
-Ny = N*ny;
+Ny = (N+1)*ny;
 Nd = (N+1)*nd;
 
 x0 = 0.45*ones(Nu+Nx,1);

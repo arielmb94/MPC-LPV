@@ -20,7 +20,7 @@ mpc.ny = size(C,1);  %number of measurements
 
 mpc.Nx = (N+1)*mpc.nx;
 mpc.Nu = (N+1)*mpc.nu;
-mpc.Ny = N*mpc.ny;
+mpc.Ny = (N+1)*mpc.ny;
 mpc.Nd = (N+1)*mpc.nd;
 
 mpc.x_min = x_min;
