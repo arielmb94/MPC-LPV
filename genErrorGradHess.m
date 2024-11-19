@@ -3,7 +3,7 @@ function [gradErrQe,hessErrTerm] = genErrorGradHess(Qe,C,D,N,Nx,Nu,Ny,nx,nu,ny)
 %Gradient = gradError*Qe*error
 gradErrQe = zeros(Nx+Nu,Ny);
 hessErrTerm = zeros(Nx+Nu,Nx+Nu);
-for k = 0:N
+for k = 0:N-1
 
     switch k
 

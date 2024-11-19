@@ -6,8 +6,14 @@ function [gradUmin,gradUmax] = genGradU(N,Nx,Nu,nx,nu)
 
 gradUmax = zeros(Nx+Nu,Nu);
 
-for k = 1:N+1
-    gradUmax(nu + nx*(k-1) + nu*(k-2)+1: nu + nx*(k-1) + nu*(k-1), nu*(k-1)+1:nu*(k)) = eye(nu);
+for k = 0:N-1
+    switch k
+        case 0
+            gradUmax(1:nu,1:nu) = eye(nu);
+        otherwise
+            gradUmax(nu*k+nx*k+1: nu*k+nx*k+nu, nu*(k)+1:nu*(k+1)) = eye(nu);
+    end
+    
 end
 
 gradUmin = -gradUmax;

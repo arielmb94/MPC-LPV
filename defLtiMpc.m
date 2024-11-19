@@ -33,16 +33,16 @@ mpc.nz = size(Cz,1);  %number of performances
 mpc.ndi = size(Ddi,2);  %number of disturbance inputs to general inequalities
 mpc.nyi = size(Ci,1);  %number of general inequalities
 
-mpc.Nx = (N+1)*mpc.nx;
-mpc.Nu = (N+1)*mpc.nu;
-mpc.Ny = (N+1)*mpc.ny;
-mpc.Nd = (N+1)*mpc.nd;
+mpc.Nx = N*mpc.nx;
+mpc.Nu = N*mpc.nu;
+mpc.Ny = N*mpc.ny;
+mpc.Nd = N*mpc.nd;
 
 mpc.Nz = N*mpc.nz;
 mpc.Ndz = N*mpc.ndz;
 
-mpc.Nyi = (N+1)*mpc.nyi;
-mpc.Ndi = (N+1)*mpc.ndi;
+mpc.Nyi = N*mpc.nyi;
+mpc.Ndi = N*mpc.ndi;
 
 mpc.x_min = x_min;
 mpc.x_max = x_max;

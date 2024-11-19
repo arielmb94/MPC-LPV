@@ -6,7 +6,7 @@ function [gradDeltaUmin,gradDeltaUmax] = genGradDeltaU(N,Nx,Nu,nx,nu)
 
 gradDeltaUmax = zeros(Nx+Nu,Nu);
 
-for k = 0:N
+for k = 0:N-1
 
     switch k
         case 0

@@ -5,7 +5,7 @@ function [gradYmin,gradYmax] = genGradY(C,D,N,Nx,Nu,Ny,nx,nu,ny)
 % C*x + D*sum_1_k(delta_u_k) + D*u0 - y_max <= 0 
 
 gradYmax = zeros(Nx+Nu,Ny);
-for k = 0:N
+for k = 0:N-1
 
     switch k
 
