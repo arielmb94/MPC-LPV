@@ -1,6 +1,6 @@
 function delta_u = diff_u(u,u_prev,nu,N,Nu)
 
-    u_total = [u_prev reshape(u,[nu,N+1])];
+    u_total = [u_prev reshape(u,[nu,N])];
     
     delta_u = diff(u_total,1,2);
 

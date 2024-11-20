@@ -16,7 +16,7 @@ function z = get_z(s,u,d,nx,nu,nz,ndz,N,Nz,C,D,Dd,Ndz)
 
         % copy d N+1 times
         if length(d)<Ndz
-            d = repmat(d,N+1,1);
+            d = repmat(d,N,1);
         end
 
         z = zeros(Nz,1);

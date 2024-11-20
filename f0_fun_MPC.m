@@ -46,7 +46,7 @@ end
 function Ju = cost_U(R,deltaU,N,nu)
 
 Ju = 0;
-for k = 1:N+1
+for k = 1:N
 
     delta_uk = deltaU((k-1)*nu+1:k*nu);
 
