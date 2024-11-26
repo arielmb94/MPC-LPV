@@ -10,8 +10,10 @@ for k = 0:N-1
     switch k
 
         case 0
-            % gradYmax = D'
-            gradYmax(1 : nu,1:ny) = D';
+            if D == 0
+                % gradYmax = D'
+                gradYmax(1 : nu,1:ny) = D';
+            end
         otherwise
             % gradYmax = [C';D']
             gradYmax(nu + 1 + nx*(k-1) + nu*(k-1): nu + nx*(k)+ nu*(k),ny*(k)+1:ny*(k+1)) = [ C' ; D'];

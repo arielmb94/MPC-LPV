@@ -35,13 +35,27 @@ mpc.nyi = size(Ci,1);  %number of general inequalities
 
 mpc.Nx = N*mpc.nx;
 mpc.Nu = N*mpc.nu;
-mpc.Ny = N*mpc.ny;
 mpc.Nd = N*mpc.nd;
 
-mpc.Nz = N*mpc.nz;
-mpc.Ndz = N*mpc.ndz;
+if mpc.D == 0
+    mpc.Ny = (N-1)*mpc.ny;
+else
+    mpc.Ny = N*mpc.ny;
+end
 
-mpc.Nyi = N*mpc.nyi;
+if mpc.Dz == 0
+    mpc.Nz = (N-1)*mpc.nz;
+else
+    mpc.Nz = N*mpc.nz;
+end
+
+if mpc.Di == 0
+    mpc.Nyi = (N-1)*mpc.nyi;
+else
+    mpc.Nyi = N*mpc.nyi;
+end
+
+mpc.Ndz = N*mpc.ndz;
 mpc.Ndi = N*mpc.ndi;
 
 mpc.x_min = x_min;
