@@ -14,9 +14,11 @@ for k = 0:N-1
             gradDeltaUmax(1:nu,1:nu) = eye(nu);
         otherwise
             % write in uk-1
-            gradDeltaUmax(nu + nx*(k-1) + nu*(k-2)+1: nu + nx*(k-1) + nu*(k-1), nu*(k)+1:nu*(k+1)) = -eye(nu);
+            gradDeltaUmax(nu + nx*(k-1) + nu*(k-2)+1: nu + nx*(k-1) + nu*(k-1),...
+                nu*(k)+1:nu*(k+1)) = -eye(nu);
             % write in uk
-            gradDeltaUmax(nu + nx*k + nu*(k-1)+1: nu + nx*k + nu*(k), nu*(k)+1:nu*(k+1)) = eye(nu);
+            gradDeltaUmax(nu + nx*k + nu*(k-1)+1: nu + nx*k + nu*(k),...
+                nu*(k)+1:nu*(k+1)) = eye(nu);
 
     end
 end
