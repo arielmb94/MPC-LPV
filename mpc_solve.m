@@ -143,7 +143,7 @@ function [u0,J,x] = mpc_solve(x0,s_prev,u_prev,r,d,mpc,eps,x_ref,dz,di)
         
         % 3. Compute gradient of cost function at x0
         if perfCost
-            z = get_z(s,u,dz,mpc.nx,mpc.nu,mpc.nz,mpc.ndz,mpc.N,mpc.Nz,...
+            z = get_lin_out(s_all,u,dz,mpc.nx,mpc.nu,mpc.nz,mpc.ndz,mpc.N,mpc.Nz,...
                 mpc.Cz,mpc.Dz,mpc.Ddz,mpc.Ndz);
         end
 
