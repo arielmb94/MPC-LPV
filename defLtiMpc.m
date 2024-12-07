@@ -79,7 +79,7 @@ mpc.beq = zeros(size(mpc.Aeq,1),1);
 mpc.hessCost = zeros(mpc.Nu+mpc.Nx);
 
 if ~isempty(Qe)
-    [mpc.gradErrQe,mpc.hessErrTerm] = genErrorGradHess(Qe,C,D,N,...
+    [mpc.gradErrQe,mpc.hessErrTerm] = genLinOutGradHess(Qe,C,D,N,...
         mpc.Nx,mpc.Nu,mpc.Ny,mpc.nx,mpc.nu,mpc.ny);
     mpc.hessCost = mpc.hessCost + mpc.hessErrTerm;
 else
@@ -103,7 +103,7 @@ else
 end
 
 if ~isempty(Qz)
-    [mpc.gradPerfQz,mpc.hessPerfTerm] = genPerfGradHess(Qz,Cz,Dz,N,...
+    [mpc.gradPerfQz,mpc.hessPerfTerm] = genLinOutGradHess(Qz,Cz,Dz,N,...
         mpc.Nx,mpc.Nu,mpc.Nz,mpc.nx,mpc.nu,mpc.nz);
     mpc.hessCost = mpc.hessCost + mpc.hessPerfTerm;
 else
