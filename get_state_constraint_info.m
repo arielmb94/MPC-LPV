@@ -15,7 +15,7 @@ du = diff_u(u,u_prev,mpc.nu,mpc.N,mpc.Nu);
 y = get_y(s_all,u,d,mpc.nx,mpc.nu,mpc.ny,mpc.nd,mpc.N,mpc.Ny,...
     mpc.C,mpc.D,mpc.Dd,mpc.Nd);
 % error signal
-err = get_error(r,y,mpc.N,mpc.Ny);
+err = get_error(r,y,mpc.D,mpc.N,mpc.Ny);
 
 feas = 1;
 % State box constraints
