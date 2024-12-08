@@ -10,6 +10,7 @@ mpc.Bd = [];
 mpc.C = [];
 mpc.D = [];
 mpc.Dd = [];
+mpc.Qz = [];
 mpc.Cz = [];
 mpc.Dz = [];
 mpc.Ddz = [];
