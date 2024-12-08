@@ -10,6 +10,9 @@ Ts = 0.01;
 
 %% LTI system
 
+N = 10;
+mpc = init_mpc(N);
+
 A = [-sqrt(2*g)*sqrt(h1)/(Ab*h1) 0;
      sqrt(2*g)*sqrt(h1)/(Ab*h1) -sqrt(2*g)*sqrt(h2)/(Ab*h2)];
 
