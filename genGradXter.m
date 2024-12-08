@@ -5,7 +5,7 @@ function [gradXtermin,gradXtermax] = genGradXter(N,Nx,Nu,nx,nu)
 % xk - xmax <= 0 
 
 gradXtermax = zeros(Nx+Nu,nx);
-k = N+1;
+k = N;
 
 gradXtermax(nu + nx*(k-1)+ nu*(k-1) + 1 : nu + nx*(k)+ nu*(k-1), :) = eye(nx);
 gradXtermin = -gradXtermax;

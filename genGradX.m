@@ -5,7 +5,7 @@ function [gradXmin,gradXmax] = genGradX(N,Nx,Nu,nx,nu)
 % xk - xmax <= 0 
 
 gradXmax = zeros(Nx+Nu,Nx);
-for k = 1:N+1
+for k = 1:N
     gradXmax(nu + nx*(k-1)+ nu*(k-1) + 1 : nu + nx*(k)+ nu*(k-1), nx*(k-1)+1:nx*(k)) = eye(nx);
 end
 

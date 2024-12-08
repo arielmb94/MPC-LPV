@@ -1,9 +1,11 @@
-function error = get_error(r,y,N,Ny)
+function error = get_error(r,y,D,N,Ny)
 
     if length(r)<Ny
-
-        r = repmat(r,N+1,1);
-
+        if D == 0 
+            r = repmat(r,N-1,1);
+        else
+            r = repmat(r,N,1);
+        end
     end    
 
     error = r-y;

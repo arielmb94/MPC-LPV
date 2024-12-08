@@ -37,10 +37,10 @@ nu = size(B,2);  % number of control inputs
 ny = size(C,1);  % number of measurements
 nd = size(Bd,2);  % number of distrubance inputs
 
-Nx = (N+1)*nx;
-Nu = (N+1)*nu;
-Ny = (N+1)*ny;
-Nd = (N+1)*nd;
+Nx = N*nx;
+Nu = N*nu;
+Ny = N*ny;
+Nd = N*nd;
 
 x0 = 0.45*ones(Nu+Nx,1);
 x_prev = [h1; h2];
@@ -106,5 +106,5 @@ mpc.x_ref_is_y = 0;
 
 mpc.P = S;
 mpc.hessTerminalCost = zeros(Nx+Nu,Nx+Nu);
-mpc.hessTerminalCost(nx*(N) + nu*(N+1) + 1 : end,nx*(N) + nu*(N+1) + 1 : end) = ...
+mpc.hessTerminalCost(end-nx+1: end,end-nx+1 : end) = ...
     S;

@@ -33,16 +33,30 @@ mpc.nz = size(Cz,1);  %number of performances
 mpc.ndi = size(Ddi,2);  %number of disturbance inputs to general inequalities
 mpc.nyi = size(Ci,1);  %number of general inequalities
 
-mpc.Nx = (N+1)*mpc.nx;
-mpc.Nu = (N+1)*mpc.nu;
-mpc.Ny = (N+1)*mpc.ny;
-mpc.Nd = (N+1)*mpc.nd;
+mpc.Nx = N*mpc.nx;
+mpc.Nu = N*mpc.nu;
+mpc.Nd = N*mpc.nd;
 
-mpc.Nz = N*mpc.nz;
+if mpc.D == 0
+    mpc.Ny = (N-1)*mpc.ny;
+else
+    mpc.Ny = N*mpc.ny;
+end
+
+if mpc.Dz == 0
+    mpc.Nz = (N-1)*mpc.nz;
+else
+    mpc.Nz = N*mpc.nz;
+end
+
+if mpc.Di == 0
+    mpc.Nyi = (N-1)*mpc.nyi;
+else
+    mpc.Nyi = N*mpc.nyi;
+end
+
 mpc.Ndz = N*mpc.ndz;
-
-mpc.Nyi = (N+1)*mpc.nyi;
-mpc.Ndi = (N+1)*mpc.ndi;
+mpc.Ndi = N*mpc.ndi;
 
 mpc.x_min = x_min;
 mpc.x_max = x_max;
@@ -65,7 +79,7 @@ mpc.beq = zeros(size(mpc.Aeq,1),1);
 mpc.hessCost = zeros(mpc.Nu+mpc.Nx);
 
 if ~isempty(Qe)
-    [mpc.gradErrQe,mpc.hessErrTerm] = genErrorGradHess(Qe,C,D,N,...
+    [mpc.gradErrQe,mpc.hessErrTerm] = genLinOutGradHess(Qe,C,D,N,...
         mpc.Nx,mpc.Nu,mpc.Ny,mpc.nx,mpc.nu,mpc.ny);
     mpc.hessCost = mpc.hessCost + mpc.hessErrTerm;
 else
@@ -89,7 +103,7 @@ else
 end
 
 if ~isempty(Qz)
-    [mpc.gradPerfQz,mpc.hessPerfTerm] = genPerfGradHess(Qz,Cz,Dz,N,...
+    [mpc.gradPerfQz,mpc.hessPerfTerm] = genLinOutGradHess(Qz,Cz,Dz,N,...
         mpc.Nx,mpc.Nu,mpc.Nz,mpc.nx,mpc.nu,mpc.nz);
     mpc.hessCost = mpc.hessCost + mpc.hessPerfTerm;
 else
