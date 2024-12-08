@@ -3,8 +3,7 @@ function [gradDiffCtlrR,hessDiffCtrlTerm] = genDiffControlGradHess(R,N,Nx,Nu,nx,
 
 gradDiffCtlrR = zeros(Nx+Nu,Nu);
 gradDiffCtlr = zeros(Nx+Nu,Nu);
-%hessCtrlTerm = zeros(Nx+Nu,Nx+Nu);
-for k = 0:N
+for k = 0:N-1
 
     switch k
         case 0

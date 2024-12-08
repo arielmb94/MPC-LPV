@@ -1,7 +1,7 @@
 function Aeq = genEqualities(A,B,N,Nx,Nu,nx,nu)
 
 Aeq = zeros(Nx,Nx+Nu);
-for k = 1:N+1
+for k = 1:N
     switch k 
         case 1
             Aeq((k-1)*nx+1:k*nx,1:nu+nx) = [B -eye(nx)];
