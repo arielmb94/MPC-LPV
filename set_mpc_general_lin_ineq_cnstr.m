@@ -12,12 +12,12 @@ mpc.ndi = size(Ddi,2);  %number of disturbance inputs to general inequalities
 mpc.nyi = size(Ci,1);  %number of general inequalities
 
 if mpc.Di == 0
-    mpc.Nyi = (N-1)*mpc.nyi;
+    mpc.Nyi = (mpc.N-1)*mpc.nyi;
 else
-    mpc.Nyi = N*mpc.nyi;
+    mpc.Nyi = mpc.N*mpc.nyi;
 end
 
-mpc.Ndi = N*mpc.ndi;
+mpc.Ndi = mpc.N*mpc.ndi;
 
 % General Inequalites box constraints
 [mpc.gradYimin,mpc.gradYimax] = genGradY(mpc.Ci,mpc.Di,mpc.N,mpc.Nx,mpc.Nu,mpc.Nyi,...
