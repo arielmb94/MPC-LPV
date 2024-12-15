@@ -1,4 +1,4 @@
-function [u0,J,x] = mpc_solve(x0,s_prev,u_prev,r,d,mpc,eps,x_ref,dz,di)
+function [u0,J,x] = mpc_solve(x0,s_prev,u_prev,r,d,mpc,x_ref,dz,di)
 
     % number of variables
     n = length(x0);
@@ -45,7 +45,7 @@ function [u0,J,x] = mpc_solve(x0,s_prev,u_prev,r,d,mpc,eps,x_ref,dz,di)
     continue_Newton = true;
     opts.SYM = true;
     lambda2 = 1;
-    while eps <= lambda2*0.5 && continue_Newton
+    while mpc.eps <= lambda2*0.5 && continue_Newton
 
         % Compute gradient:
 
