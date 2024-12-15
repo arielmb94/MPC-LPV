@@ -1,18 +1,11 @@
-function mpc = set_mpc_u_cnstr(mpc,u_min,u_max)
+function mpc = update_mpc_u_cnstr(mpc,u_min,u_max)
 
-mpc.u_min = u_min;
-mpc.u_max = u_max;
-
-% Control box constraints
-[mpc.gradUmin,mpc.gradUmax] = genGradU(mpc.N,mpc.Nx,mpc.Nu,mpc.nx,mpc.nu);
-
-if ~isempty(mpc.u_min)
-    [mpc.hessUmin,mi] = genHessIneq(mpc.gradUmin);
-    mpc.m = mpc.m+mi;
+if ~isempty(u_min)    
+    mpc.u_min = u_min;
 end
-if ~isempty(mpc.u_max)
-    [mpc.hessUmax,mi] = genHessIneq(mpc.gradUmax);
-    mpc.m = mpc.m+mi;
+
+if ~isempty(u_max)    
+    mpc.u_max = u_max;
 end
 
 end

@@ -1,18 +1,11 @@
-function mpc = set_mpc_delta_u_cnstr(mpc,du_min,du_max)
+function mpc = update_mpc_delta_u_cnstr(mpc,du_min,du_max)
 
-mpc.du_min = du_min;
-mpc.du_max = du_max;
-
-% Differential Control box constraints
-[mpc.gradDeltaUmin,mpc.gradDeltaUmax] = genGradDeltaU(mpc.N,mpc.Nx,mpc.Nu,mpc.nx,mpc.nu);
-
-if ~isempty(mpc.du_min)
-    [mpc.hessDeltaUmin,mi] = genHessIneq(mpc.gradDeltaUmin);
-    mpc.m = mpc.m+mi;
+if ~isempty(du_min)    
+    mpc.du_min = du_min;
 end
-if ~isempty(mpc.du_max)
-    [mpc.hessDeltaUmax,mi] = genHessIneq(mpc.gradDeltaUmax);
-    mpc.m = mpc.m+mi;
+
+if ~isempty(du_max)    
+    mpc.du_max = du_max;
 end
 
 end
