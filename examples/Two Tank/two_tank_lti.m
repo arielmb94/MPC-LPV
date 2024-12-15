@@ -8,10 +8,12 @@ h2 = 0.45;
 
 Ts = 0.01;
 
-%% LTI system
+%% Create MPC object
 
-N = 10;
+N = 5;
 mpc = init_mpc(N);
+
+%% LTI system
 
 A = [-sqrt(2*g)*sqrt(h1)/(Ab*h1) 0;
      sqrt(2*g)*sqrt(h1)/(Ab*h1) -sqrt(2*g)*sqrt(h2)/(Ab*h2)];
@@ -24,61 +26,29 @@ C = [0 1];
 sys_ct = ss(A,B,C,0);
 sys = c2d(sys_ct,Ts)
 
-N = 2;              %prediction horizon
+mpc = init_mpc_system(mpc,sys.A,sys.B,[],sys.C,sys.D,[]);
 
-A = sys.A;
-B = sys.B;
-Bd = [];
-C = sys.C;
-D = sys.D;
-Dd = [];
+%% Constraints
 
-%%
+x_min = 0.01*ones(mpc.nx,1);
+x_max = 1*ones(mpc.nx,1);
+mpc = init_mpc_state_cnstr(mpc,x_min,x_max);
 
-nx = length(A);  % number of states
-nu = size(B,2);  % number of control inputs
-ny = size(C,1);  % number of measurements
-nd = size(Bd,2);  % number of distrubance inputs
-
-Nx = N*nx;
-Nu = N*nu;
-Ny = N*ny;
-Nd = N*nd;
-
-x0 = 0.45*ones(Nu+Nx,1);
-x_prev = [h1; h2];
-u_prev = 0.45;
-
-Qe = diag(50*ones(ny,1));
-Rdu = 1;
-Ru = 0.03;
-
-% mpc structure
-
-x_min = 0.05*ones(nx,1);
-x_max = 1*ones(nx,1);
 x_ter_min = [];%;0.05*ones(nx,1);
 x_ter_max = [];%1*ones(nx,1);
-u_min = 0*ones(nu,1);
-u_max = 10*ones(nu,1);
-du_min = -0.1*ones(nu,1);
-du_max = 0.1*ones(nu,1);
+%mpc = init_mpc_ter_state_cnstr(mpc,x_ter_min,x_ter_max);
+
+u_min = 0*ones(mpc.nu,1);
+u_max = 10*ones(mpc.nu,1);
+mpc = init_mpc_u_cnstr(mpc,u_min,u_max);
+
+du_min = -0.1*ones(mpc.nu,1);
+du_max = 0.1*ones(mpc.nu,1);
+mpc = init_mpc_delta_u_cnstr(mpc,du_min,du_max);
+
 y_min = [];
 y_max = [];
-
-%% Performance Cost Matrix
-
-Cz = [];
-Dz = [];
-Ddz = [];
-
-Qz = [];
-
-ndz = size(Ddz,2);  %number of disturbance inputs to performance cost
-nz = size(Cz,1);  %number of performances
-
-Nz = N*nz;
-Ndz = N*ndz;
+%mpc = init_mpc_output_cnstr(mpc,y_min,y_max);
 
 %% General Linear Inequalities
 
@@ -89,25 +59,44 @@ Ddi = [];
 yi_min = [];
 yi_max = [];
 
-%%
-mpc = defLtiMpc(N,A,B,C,D,Bd,Dd,Qe,Rdu,Ru,Cz,Dz,Ddz,Qz,Ci,Di,Ddi,...
-    x_min,x_max,x_ter_min,x_ter_max,u_min,u_max,du_min,du_max,y_min,y_max,yi_min,yi_max)
+%mpc = init_mpc_general_lin_ineq_cnstr(mpc,yi_min,yi_max,Ci,Di,Ddi);
+
+%% Terminal Ingredients
+
+Qx = diag([30 30]);
+Ru = 1;
+ter_constraint = 0;
+x_ref_is_y = 0;
+
+[mpc] = init_mpc_ter_ingredients_dlqr(mpc,Qx,Ru,ter_constraint,x_ref_is_y);
+
+%% Costs
+
+Qe = diag(50*ones(mpc.ny,1));
+mpc = init_mpc_Tracking_cost(mpc,Qe);
+
+Rdu = 1;
+mpc = init_mpc_DiffControl_cost(mpc,Rdu);
+
+Ru = 1;
+%mpc = init_mpc_Control_cost(mpc,Ru);
+
+%% Performance Cost Matrix
+
+Cz = [];
+Dz = [];
+Ddz = [];
+
+Qz = [];
+
+%mpc = init_mpc_LinPerf_cost(mpc,Qz,Cz,Dz,Ddz);
 
 %%
+%mpc = defLtiMpc(N,A,B,C,D,Bd,Dd,Qe,Rdu,Ru,Cz,Dz,Ddz,Qz,Ci,Di,Ddi,...
+%    x_min,x_max,x_ter_min,x_ter_max,u_min,u_max,du_min,du_max,y_min,y_max,yi_min,yi_max)
 
-mpc.t = 50;
+%% Init conditions for simulation
 
-mpc.Beta = 0.75;
-mpc.min_l = 0.99;
-
-%%
-mpc.ter_ingredients = 1;
-mpc.ter_constraint = 0;
-mpc.x_ref_is_y = 0;
-
-[K,S] = dlqr(A,B,diag([30 30]),Rdu)
-
-mpc.P = S;
-mpc.hessTerminalCost = zeros(Nx+Nu,Nx+Nu);
-mpc.hessTerminalCost(end-nx+1: end,end-nx+1 : end) = ...
-    S;
+x0 = 0.45*ones(mpc.Nu+mpc.Nx,1);
+x_prev = [h1; h2];
+u_prev = 0.45;
