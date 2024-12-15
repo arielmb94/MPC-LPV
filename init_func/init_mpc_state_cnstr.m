@@ -1,4 +1,4 @@
-function mpc = set_mpc_state_cnstr(mpc,x_min,x_max)
+function mpc = init_mpc_state_cnstr(mpc,x_min,x_max)
 
 mpc.x_min = x_min;
 mpc.x_max = x_max;

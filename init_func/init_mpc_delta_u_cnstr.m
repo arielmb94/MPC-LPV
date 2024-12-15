@@ -1,4 +1,4 @@
-function mpc = set_mpc_delta_u_cnstr(mpc,du_min,du_max)
+function mpc = init_mpc_delta_u_cnstr(mpc,du_min,du_max)
 
 mpc.du_min = du_min;
 mpc.du_max = du_max;

@@ -1,4 +1,4 @@
-function mpc = set_mpc_u_cnstr(mpc,u_min,u_max)
+function mpc = init_mpc_u_cnstr(mpc,u_min,u_max)
 
 mpc.u_min = u_min;
 mpc.u_max = u_max;

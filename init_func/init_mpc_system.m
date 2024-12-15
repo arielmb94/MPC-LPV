@@ -1,4 +1,4 @@
-function mpc = set_mpc_system(mpc,A,B,Bd,C,D,Dd)
+function mpc = init_mpc_system(mpc,A,B,Bd,C,D,Dd)
 
 mpc.A = A;
 mpc.B = B;

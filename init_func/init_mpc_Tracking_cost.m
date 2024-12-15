@@ -1,4 +1,4 @@
-function mpc = set_mpc_Tracking_cost(mpc,Qe)
+function mpc = init_mpc_Tracking_cost(mpc,Qe)
 
 mpc.Qe = Qe;
 

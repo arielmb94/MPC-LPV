@@ -1,4 +1,4 @@
-function mpc = set_mpc_general_lin_ineq_cnstr(mpc,yi_min,yi_max,Ci,Di,Ddi)
+function mpc = init_mpc_general_lin_ineq_cnstr(mpc,yi_min,yi_max,Ci,Di,Ddi)
 
 mpc.yi_min = yi_min;
 mpc.yi_max = yi_max;

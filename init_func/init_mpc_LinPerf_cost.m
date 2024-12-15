@@ -1,4 +1,4 @@
-function mpc = set_mpc_LinPerf_cost(mpc,Qz,Cz,Dz,Ddz)
+function mpc = init_mpc_LinPerf_cost(mpc,Qz,Cz,Dz,Ddz)
 
 mpc.Qz = Qz;
 

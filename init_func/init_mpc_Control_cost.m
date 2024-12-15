@@ -1,4 +1,4 @@
-function mpc = set_mpc_Control_cost(mpc,Ru)
+function mpc = init_mpc_Control_cost(mpc,Ru)
 
 mpc.Ru = Ru;
 

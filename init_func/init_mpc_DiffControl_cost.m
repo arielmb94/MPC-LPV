@@ -1,4 +1,4 @@
-function mpc = set_mpc_DiffControl_cost(mpc,Rdu)
+function mpc = init_mpc_DiffControl_cost(mpc,Rdu)
 
 mpc.Rdu = Rdu;
 
