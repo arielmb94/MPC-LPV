@@ -40,12 +40,12 @@ t2/500
 close all
 
 figure
-plot(1:k,rk,'r',1:k,h1k,'g',1:k,h2k,'b')
+plot(Ts*(1:k),rk,'r',Ts*(1:k),h1k,'g',Ts*(1:k),h2k,'b')
 grid on
 
 legend('ref','h1','h2')
 ylim([0 1])
 figure
-plot(1:k,uk,1:k-1,diff(uk))
+plot(Ts*(1:k),uk,Ts*(1:k-1),diff(uk))
 grid on
 legend('U','Delta U')
