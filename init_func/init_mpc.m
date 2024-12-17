@@ -55,6 +55,7 @@ mpc.hessDiffCtrlTerm = [];
 mpc.gradCtlrRu = [];
 mpc.hessCtrlTerm = [];
 mpc.gradPerfQz = [];
+mpc.hessPerfTerm = [];
 mpc.gradXmin = [];
 mpc.gradXmax = [];
 mpc.hessXmin = [];
