@@ -1,29 +1,24 @@
-function mpc = set_mpc_LinPerf_cost(mpc,Qz,Cz,Dz,Ddz)
+function mpc = update_mpc_LinPerf_cost(mpc,Cz,Dz,Ddz,Qz)
 
-mpc.Qz = Qz;
+mpc.recompute_cost_hess = 1;
 
-mpc.Cz = Cz;
-mpc.Dz = Dz;
-mpc.Ddz = Ddz;
-
-mpc.ndz = size(Ddz,2);  %number of disturbance inputs to performance cost
-mpc.nz = size(Cz,1);  %number of performances
-
-if mpc.Dz == 0
-    mpc.Nz = (mpc.N-1)*mpc.nz;
-else
-    mpc.Nz = mpc.N*mpc.nz;
+if ~isempty(Cz)
+    mpc.Cz = Cz;
 end
 
-mpc.Ndz = mpc.N*mpc.ndz;
-
-if isempty(mpc.hessCost)
-    mpc.hessCost = zeros(mpc.Nu+mpc.Nx);
+if ~isempty(Dz)
+    mpc.Dz = Dz;
 end
 
-[mpc.gradPerfQz,mpc.hessPerfTerm] = genLinOutGradHess(Qz,Cz,Dz,mpc.N,...
-        mpc.Nx,mpc.Nu,mpc.Nz,mpc.nx,mpc.nu,mpc.nz);
+if ~isempty(Ddz)   
+    mpc.Ddz = Ddz;
+end
+
+if ~isempty(Qz)   
+    mpc.Qz = Qz;
+end
+
+[mpc.gradPerfQz,mpc.hessPerfTerm] = genLinOutGradHess(mpc.Qz,mpc.Cz,mpc.Dz,...
+    mpc.N,mpc.Nx,mpc.Nu,mpc.Nz,mpc.nx,mpc.nu,mpc.nz);
     
-mpc.hessCost = mpc.hessCost + mpc.hessPerfTerm;
-
 end
