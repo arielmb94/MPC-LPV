@@ -7,7 +7,7 @@ function [u0,J,x] = mpc_solve(x0,s_prev,u_prev,r,d,mpc,x_ref,dz,di)
     n_eq = size(mpc.Aeq,1); 
 
     % update b matrix from equality condition
-    mpc.beq = update_beq(mpc.beq,mpc.A,s_prev,mpc.N,mpc.nx,mpc.Bd,d,mpc.Nd);
+    mpc = update_mpc_beq(mpc,s_prev,d);
 
     x = x0;
 
