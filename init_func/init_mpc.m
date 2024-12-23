@@ -78,5 +78,6 @@ mpc.ter_constraint = 0;
 mpc.x_ref_is_y = 0;
 mpc.P = [];
 mpc.hessTerminalCost = [];
+mpc.recompute_cost_hess = 0;
 
 end
