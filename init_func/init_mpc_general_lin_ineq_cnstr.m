@@ -20,8 +20,8 @@ end
 mpc.Ndi = mpc.N*mpc.ndi;
 
 % General Inequalites box constraints
-[mpc.gradYimin,mpc.gradYimax] = genGradY(mpc.Ci,mpc.Di,mpc.N,mpc.Nx,mpc.Nu,mpc.Nyi,...
-    mpc.nx,mpc.nu,mpc.nyi);
+[mpc.gradYimin,mpc.gradYimax] = genGradY(mpc.Ci,mpc.Di,mpc.N,mpc.N_ctr_hor,...
+                                mpc.Nx,mpc.Nu,mpc.Nyi,mpc.nx,mpc.nu,mpc.nyi);
 
 if ~isempty(mpc.yi_min)
     [mpc.hessYimin,mi] = genHessIneq(mpc.gradYimin);
