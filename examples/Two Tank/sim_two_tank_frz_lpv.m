@@ -1,3 +1,5 @@
+two_tank_init
+
 clear yk rk tk h1k h2k
 r = 0.7;
 h1 = x_prev(1);

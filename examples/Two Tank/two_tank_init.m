@@ -10,9 +10,10 @@ Ts = 0.01;
 
 %% Create MPC object
 
-N = 5;
-mpc = init_mpc(N);
+N = 10;
+N_h_ctr = 5;
 
+mpc = init_mpc(N,N_h_ctr);
 %% LTI system
 
 A = [-sqrt(2*g)*sqrt(h1)/(Ab*h1) 0;

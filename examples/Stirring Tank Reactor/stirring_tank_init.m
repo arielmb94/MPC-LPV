@@ -17,8 +17,9 @@ x_prev = [c0;v0];
 %% Create MPC object
 
 N = 15;
-mpc = init_mpc(N);
+N_h_ctr = 5;
 
+mpc = init_mpc(N,N_h_ctr);
 %% LTI system
 
 A = [-1/theta_f-k*exp(-M/v0) -k*c0*M*exp(-M/v0)/(v0^2);
