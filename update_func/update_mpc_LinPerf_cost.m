@@ -19,6 +19,6 @@ if ~isempty(Qz)
 end
 
 [mpc.gradPerfQz,mpc.hessPerfTerm] = genLinOutGradHess(mpc.Qz,mpc.Cz,mpc.Dz,...
-    mpc.N,mpc.Nx,mpc.Nu,mpc.Nz,mpc.nx,mpc.nu,mpc.nz);
+    mpc.N,mpc.N_ctr_hor,mpc.Nx,mpc.Nu,mpc.Nz,mpc.nx,mpc.nu,mpc.nz);
     
 end

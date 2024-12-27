@@ -36,7 +36,7 @@ end
 
 % If Outputs constraint exists, update box constraints gradients
 if ~isempty(mpc.y_min) ||  ~isempty(mpc.y_max)
-    [mpc.gradYmin,mpc.gradYmax] = genGradY(mpc.C,mpc.D,mpc.N,...
+    [mpc.gradYmin,mpc.gradYmax] = genGradY(mpc.C,mpc.D,mpc.N,mpc.N_ctr_hor,...
         mpc.Nx,mpc.Nu,mpc.Ny,mpc.nx,mpc.nu,mpc.ny);
 
     if ~isempty(mpc.y_min)

@@ -5,7 +5,7 @@ if ~isempty(A) && ~isempty(B)
     mpc.B = B;
 
     % A equality contraint 
-    mpc.Aeq = genEqualities(A,B,mpc.N,mpc.Nx,mpc.Nu,mpc.nx,mpc.nu);
+    mpc.Aeq = genEqualities(A,B,mpc.N,mpc.N_ctr_hor,mpc.Nx,mpc.Nu,mpc.nx,mpc.nu);
 end
 
 if ~isempty(Bd)   

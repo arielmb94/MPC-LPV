@@ -22,7 +22,7 @@ if isempty(mpc.hessCost)
 end
 
 [mpc.gradPerfQz,mpc.hessPerfTerm] = genLinOutGradHess(Qz,Cz,Dz,mpc.N,...
-        mpc.Nx,mpc.Nu,mpc.Nz,mpc.nx,mpc.nu,mpc.nz);
+    mpc.N_ctr_hor,mpc.Nx,mpc.Nu,mpc.Nz,mpc.nx,mpc.nu,mpc.nz);
     
 mpc.hessCost = mpc.hessCost + mpc.hessPerfTerm;
 

@@ -7,7 +7,7 @@ if isempty(mpc.hessCost)
 end
 
 [mpc.gradErrQe,mpc.hessErrTerm] = genLinOutGradHess(Qe,mpc.C,mpc.D,mpc.N,...
-        mpc.Nx,mpc.Nu,mpc.Ny,mpc.nx,mpc.nu,mpc.ny);
+        mpc.N_ctr_hor,mpc.Nx,mpc.Nu,mpc.Ny,mpc.nx,mpc.nu,mpc.ny);
 
 mpc.hessCost = mpc.hessCost + mpc.hessErrTerm;
 
