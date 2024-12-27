@@ -18,59 +18,93 @@
 % grad = [C'; D']*Q*z
 % hess = [C' ; D']*Q*[C D]
 
-function [gradQ,hess] = genLinOutGradHess(Q,C,D,N,Nx,Nu,Ny,nx,nu,ny)
+function [gradQ,hess] = genLinOutGradHess(Q,C,D,N,N_h_ctr,Nx,Nu,Ny,nx,nu,ny)
 
 % grad = Grad(y)*Q*y
 % gradQ = Grad(y)*Q
+grad = zeros(Nx+Nu,Ny);
 gradQ = zeros(Nx+Nu,Ny);
-hess = zeros(Nx+Nu,Nx+Nu);
-
 for k = 0:N-1
 
-    switch k
+    if k == 0
 
-        case 0
+        if D==0
+            % Do nothing
+        else
+            % gradQ = D'*Q
+            grad(1:nu, 1:ny) = D';
+
+            gradQ(1:nu, 1:ny) = grad(1:nu, 1:ny)*Q;
             
-            if D==0
-                % Do nothing
-            else
-                % gradQ = D'*Q
-                gradQ(1:nu, 1:ny) = D'*Q;           
-                % hess = gradQ*D
-                hess(1:nu, 1:nu) = gradQ(1:nu, 1:ny)*D;
-            end
+        end
 
-        otherwise
+    elseif k < N_h_ctr
 
-            if D==0 % -> Ny is (N-1)*ny
-                
-                % gradQ = [C';D']*Q
-                gradQ(nu + 1 + nx*(k-1) + nu*(k-1)  : nu + nx*(k)+ nu*(k),...
-                    (ny*(k)+1:ny*(k+1))-ny) = ...
-                    [ C' ; D']*Q;
-                
-                % hess = gradQ*[C D]
-                hess(nu + 1 + nx*(k-1) + nu*(k-1)  : nu + nx*(k)+ nu*(k),...
-                    nu + 1 + nx*(k-1) + nu*(k-1)  : nu + nx*(k)+ nu*(k))...
-                    = gradQ(nu + 1 + nx*(k-1) + nu*(k-1)  : nu + nx*(k)+ nu*(k),...
-                    (ny*(k)+1:ny*(k+1))-ny)*[C D];
+        if D==0 % -> Ny is (N-1)*ny
+
+            % gradQ = C'*Q
+            grad(nu + 1 + nx*(k-1) + nu*(k-1)  : nu + nx*(k)+ nu*(k-1),...
+                (ny*(k)+1:ny*(k+1))-ny) = C';
+
+            gradQ(nu + 1 + nx*(k-1) + nu*(k-1)  : nu + nx*(k)+ nu*(k-1),...
+                (ny*(k)+1:ny*(k+1))-ny) = grad(nu + 1 + nx*(k-1) + nu*(k-1) ...
+                : nu + nx*(k)+ nu*(k-1),(ny*(k)+1:ny*(k+1))-ny)*Q;
+  
+        else    % -> Ny is N*ny
+
+            % gradQ = [C';D']*Q
+            grad(nu + 1 + nx*(k-1) + nu*(k-1)  : nu + nx*(k)+ nu*(k),...
+                ny*(k)+1:ny*(k+1)) = [ C' ; D'];
+
+            gradQ(nu + 1 + nx*(k-1) + nu*(k-1)  : nu + nx*(k)+ nu*(k),...
+                ny*(k)+1:ny*(k+1)) = grad(nu + 1 + nx*(k-1) + nu*(k-1)...
+                : nu + nx*(k)+ nu*(k), ny*(k)+1:ny*(k+1))*Q;
+
+        end
+
+    else
+
+        if D==0
+
+            % gradQ = C'*Q
+            grad(nu + (nx+nu)*(N_h_ctr-1) + nx*(k-N_h_ctr) + 1 : ...
+                nu + (nx+nu)*(N_h_ctr-1) + nx*(k-N_h_ctr) + nx,...
+                (ny*(k)+1:ny*(k+1))-ny) =  C';
+
+            gradQ(nu + (nx+nu)*(N_h_ctr-1) + nx*(k-N_h_ctr) + 1 : ...
+                nu + (nx+nu)*(N_h_ctr-1) + nx*(k-N_h_ctr) + nx,...
+                (ny*(k)+1:ny*(k+1))-ny) = ...
+                grad(nu + (nx+nu)*(N_h_ctr-1) + nx*(k-N_h_ctr) + 1 : ...
+                nu + (nx+nu)*(N_h_ctr-1) + nx*(k-N_h_ctr) + nx,...
+                (ny*(k)+1:ny*(k+1))-ny)*Q;
+       
+        else
+
+            % gradYmax = C' -> x^k
+            grad(nu + (nx+nu)*(N_h_ctr-1) + nx*(k-N_h_ctr) + 1  : ...
+                nu + (nx+nu)*(N_h_ctr-1) + nx*(k-N_h_ctr) + nx,...
+                (ny*(k)+1:ny*(k+1))) =  C';
+
+            gradQ(nu + (nx+nu)*(N_h_ctr-1) + nx*(k-N_h_ctr) + 1  : ...
+                nu + (nx+nu)*(N_h_ctr-1) + nx*(k-N_h_ctr) + nx,...
+                (ny*(k)+1:ny*(k+1))) = ...
+                grad(nu + (nx+nu)*(N_h_ctr-1) + nx*(k-N_h_ctr) + 1  : ...
+                nu + (nx+nu)*(N_h_ctr-1) + nx*(k-N_h_ctr) + nx,...
+                (ny*(k)+1:ny*(k+1)))*Q;
             
-            else    % -> Ny is N*ny
+            % gradYmax = D' -> u^N_h_ctr-1
+            grad(nu + (nx+nu)*(N_h_ctr-2) + nx + 1 : ...
+                nu + (nx+nu)*(N_h_ctr-1) ,...
+                (ny*(k)+1:ny*(k+1))) =  D';
 
-                % gradQ = [C';D']*Q
-                gradQ(nu + 1 + nx*(k-1) + nu*(k-1)  : nu + nx*(k)+ nu*(k),...
-                    ny*(k)+1:ny*(k+1)) = ...
-                    [ C' ; D']*Q;
+            gradQ(nu + (nx+nu)*(N_h_ctr-2) + nx + 1 : ...
+                nu + (nx+nu)*(N_h_ctr-1) ,...
+                (ny*(k)+1:ny*(k+1))) =  grad(nu + (nx+nu)*(N_h_ctr-2) + nx + 1 : ...
+                nu + (nx+nu)*(N_h_ctr-1) , (ny*(k)+1:ny*(k+1)))*Q;
 
-                % hess = gradQ*[C D]
-                hess(nu + 1 + nx*(k-1) + nu*(k-1)  : nu + nx*(k)+ nu*(k),...
-                    nu + 1 + nx*(k-1) + nu*(k-1)  : nu + nx*(k)+ nu*(k))...
-                    = gradQ(nu + 1 + nx*(k-1) + nu*(k-1)  : nu + nx*(k)+ nu*(k),...
-                    ny*(k)+1:ny*(k+1))*[C D];
-            end
-
-    end
-    
+        end
+    end   
 end
 
+hess = gradQ*grad';
 end

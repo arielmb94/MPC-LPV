@@ -4,7 +4,7 @@ mpc.y_min = y_min;
 mpc.y_max = y_max;
 
 % Outputs box constraints
-[mpc.gradYmin,mpc.gradYmax] = genGradY(mpc.C,mpc.D,mpc.N,...
+[mpc.gradYmin,mpc.gradYmax] = genGradY(mpc.C,mpc.D,mpc.N,mpc.N_ctr_hor,...
     mpc.Nx,mpc.Nu,mpc.Ny,mpc.nx,mpc.nu,mpc.ny);
 
 if ~isempty(mpc.y_min)

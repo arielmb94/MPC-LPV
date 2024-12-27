@@ -1,5 +1,5 @@
 % Computes output vectors of the form: y = Cs + Du + Dd
-function y = get_lin_out(s,u,d,nx,nu,ny,nd,N,Ny,C,D,Dd,Nd)
+function y = get_lin_out(s,u,d,nx,nu,ny,nd,N,N_h_ctr,Ny,C,D,Dd,Nd)
 
     if isempty(d) || isempty(Dd) % No disturbance term
 
@@ -16,7 +16,11 @@ function y = get_lin_out(s,u,d,nx,nu,ny,nd,N,Ny,C,D,Dd,Nd)
             else      % -> Ny is (N)*ny
 
                 sk = s((k-1)*nx+1:k*nx);
-                uk = u((k-1)*nu+1:k*nu);
+                if k < N_h_ctr
+                    uk = u((k-1)*nu+1:k*nu);
+                else
+                    uk = u(end-nu+1:end);
+                end
 
                 y((k-1)*ny+1:k*ny) = C*sk+D*uk;
 
@@ -44,7 +48,11 @@ function y = get_lin_out(s,u,d,nx,nu,ny,nd,N,Ny,C,D,Dd,Nd)
             else      % -> Ny is (N)*ny
 
                 sk = s((k-1)*nx+1:k*nx);
-                uk = u((k-1)*nu+1:k*nu);
+                if k < N_h_ctr
+                    uk = u((k-1)*nu+1:k*nu);
+                else
+                    uk = u(end-nu+1:end);
+                end
                 dk = d((k-1)*nd+1:k*nd);
 
                 y((k-1)*ny+1:k*ny) = C*sk+D*uk+Dd*dk;

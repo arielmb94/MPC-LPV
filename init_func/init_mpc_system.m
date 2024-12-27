@@ -13,7 +13,7 @@ mpc.nd = size(Bd,2);  %number of disturbance inputs
 mpc.ny = size(C,1);  %number of measurements
 
 mpc.Nx = mpc.N*mpc.nx;
-mpc.Nu = mpc.N*mpc.nu;
+mpc.Nu = mpc.N_ctr_hor*mpc.nu;
 mpc.Nd = mpc.N*mpc.nd;
 
 if mpc.D == 0
@@ -23,7 +23,7 @@ else
 end
 
 % A equality contraint (b equality constraints depends on x0 and d(k)
-mpc.Aeq = genEqualities(A,B,mpc.N,mpc.Nx,mpc.Nu,mpc.nx,mpc.nu);
+mpc.Aeq = genEqualities(A,B,mpc.N,mpc.N_ctr_hor,mpc.Nx,mpc.Nu,mpc.nx,mpc.nu);
 mpc.beq = zeros(size(mpc.Aeq,1),1);
 
 end

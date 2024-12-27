@@ -4,7 +4,8 @@ mpc.du_min = du_min;
 mpc.du_max = du_max;
 
 % Differential Control box constraints
-[mpc.gradDeltaUmin,mpc.gradDeltaUmax] = genGradDeltaU(mpc.N,mpc.Nx,mpc.Nu,mpc.nx,mpc.nu);
+[mpc.gradDeltaUmin,mpc.gradDeltaUmax] = genGradDeltaU(mpc.N_ctr_hor,...
+                                                mpc.Nx,mpc.Nu,mpc.nx,mpc.nu);
 
 if ~isempty(mpc.du_min)
     [mpc.hessDeltaUmin,mi] = genHessIneq(mpc.gradDeltaUmin);

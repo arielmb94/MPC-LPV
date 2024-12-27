@@ -1,6 +1,17 @@
-function [mpc] = init_mpc(N)
+function [mpc] = init_mpc(N,N_ctr_hor)
+arguments
+    N = 2
+    N_ctr_hor = 0
+end
 
 mpc.N = N;
+if N_ctr_hor && N_ctr_hor > N
+    mpc.N_ctr_hor = N;
+elseif N_ctr_hor
+    mpc.N_ctr_hor = N_ctr_hor;
+else
+    mpc.N_ctr_hor = N;
+end
 mpc.Qe = [];
 mpc.Rdu = [];
 mpc.Ru = [];
