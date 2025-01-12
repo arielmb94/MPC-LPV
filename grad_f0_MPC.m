@@ -12,7 +12,11 @@ function grad_J = grad_f0_MPC(mpc,err,deltaU,U,grad_ter,z)
 
     if ~isempty(mpc.gradCtlrRu)
         grad_J = grad_J + mpc.gradCtlrRu*U;
-    end  
+    end
+
+    if ~isempty(mpc.gradCtlrru)
+        grad_J = grad_J + mpc.gradCtlrru;
+    end
 
     if mpc.ter_ingredients
         grad_J(end-mpc.nx+1:end) = grad_J(end-mpc.nx+1:end) - grad_ter;
@@ -21,5 +25,9 @@ function grad_J = grad_f0_MPC(mpc,err,deltaU,U,grad_ter,z)
     if ~isempty(mpc.gradPerfQz)
         grad_J = grad_J + mpc.gradPerfQz*z;
     end  
+
+    if ~isempty(mpc.gradPerfqz)
+        grad_J = grad_J + mpc.gradPerfqz;
+    end
 
 end
