@@ -15,6 +15,7 @@ end
 mpc.Qe = [];
 mpc.Rdu = [];
 mpc.Ru = [];
+mpc.ru = [];
 mpc.A = [];
 mpc.B = [];
 mpc.Bd = [];
@@ -22,6 +23,7 @@ mpc.C = [];
 mpc.D = [];
 mpc.Dd = [];
 mpc.Qz = [];
+mpc.qz = [];
 mpc.Cz = [];
 mpc.Dz = [];
 mpc.Ddz = [];
