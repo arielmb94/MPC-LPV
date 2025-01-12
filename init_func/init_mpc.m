@@ -66,6 +66,7 @@ mpc.hessErrTerm = [];
 mpc.gradDiffCtlrRdu = [];
 mpc.hessDiffCtrlTerm = [];
 mpc.gradCtlrRu = [];
+mpc.gradCtlrru = [];
 mpc.hessCtrlTerm = [];
 mpc.gradPerfQz = [];
 mpc.hessPerfTerm = [];
