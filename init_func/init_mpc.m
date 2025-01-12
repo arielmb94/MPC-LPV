@@ -69,6 +69,7 @@ mpc.gradCtlrRu = [];
 mpc.gradCtlrru = [];
 mpc.hessCtrlTerm = [];
 mpc.gradPerfQz = [];
+mpc.gradPerfqz = [];
 mpc.hessPerfTerm = [];
 mpc.gradXmin = [];
 mpc.gradXmax = [];
