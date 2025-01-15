@@ -1,6 +1,15 @@
-function mpc = init_mpc_LinPerf_cost(mpc,Qz,Cz,Dz,Ddz)
+function mpc = init_mpc_LinPerf_cost(mpc,Cz,Dz,Ddz,Qz,qz)
+arguments
+    mpc
+    Cz
+    Dz
+    Ddz
+    Qz = [];
+    qz = [];
+end
 
 mpc.Qz = Qz;
+mpc.qz = qz;
 
 mpc.Cz = Cz;
 mpc.Dz = Dz;
@@ -17,13 +26,26 @@ end
 
 mpc.Ndz = mpc.N*mpc.ndz;
 
-if isempty(mpc.hessCost)
-    mpc.hessCost = zeros(mpc.Nu+mpc.Nx);
+% Quadratic Cost Term Gradient and Hessian Computation
+if ~isempty(Qz)
+    
+    if isempty(mpc.hessCost)
+        mpc.hessCost = zeros(mpc.Nu+mpc.Nx);
+    end
+    
+    [mpc.gradPerfQz,mpc.hessPerfTerm] = genLinOutGradHess(Qz,Cz,Dz,mpc.N,...
+        mpc.N_ctr_hor,mpc.Nx,mpc.Nu,mpc.Nz,mpc.nx,mpc.nu,mpc.nz);
+
+    mpc.hessCost = mpc.hessCost + mpc.hessPerfTerm;
+
 end
 
-[mpc.gradPerfQz,mpc.hessPerfTerm] = genLinOutGradHess(Qz,Cz,Dz,mpc.N,...
-    mpc.N_ctr_hor,mpc.Nx,mpc.Nu,mpc.Nz,mpc.nx,mpc.nu,mpc.nz);
-    
-mpc.hessCost = mpc.hessCost + mpc.hessPerfTerm;
+% Linear Cost Term gradient Computation
+if ~isempty(qz)
 
+    mpc.gradPerfqz = genGenPerfLPGrad(qz,Cz,Dz,mpc.N,mpc.N_ctr_hor,...
+                        mpc.Nx,mpc.Nu,mpc.nx,mpc.nu);
+
+end
+    
 end
