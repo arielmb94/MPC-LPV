@@ -1,3 +1,4 @@
+% This function might be fixed as a possibility to use the fallback control
 function J = f0_fun_MPC(Qe,err,N,ny,R,deltaU,nu,P,s_ter)
 
     J = 0;
