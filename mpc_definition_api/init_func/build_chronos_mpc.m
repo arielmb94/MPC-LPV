@@ -39,9 +39,11 @@ arguments
     d_in = []
     dh_in = []
 end
-
+    % get index maps for optimization variables
+    mpc = build_index(mpc);
+    
     % init equality constraints
-    mpc = genEqualities(mpc,A,B,mpc.N,mpc.nx,mpc.nu);
+    mpc = genEqualities(mpc);
 
     % init constraints
     mpc = init_constraints(mpc);

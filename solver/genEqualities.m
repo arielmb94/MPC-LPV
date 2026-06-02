@@ -3,9 +3,11 @@ function mpc = genEqualities(mpc)
 du = mpc.has_du;
 nx = mpc.nx;
 nu = mpc.nu;
+ny = mpc.ny;
+nh = mpc.nh;
 N = mpc.N;
 
-r_len = (mpc.Nx) + sum(mpc.ng_k);
+r_len = (mpc.Nx) + (mpc.Nu-1)*du + sum(mpc.ng_k);
 c_len = mpc.Nx+mpc.Nu+(mpc.Nu-mpc.nu)*du+sum(mpc.ng_k)+sum(mpc.nv_k);
 
 Aeq = zeros(r_len,c_len);
@@ -182,6 +184,66 @@ for k = 2:N
             [Aeq, beq] = appendGeneralizedConstraint(Aeq, beq, row,...
                 [], u_col, su_col, g_col, [],...
                 [],eye(nu),-eye(nu),eye(nu),[], b_val);
+        end
+    end
+
+    if mpc.has_y_cnstr
+        if mpc.y_cnstr.min_limit
+            %Ineq [-C -D I -I]*[s u g v]' = -y_min+Dd*d
+            row = mpc.y_cnstr.min_eq_index_k(:,k);
+            s_col = mpc.s_index_k(:,k);
+            u_col = mpc.u_index_k(:,k);
+            g_col = mpc.y_cnstr.g_min_index_k(:,k);
+            v_col = mpc.y_cnstr.v_min_index_k(:,k);
+            b_val = -mpc.y_cnstr.min;
+
+            [Aeq, beq] = appendGeneralizedConstraint(Aeq, beq, row,...
+                s_col, u_col, [], g_col, v_col,...
+                -mpc.C,-mpc.D,[],eye(ny),-eye(ny), b_val);
+        end
+        if mpc.y_cnstr.max_limit
+            %Ineq [C D I -I]*[s u g v]' = y_max-Dd*d
+            row = mpc.y_cnstr.max_eq_index_k(:,k);
+            s_col = mpc.s_index_k(:,k);
+            u_col = mpc.u_index_k(:,k);
+            g_col = mpc.y_cnstr.g_max_index_k(:,k);
+            v_col = mpc.y_cnstr.v_max_index_k(:,k);
+            b_val = mpc.y_cnstr.max;
+
+            [Aeq, beq] = appendGeneralizedConstraint(Aeq, beq, row,...
+                s_col, u_col, [], g_col, v_col,...
+                mpc.C,mpc.D,[],eye(ny),-eye(ny), b_val);
+        end
+    end
+
+    if mpc.has_h_cnstr
+        if mpc.h_cnstr.min_limit
+            %Ineq [-C -Ddu -D I -I]*[s su u g v]' = -h_min+Dd*d
+            row = mpc.h_cnstr.min_eq_index_k(:,k);
+            s_col = mpc.s_index_k(:,k);
+            su_col = mpc.su_index_k(:,k);
+            u_col = mpc.u_index_k(:,k);
+            g_col = mpc.h_cnstr.g_min_index_k(:,k);
+            v_col = mpc.h_cnstr.v_min_index_k(:,k);
+            b_val = -mpc.h_cnstr.min;
+
+            [Aeq, beq] = appendGeneralizedConstraint(Aeq, beq, row,...
+                s_col, u_col, su_col, g_col, v_col,...
+                -mpc.Ch,-mpc.Dh,-mpc.Dduh,eye(nh),-eye(nh), b_val);
+        end
+        if mpc.h_cnstr.max_limit
+            %Ineq [C Ddu D I -I]*[s su u g v]' = y_max-Dd*d
+            row = mpc.h_cnstr.max_eq_index_k(:,k);
+            s_col = mpc.s_index_k(:,k);
+            su_col = mpc.su_index_k(:,k);
+            u_col = mpc.u_index_k(:,k);
+            g_col = mpc.h_cnstr.g_max_index_k(:,k);
+            v_col = mpc.h_cnstr.v_max_index_k(:,k);
+            b_val = mpc.h_cnstr.max;
+
+            [Aeq, beq] = appendGeneralizedConstraint(Aeq, beq, row,...
+                s_col, u_col, su_col, g_col, v_col,...
+                mpc.Ch,mpc.Dh,mpc.Dduh,eye(nh),-eye(nh), b_val);
         end
     end
 
