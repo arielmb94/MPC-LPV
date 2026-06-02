@@ -85,6 +85,33 @@ if mpc.has_du_cnstr
     end
 end
 
+if mpc.has_h_cnstr && any(mpc.Dh)
+    if mpc.h_cnstr.min_limit
+        %Ineq [-D I -I]*[u g v]' = -h_min +Cs+Ddu*su+Dd*d
+        row = mpc.h_cnstr.min_eq_index_k(:,1);
+        u_col = mpc.u_index_k(:,1);
+        g_col = mpc.h_cnstr.g_min_index_k(:,1);
+        v_col = mpc.h_cnstr.v_min_index_k(:,1);
+        b_val = -mpc.h_cnstr.min;
+
+        [Aeq, beq] = appendGeneralizedConstraint(Aeq, beq, row,...
+            [], u_col, [], g_col, v_col,...
+            [],-mpc.Dh,[],eye(nh),-eye(nh), b_val);
+    end
+    if mpc.h_cnstr.max_limit
+        %Ineq [D I -I]*[u g v]' = h_max -Cs-Ddu*su-Dd*d
+        row = mpc.h_cnstr.max_eq_index_k(:,1);
+        u_col = mpc.u_index_k(:,1);
+        g_col = mpc.h_cnstr.g_max_index_k(:,1);
+        v_col = mpc.h_cnstr.v_max_index_k(:,1);
+        b_val = mpc.h_cnstr.max;
+
+        [Aeq, beq] = appendGeneralizedConstraint(Aeq, beq, row,...
+            [], u_col, [], g_col, v_col,...
+            [], mpc.Dh,[],eye(nh),-eye(nh), b_val);
+    end
+end
+
 
 for k = 2:N
     %Dynamics [A B -I]*[s1 u1 s2]'

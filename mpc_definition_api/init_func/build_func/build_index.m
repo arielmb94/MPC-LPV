@@ -36,9 +36,14 @@ end
 if mpc.has_h_cnstr
 nh_min = mpc.h_cnstr.min_limit*mpc.nh;
 nh_max = mpc.h_cnstr.max_limit*mpc.nh;
+
+nh_min_0 = nh_min*any(mpc.Dh);
+nh_max_0 = nh_max*any(mpc.Dh);
 else
 nh_min = 0;
 nh_max = 0;
+nh_min_0 = 0;
+nh_max_0 = 0;
 end
 
 
@@ -48,7 +53,8 @@ mpc.n = mpc.Nx+mpc.Nu+(mpc.Nu-1)*du+...
         nu_min*mpc.N+nu_max*mpc.N+...
         (nu_min*mpc.N+nu_max*mpc.N)*du+...
         (ny_min*(mpc.N-1)+ny_max*(mpc.N-1))*2+...
-        (nh_min*(mpc.N-1)+nh_max*(mpc.N-1))*2;
+        (nh_min*(mpc.N-1)+nh_max*(mpc.N-1))*2+...
+        nh_min_0*2+nh_max_0*2;
 
 x = zeros(mpc.n,1);
 
@@ -83,8 +89,9 @@ vh_max_index_k = [];
 start_index = 1;
 
 % k = 0
-dim = [mpc.nu ...      % u
-       nu_min nu_max ndu_min ndu_max]; % gu gdu
+dim = [mpc.nu ...                                           % u
+       nu_min nu_max ndu_min ndu_max nh_min_0 nh_max_0,...  % gu gdu gh_0
+       nh_min_0 nh_max_0];                                  % vh_0
 % u
 [start_index,u_index,u_index_k] = expand_index(dim,start_index,1,u_index,u_index_k);
 % gu
@@ -93,6 +100,12 @@ dim = [mpc.nu ...      % u
 % gdu
 [start_index,g_index,gdu_min_index_k] = expand_index(dim,start_index,4,g_index,gdu_min_index_k);
 [start_index,g_index,gdu_max_index_k] = expand_index(dim,start_index,5,g_index,gdu_max_index_k);
+% gh_0
+[start_index,g_index,gh_min_index_k] = expand_index(dim,start_index,6,g_index,gh_min_index_k);
+[start_index,g_index,gh_max_index_k] = expand_index(dim,start_index,7,g_index,gh_max_index_k);
+% vh_0
+[start_index,g_index,vh_min_index_k] = expand_index(dim,start_index,8,g_index,vh_min_index_k);
+[start_index,g_index,vh_max_index_k] = expand_index(dim,start_index,9,g_index,vh_max_index_k);
 
 for k = 1:mpc.N-1
 
@@ -172,6 +185,7 @@ mpc.v_index = v_index';
 x(mpc.g_index) = 1;
 x(mpc.v_index) = 1;
 mpc.slack_index = find(x==1);
+mpc.variables_index = find(x==0);
 
 if mpc.has_s_cnstr
     if mpc.s_cnstr.min_limit
@@ -215,12 +229,12 @@ end
 
 if mpc.has_h_cnstr
     if mpc.h_cnstr.min_limit
-    mpc.h_cnstr.g_min_index_k = [zeros(mpc.nh,1) gh_min_index_k' zeros(mpc.nh,1)];
-    mpc.h_cnstr.v_min_index_k = [zeros(mpc.nh,1) vh_min_index_k' zeros(mpc.nh,1)];
+    mpc.h_cnstr.g_min_index_k = [zeros(mpc.nh-nh_min_0,1) gh_min_index_k' zeros(mpc.nh,1)];
+    mpc.h_cnstr.v_min_index_k = [zeros(mpc.nh-nh_min_0,1) vh_min_index_k' zeros(mpc.nh,1)];
     end
     if mpc.h_cnstr.max_limit
-    mpc.h_cnstr.g_max_index_k = [zeros(mpc.nh,1) gh_max_index_k' zeros(mpc.nh,1)];
-    mpc.h_cnstr.v_max_index_k = [zeros(mpc.nh,1) vh_max_index_k' zeros(mpc.nh,1)];
+    mpc.h_cnstr.g_max_index_k = [zeros(mpc.nh-nh_max_0,1) gh_max_index_k' zeros(mpc.nh,1)];
+    mpc.h_cnstr.v_max_index_k = [zeros(mpc.nh-nh_max_0,1) vh_max_index_k' zeros(mpc.nh,1)];
     end
 end
 
@@ -253,6 +267,10 @@ h_max_eq_index_k = [];
 % DU constr
 [start_index,du_min_eq_index_k] = expand_equal_index(ndu_min,start_index,du_min_eq_index_k);
 [start_index,du_max_eq_index_k] = expand_equal_index(ndu_max,start_index,du_max_eq_index_k);
+
+% H constr
+[start_index,h_min_eq_index_k] = expand_equal_index(nh_min_0,start_index,h_min_eq_index_k);
+[start_index,h_max_eq_index_k] = expand_equal_index(nh_min_0,start_index,h_max_eq_index_k);
 
 for k = 1:mpc.N-1
 
@@ -324,10 +342,10 @@ if mpc.has_y_cnstr
 end
 if mpc.has_h_cnstr
     if mpc.h_cnstr.min_limit
-    mpc.h_cnstr.min_eq_index_k = [zeros(mpc.nh,1) h_min_eq_index_k' zeros(mpc.nh,1)];
+    mpc.h_cnstr.min_eq_index_k = [zeros(mpc.nh-nh_min_0,1) h_min_eq_index_k' zeros(mpc.nh,1)];
     end
     if mpc.h_cnstr.max_limit
-    mpc.h_cnstr.max_eq_index_k = [zeros(mpc.nh,1) h_max_eq_index_k' zeros(mpc.nh,1)];
+    mpc.h_cnstr.max_eq_index_k = [zeros(mpc.nh-nh_max_0,1) h_max_eq_index_k' zeros(mpc.nh,1)];
     end
 end
 
