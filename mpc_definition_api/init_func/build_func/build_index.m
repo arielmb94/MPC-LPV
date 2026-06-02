@@ -104,8 +104,8 @@ dim = [mpc.nu ...                                           % u
 [start_index,g_index,gh_min_index_k] = expand_index(dim,start_index,6,g_index,gh_min_index_k);
 [start_index,g_index,gh_max_index_k] = expand_index(dim,start_index,7,g_index,gh_max_index_k);
 % vh_0
-[start_index,g_index,vh_min_index_k] = expand_index(dim,start_index,8,g_index,vh_min_index_k);
-[start_index,g_index,vh_max_index_k] = expand_index(dim,start_index,9,g_index,vh_max_index_k);
+[start_index,v_index,vh_min_index_k] = expand_index(dim,start_index,8,v_index,vh_min_index_k);
+[start_index,v_index,vh_max_index_k] = expand_index(dim,start_index,9,v_index,vh_max_index_k);
 
 for k = 1:mpc.N-1
 

@@ -39,14 +39,18 @@ arguments
     d_in = []
     dh_in = []
 end
+
     % get index maps for optimization variables
     mpc = build_index(mpc);
     
     % init equality constraints
     mpc = genEqualities(mpc);
 
-    % init constraints
-    mpc = init_constraints(mpc);
+    % init soft slacks cost
+    mpc = set_soft_cost_qv(mpc);
+
+    % init costs
+    mpc = init_costs(mpc);
 
     % compute primal variables vector
     x0 = rollstates(mpc,s_prev,u_prev,x_ref,d_in);
@@ -70,66 +74,8 @@ end
         dh = dh_in;
     end
     
-    % Initialize slack related data
-    if mpc.Nv
-        x0(mpc.Nx+mpc.Nu+1:mpc.Nx+mpc.Nu+mpc.Nv) = mpc.slack_epsilon*2;
-        mpc = get_mpc_variables(mpc,x0,s_prev,u_prev,[],d,dh,[]);
-        [mpc,x0] = mpc_slack_update(mpc,x0,x_ref);
+    
 
-        % Update slack penalty gradient
-        if ~isempty(mpc.s_cnstr)
-            mpc = init_gradSlack(mpc,mpc.s_cnstr);
-        end
-        if ~isempty(mpc.y_cnstr)
-            mpc = init_gradSlack(mpc,mpc.y_cnstr);
-        end
-        if ~isempty(mpc.h_cnstr)
-            mpc = init_gradSlack(mpc,mpc.h_cnstr);
-        end
-%         if mpc.ter_constraint
-%             mpc = init_ter_gradSlack(mpc);
-%         end
-
-    end
-
-end
-
-function mpc = init_ter_gradSlack(mpc)
-    if ~mpc.gradSlackqv(mpc.Nx+mpc.Nu+mpc.v_ter_global_index)
-        if ~isempty(mpc.Qe)
-            qv = max(eig(mpc.Qe))*10;
-        else
-            qv = mpc.qv;
-        end
-
-        mpc.gradSlackqv(mpc.Nx+mpc.Nu+mpc.v_ter_global_index)...
-            = qv;
-    end
-end
-
-function mpc = init_gradSlack(mpc,cnstr)
-    if cnstr.min_limit
-        if ~mpc.gradSlackqv(mpc.Nx+mpc.Nu+cnstr.min_v_global_index)
-            if ~isempty(mpc.Qe)
-                qv = max(eig(mpc.Qe))*10;
-            else
-                qv = mpc.qv;
-            end
-            mpc.gradSlackqv(mpc.Nx+mpc.Nu+cnstr.min_v_global_index)...
-                = qv;
-        end
-    end
-    if cnstr.max_limit
-        if ~mpc.gradSlackqv(mpc.Nx+mpc.Nu+cnstr.max_v_global_index)
-            if ~isempty(mpc.Qe)
-                qv = max(eig(mpc.Qe))*10;
-            else
-                qv = mpc.qv;
-            end
-            mpc.gradSlackqv(mpc.Nx+mpc.Nu+cnstr.max_v_global_index)...
-                = qv;
-        end
-    end
 end
 
 function x0 = rollstates(mpc,s_prev,u_prev,x_ref,d_in)
