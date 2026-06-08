@@ -113,6 +113,15 @@ mpc.Ndh = 0;
 mpc.Aeq = [];
 mpc.beq = [];
 
+mpc.r = [];
+mpc.y = [];
+mpc.err = [];
+mpc.d = [];
+mpc.z = [];
+mpc.dz = [];
+mpc.h = [];
+mpc.dh = [];
+
 mpc.tracking_cost = 0;
 mpc.quad_control_cost = 0;
 mpc.lin_control_cost = 0;

@@ -54,43 +54,46 @@ function [u0,x0,iter,mpc] = mpc_solve(mpc,x0,s_prev,u_prev,...
                                             r_in,d_in,x_ref_in,dz_in,dh_in)
 
     % number of variables
-    n = length(x0);
-
+    n = mpc.n;
     % number of equality constraints
     n_eq = size(mpc.Aeq,1); 
 
     % handle input vector sizes
-    if ~isempty(r_in) && length(r_in) < mpc.Ny
-        r = fill_vec(r_in,mpc.ny,mpc.Ny,1);
+    len_r_in = size(r_in,2);
+    if ~isempty(r_in) && len_r_in < mpc.N-1
+        mpc.r(:,:) = fill_vec(mpc.r,r_in,1);
     else
-        r = r_in;
+        mpc.r(:,:) = r_in;
     end
 
-    if ~isempty(d_in) && length(d_in)< mpc.Nd
-        d = fill_vec(d_in,mpc.nd,mpc.Nd,1);
+    len_d_in = size(d_in,2);
+    if ~isempty(d_in) && len_d_in < mpc.N
+        mpc.d(:,:) = fill_vec(mpc.d,d_in,1);
     else
-        d = d_in;
+        mpc.d(:,:) = d_in;
     end
 
-    if ~isempty(dz_in) && length(dz_in)< mpc.Nd
-        dz = fill_vec(dz_in,mpc.ndz,mpc.Ndz,1);
+    len_dz_in = size(dz_in,2);
+    if ~isempty(dz_in) && len_dz_in < mpc.Nz
+        mpc.dz(:,:) = fill_vec(mpc.dz,dz_in,1);
     else
-        dz = dz_in;
+        mpc.dz(:,:) = dz_in;
     end
 
-    if ~isempty(dh_in) && length(dh_in)< mpc.Nd
-        dh = fill_vec(dh_in,mpc.ndh,mpc.Ndh,1);
+    len_dh_in = size(dh_in,2);
+    if ~isempty(dh_in) && len_dh_in < mpc.Nh
+        mpc.dh(:,:) = fill_vec(mpc.dh,dh_in,1);
     else
-        dh = dh_in;
+        mpc.dh(:,:) = dh_in;
     end
 
     if mpc.ter_ingredients
         if mpc.x_ref_is_y && isempty(x_ref_in)
-            x_ref = r(end-mpc.ny+1:end);
+            x_ref = mpc.r(:,mpc.N-1);
         else
             x_ref = x_ref_in;
         end    
-        grad_ter = zeros(mpc.nx,1);
+        %grad_ter = zeros(mpc.nx,1);
     else 
         x_ref = [];
         grad_ter = [];

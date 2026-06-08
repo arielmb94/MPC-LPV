@@ -1,24 +1,20 @@
-function v_full = fill_vec(v,n,N,fill_style)
+function v_full = fill_vec(v_full, v, fill_style)
 
-l_v = length(v);
-step_v = l_v/n;      % number of steps filled already
-step_full = N/n;     % number of steps to fill
+[~, step_v] = size(v);
+[~, step_full] = size(v_full);
 
-miss_step = step_full-step_v; % steps needed to be filled
+% Copy available stages
+v_full(:,1:step_v) = v;
 
-v_full = zeros(N,1);
-v_full(1:l_v) = v;
-
-if fill_style == 0 % fill with zeros
-    v_full(l_v+1:end) = zeros(miss_step*n,1);
-else                % fill repeat last
-
-    last_v = v(l_v-n+1:l_v); % get last step vector
-
-    for i = 1:miss_step % fill with repeated last vector
-        v_full(l_v+(i-1)*n+1:l_v+i*n) = last_v;
+% Fill remaining stages
+if fill_style == 0
+    % Zero fill
+    v_full(:,step_v+1:step_full) = 0;
+else
+    % Repeat last stage
+    for i = step_v+1:step_full
+        v_full(:,i) = v(:,step_v);
     end
 end
 
 end
-

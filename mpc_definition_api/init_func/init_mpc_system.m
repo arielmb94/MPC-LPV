@@ -34,18 +34,24 @@ function mpc = init_mpc_system(mpc,A,B,Bd,C,D,Dd)
 
 mpc.A = A;
 mpc.B = B;
-mpc.Bd = Bd;
+if max(any(Bd))
+    mpc.Bd = Bd;
+end
 mpc.C = C;
-mpc.D = D;
-mpc.Dd = Dd;
+if max(any(D))
+    mpc.D = D;
+end
+if max(any(Dd))
+    mpc.Dd = Dd;
+end
 
-mpc.nx = size(A,1);  %number of states
-mpc.nu = size(B,2);  %number of control inputs
-mpc.nd = size(Bd,2);  %number of disturbance inputs
-mpc.ny = size(C,1);  %number of measurements
+mpc.nx = size(mpc.A,1);  %number of states
+mpc.nu = size(mpc.B,2);  %number of control inputs
+mpc.nd = size(mpc.Bd,2);  %number of disturbance inputs
+mpc.ny = size(mpc.C,1);  %number of measurements
 
 mpc.Nx = mpc.N*mpc.nx;
-mpc.Nu = mpc.N_ctr_hor*mpc.nu;
+mpc.Nu = mpc.N*mpc.nu;
 mpc.Nd = mpc.N*mpc.nd;
 
 mpc.s = zeros(mpc.Nx,1);
@@ -54,13 +60,19 @@ mpc.s_ter = zeros(mpc.nx,1);
 mpc.u = zeros(mpc.Nu,1);
 mpc.du = zeros(mpc.Nu,1);
 
-if mpc.D == 0
-    mpc.Ny = (mpc.N-1)*mpc.ny;
-else
-    mpc.Ny = mpc.N*mpc.ny;
+
+if mpc.nd
+    mpc.d = zeros(mpc.nd,mpc.N);
 end
 
-mpc.y = zeros(mpc.Ny,1);
-mpc.err = zeros(mpc.Ny,1);
+if mpc.ny
+    mpc.Ny = (mpc.N-1)*mpc.ny;
+
+    mpc.r = zeros(mpc.ny,mpc.N-1);
+    mpc.y = zeros(mpc.ny,mpc.N-1);
+    mpc.err = zeros(mpc.ny,mpc.N-1);
+end
+
+
 
 end

@@ -52,14 +52,14 @@ end
     mpc = init_costs(mpc);
 
     % compute primal variables vector
-    if ~isempty(d_in) && length(d_in)< mpc.Nd
-        d = fill_vec(d_in,mpc.nd,mpc.Nd,1);
-        d = reshape(d,mpc.nd,mpc.N);
+    len_d_in = size(d_in,2);
+    if ~isempty(d_in) && len_d_in< mpc.N
+        mpc.d(:,:) = fill_vec(mpc.d,d_in,1);
     else
-        d = d_in;
+        mpc.d(:,:) = d_in;
     end 
 
-    x0 = rollstates(mpc,s_prev,u_prev,x_ref,d);
+    x0 = rollstates(mpc,s_prev,u_prev,x_ref,mpc.d);
 
     x0(mpc.slack_index) = 1/mpc.t;
     mpc.x0 = x0;
