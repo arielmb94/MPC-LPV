@@ -187,6 +187,10 @@ x(mpc.v_index) = 1;
 mpc.slack_index = find(x==1);
 mpc.variables_index = find(x==0);
 
+mpc.g = x(mpc.g_index);
+mpc.v = x(mpc.v_index);
+mpc.slacks = x(mpc.slack_index);
+
 if mpc.has_s_cnstr
     if mpc.s_cnstr.min_limit
     mpc.s_cnstr.g_min_index_k = [zeros(mpc.nx,1) gs_min_index_k'];

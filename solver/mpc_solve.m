@@ -113,7 +113,7 @@ function [u0,x0,iter,mpc] = mpc_solve(mpc,x0,s_prev,u_prev,...
 
     % get mpc variables from optimization vector x and constraint
     % information and feasibility
-    mpc = get_mpc_variables(mpc,x0,s_prev,u_prev,r,d,dh,dz);
+    mpc = get_mpc_variables(mpc,mpc.x0,s_prev,u_prev);
     % If exists, update slack variables
     if mpc.Nv
         [mpc,x0] = mpc_slack_update(mpc,x0,x_ref);

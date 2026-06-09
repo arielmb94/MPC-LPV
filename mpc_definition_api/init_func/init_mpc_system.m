@@ -55,12 +55,11 @@ mpc.Nx = mpc.N*mpc.nx;
 mpc.Nu = mpc.N*mpc.nu;
 mpc.Nd = mpc.N*mpc.nd;
 
-mpc.s = zeros(mpc.Nx,1);
-mpc.s_all = zeros(mpc.Nx+mpc.nx,1);
+mpc.s = zeros(mpc.nx,mpc.N+1);
 mpc.s_ter = zeros(mpc.nx,1);
-mpc.u = zeros(mpc.Nu,1);
-mpc.du = zeros(mpc.Nu,1);
-
+mpc.u = zeros(mpc.nu,mpc.N);
+mpc.du = zeros(mpc.nu,mpc.N);
+mpc.su = zeros(mpc.nu,mpc.N);
 
 if mpc.nd
     mpc.d = zeros(mpc.nd,mpc.N);
@@ -72,6 +71,16 @@ if mpc.ny
     mpc.r = zeros(mpc.ny,mpc.N-1);
     mpc.y = zeros(mpc.ny,mpc.N-1);
     mpc.err = zeros(mpc.ny,mpc.N-1);
+end
+
+if ~isempty(mpc.C) && max(any(mpc.C))
+    mpc.y_use_s = 1;
+end
+if ~isempty(mpc.D) && max(any(mpc.D))
+    mpc.y_use_u = 1;
+end
+if ~isempty(mpc.Dd) && max(any(mpc.Dd))
+    mpc.y_use_d = 1;
 end
 
 end

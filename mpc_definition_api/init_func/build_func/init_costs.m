@@ -34,26 +34,10 @@ end
 
 function mpc = genCustomCost(mpc)
 
-if ~isempty(mpc.Cz) && max(any(mpc.Cz))
-    use_s = 1;
-else
-    use_s = 0;
-end
-if ~isempty(mpc.Dz) && max(any(mpc.Dz))
-    use_u = 1;
-else
-    use_u = 0;
-end
-if ~isempty(mpc.Dduz) && max(any(mpc.Dduz))
-    use_su = 1;
-else
-    use_su = 0;
-end
-
 if mpc.quad_custom_cost
 
     % k = 0
-    if use_u
+    if mpc.z_use_u
         gradPerfQz = mpc.Dz'*mpc.Qz;
         hessPerfCost = gradPerfQz*mpc.Dz;
 
@@ -73,15 +57,15 @@ if mpc.quad_custom_cost
 
         grad_z = [];
 
-        if use_s
+        if mpc.z_use_s
             index_k = [index_k;s_index];
             grad_z =  [grad_z;mpc.Cz'];
         end
-        if use_su
+        if mpc.z_use_su
             index_k = [index_k;su_index];
-            grad_z =  [grad_z;mpc.Dduz'];
+            grad_z =  [grad_z;mpc.Dsuz'];
         end
-        if use_u
+        if mpc.z_use_u
             index_k = [index_k;u_index];
             grad_z =  [grad_z;mpc.Dz'];
         end
@@ -100,7 +84,7 @@ if mpc.lin_custom_cost
     mpc.gradPerfqz = zeros(mpc.n,1);
 
     % k = 0
-    if use_u
+    if mpc.z_use_u
         u_index = mpc.u_index_k(:,1);
         mpc.gradPerfqz(u_index) = mpc.Dz'*mpc.qz;
     end
@@ -114,15 +98,15 @@ if mpc.lin_custom_cost
 
         grad_z = [];
 
-        if use_s
+        if mpc.z_use_s
             index_k = [index_k;s_index];
             grad_z =  [grad_z;mpc.Cz'];
         end
-        if use_su
+        if mpc.z_use_su
             index_k = [index_k;su_index];
-            grad_z =  [grad_z;mpc.Dduz'];
+            grad_z =  [grad_z;mpc.Dsuz'];
         end
-        if use_u
+        if mpc.z_use_u
             index_k = [index_k;u_index];
             grad_z =  [grad_z;mpc.Dz'];
         end
