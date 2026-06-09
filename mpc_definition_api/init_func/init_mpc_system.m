@@ -36,6 +36,7 @@ mpc.A = A;
 mpc.B = B;
 if max(any(Bd))
     mpc.Bd = Bd;
+    mpc.dyn_use_d = 1;
 end
 mpc.C = C;
 if max(any(D))
@@ -72,7 +73,5 @@ if mpc.ny
     mpc.y = zeros(mpc.ny,mpc.N-1);
     mpc.err = zeros(mpc.ny,mpc.N-1);
 end
-
-
 
 end

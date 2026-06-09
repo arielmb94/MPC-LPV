@@ -112,6 +112,7 @@ mpc.Ndz = 0;
 mpc.Ndh = 0;
 mpc.Aeq = [];
 mpc.beq = [];
+mpc.dyn_use_d = 0;
 
 mpc.r = [];
 mpc.y = [];

@@ -100,7 +100,7 @@ function [u0,x0,iter,mpc] = mpc_solve(mpc,x0,s_prev,u_prev,...
     end
 
     % update b matrix from equality condition
-    mpc = update_mpc_beq(mpc,s_prev,d);
+    mpc = update_mpc_beq(mpc,s_prev,u_prev);
     
     % Recompute hessian if cost terms have been updated
     if mpc.recompute_cost_hess
