@@ -52,7 +52,7 @@ if mpc.quad_custom_cost
 
         index_k = [];
         s_index = mpc.s_index_k(:,k);
-        su_index = mpc.su_index_k(:,k);
+        %su_index = mpc.su_index_k(:,k);
         u_index = mpc.u_index_k(:,k);
 
         grad_z = [];

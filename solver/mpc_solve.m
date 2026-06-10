@@ -1,6 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-%   [u0,x,iter,iter_feas] = mpc_solve(mpc,x0,s_prev,u_prev,r,d,x_ref,dz,dh)
 %
 % Solve the current iteration of the MPC problem.
 %
@@ -50,7 +49,7 @@
 %   starting point finder 
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [u0,x0,iter,mpc] = mpc_solve(mpc,x0,s_prev,u_prev,...
+function [u0,iter,mpc] = mpc_solve(mpc,s_prev,u_prev,...
                                             r_in,d_in,x_ref_in,dz_in,dh_in)
 
     % number of variables
@@ -58,6 +57,7 @@ function [u0,x0,iter,mpc] = mpc_solve(mpc,x0,s_prev,u_prev,...
     % number of equality constraints
     n_eq = size(mpc.Aeq,1); 
 
+    x0 = mpc.x0;
     % handle input vector sizes
     len_r_in = size(r_in,2);
     if ~isempty(r_in) && len_r_in < mpc.N-1
@@ -113,7 +113,7 @@ function [u0,x0,iter,mpc] = mpc_solve(mpc,x0,s_prev,u_prev,...
 
     % get mpc variables from optimization vector x and constraint
     % information and feasibility
-    mpc = get_mpc_variables(mpc,mpc.x0,s_prev,u_prev);
+    mpc = get_mpc_variables(mpc,x0,s_prev,u_prev);
     % If exists, update slack variables
 %     if mpc.Nv
 %         [mpc,x0] = mpc_slack_update(mpc,x0,x_ref);
@@ -131,10 +131,10 @@ function [u0,x0,iter,mpc] = mpc_solve(mpc,x0,s_prev,u_prev,...
         % 1. Compute gradient/Hessian of box inequalities at x0:
         % init inequalities gradient vector
         grad_fi_Ind = zeros(n,1);
-        grad_fi_Ind(mpc.slack_index) = -1./mpc.slacks;
+        grad_fi_Ind(mpc.slack_index) = -1./(mpc.slacks-mpc.eps);
         % init inequalities hessian vector
         hess_fi_Ind = zeros(n,1);
-        hess_fi_Ind(mpc.slack_index) = 1./(mpc.slacks.^2);
+        hess_fi_Ind(mpc.slack_index) = 1./(mpc.slacks-mpc.eps).^2;
 
 %         % state inequalities
 %         if ~isempty(mpc.s_cnstr)
@@ -196,14 +196,18 @@ function [u0,x0,iter,mpc] = mpc_solve(mpc,x0,s_prev,u_prev,...
 %             end
         end
 
-        grad_f0 = grad_f0_MPC(mpc,mpc.err,mpc.du,mpc.u,grad_ter,mpc.z);
+        grad_f0 = grad_f0_MPC(mpc);
         
         % 4. Compute gradient at x0 : grad(J) = t*grad(f0)+grad(Phi)
         grad_J_x0 = mpc.t*grad_f0+grad_fi_Ind;
 
 
         % 3. Compute Hessian of f(x0,t):
-        hess_J_x0 = mpc.t*mpc.hessCost+hess_fi_Ind;
+        hess_J_x0 = mpc.t*mpc.hessCost+mpc.eps_thknv*eye(n);
+        for k = 1:length(mpc.slack_index)
+            i = mpc.slack_index(k);
+            hess_J_x0(i,i) = hess_J_x0(i,i) + hess_fi_Ind(i);
+        end
 
         % solve KKT system
         KKT = [hess_J_x0 mpc.Aeq';mpc.Aeq zeros(n_eq)];
@@ -220,8 +224,10 @@ function [u0,x0,iter,mpc] = mpc_solve(mpc,x0,s_prev,u_prev,...
         l = 1;
         xhat = x0+l*delta_x_prim;
 
-        mpc = get_mpc_variables(mpc,xhat,s_prev,u_prev,r,d,dh,dz);
-        [mpc,feas] = check_mpc_feasibility(mpc,x_ref);
+%         mpc = get_mpc_variables(mpc,xhat,s_prev,u_prev,r,d,dh,dz);
+%         [mpc,feas] = check_mpc_feasibility(mpc,x_ref);
+
+        feas = all(xhat(mpc.slack_index)-mpc.eps>0);
 
         if feas
             x0 = xhat;
@@ -231,8 +237,10 @@ function [u0,x0,iter,mpc] = mpc_solve(mpc,x0,s_prev,u_prev,...
 
                 xhat = x0+l*delta_x_prim;
 
-                mpc = get_mpc_variables(mpc,xhat,s_prev,u_prev,r,d,dh,dz);
-                [mpc,feas] = check_mpc_feasibility(mpc,x_ref);
+%                 mpc = get_mpc_variables(mpc,xhat,s_prev,u_prev,r,d,dh,dz);
+%                 [mpc,feas] = check_mpc_feasibility(mpc,x_ref);
+
+                feas = all(xhat(mpc.slack_index)-mpc.eps>0);
 
             end
             x0 = xhat;
@@ -240,6 +248,7 @@ function [u0,x0,iter,mpc] = mpc_solve(mpc,x0,s_prev,u_prev,...
                 continue_Newton = false;
             end
         end
+        mpc = get_mpc_variables(mpc,x0,s_prev,u_prev);
         iter = iter+1;
     end
   
@@ -253,5 +262,8 @@ function [u0,x0,iter,mpc] = mpc_solve(mpc,x0,s_prev,u_prev,...
         % Get first control action
         u0 = mpc.u(1:mpc.nu);
     end
+    u0 = mpc.u(:,1);
+    mpc.x0(:) = x0;
+
 
 end

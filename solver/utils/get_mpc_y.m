@@ -13,5 +13,5 @@ for k = 2:mpc.N
         mpc.y(:,k-1) = mpc.y(:,k-1) + mpc.Dd*mpc.d(:,k);
     end
 end
-mpc.err = mpc.y-mpc.r;
+mpc.err = mpc.r-mpc.y;
 end

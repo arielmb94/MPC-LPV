@@ -7,7 +7,7 @@ ny = mpc.ny;
 nh = mpc.nh;
 N = mpc.N;
 
-r_len = (mpc.Nx) + (mpc.Nu-1)*du + sum(mpc.ng_k);
+r_len = (mpc.Nx) + (mpc.Nu-mpc.nu)*du + sum(mpc.ng_k);
 c_len = mpc.Nx+mpc.Nu+(mpc.Nu-mpc.nu)*du+sum(mpc.ng_k)+sum(mpc.nv_k);
 
 Aeq = zeros(r_len,c_len);
