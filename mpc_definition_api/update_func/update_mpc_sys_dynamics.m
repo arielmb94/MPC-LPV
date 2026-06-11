@@ -33,23 +33,14 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mpc = update_mpc_sys_dynamics(mpc,A,B,Bd)
 
-updateEqualities = 0;
-
 if ~isempty(A)
     mpc.A = A;
-    updateEqualities = 1;
+    mpc = update_A_Equalities(mpc);
 end
 
 if ~isempty(B)
     mpc.B = B;
-    updateEqualities = 1;
-end
-
-if updateEqualities
-
-    % A equality contraint 
-    mpc = genEqualities(mpc,mpc.A,mpc.B,mpc.N,mpc.N_ctr_hor,...
-        mpc.nx,mpc.nu);
+    mpc = update_B_Equalities(mpc);
 end
 
 if ~isempty(Bd)   
