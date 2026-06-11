@@ -74,6 +74,7 @@ elseif N_ctr_hor
 else
     mpc.N_ctr_hor = N;
 end
+
 mpc.Qe = [];
 mpc.Rdu = [];
 mpc.Ru = [];
@@ -137,6 +138,7 @@ mpc.dh = [];
 mpc.g = [];
 mpc.v = [];
 mpc.slacks = [];
+mpc.xN_ref = [];
 
 mpc.tracking_cost = 0;
 mpc.quad_control_cost = 0;
@@ -176,8 +178,9 @@ mpc.eps = 1e-4;
 mpc.max_iter = 10;
 mpc.ter_ingredients = 0;
 mpc.ter_constraint = 0;
-mpc.x_ref_is_y = 0;
+mpc.xN_ref_is_y = 0;
 mpc.P = [];
+mpc.P2 = [];
 mpc.K = [];
 mpc.recompute_cost_hess = 0;
 mpc.t_feas = 500;

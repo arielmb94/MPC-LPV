@@ -1,8 +1,8 @@
-function mpc = update_mpc_beq(mpc,x_prev,u_prev)
+function mpc = update_mpc_beq(mpc,s_prev,u_prev)
 
 % k = 0
 index = mpc.dyn_k(:,1);
-mpc.beq(index) = -mpc.A*x_prev;
+mpc.beq(index) = -mpc.A*s_prev;
 if mpc.dyn_use_d
     mpc.beq(index) = mpc.beq(index) - mpc.Bd*mpc.d(:,1);
 end

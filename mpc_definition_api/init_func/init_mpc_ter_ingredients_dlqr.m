@@ -54,36 +54,37 @@
 % provides more than enough "pull" to stabilize the system and guide it 
 % without sacrificing solver speed or numerical stability.
 function mpc = init_mpc_ter_ingredients_dlqr(mpc,Qx,Ru,...
-                                             x_ref_is_y,...
+                                             xN_ref_is_y,...
                                              terminal_constraint,qv_ter)
 arguments
     mpc
     Qx
     Ru
-    x_ref_is_y = 0
+    xN_ref_is_y = 0
     terminal_constraint = 0
     qv_ter = []
 end
 
 mpc.ter_ingredients = 1;
 mpc.ter_constraint = terminal_constraint;
-mpc.x_ref_is_y = x_ref_is_y;
+mpc.xN_ref_is_y = xN_ref_is_y;
 
 [K,P] = dlqr(mpc.A,mpc.B,Qx,Ru);
 
+mpc.xN_ref = zeros(mpc.nx,1);
+
 mpc.K = K;
 mpc.P = P;
-mpc.P2 = 2*P;
 
-if isempty(mpc.hessCost)
-    mpc.hessCost = zeros(mpc.Nu+mpc.Nx+mpc.Nv);
-end
-
-mpc.hessTerminalCost = zeros(mpc.Nx+mpc.Nu+mpc.Nv);
-N = mpc.Nx+mpc.Nu;
-mpc.hessTerminalCost(N-mpc.nx+1: N,N-mpc.nx+1 : N) = 2*P;
-
-mpc.hessCost = mpc.hessCost + mpc.hessTerminalCost;
+% if isempty(mpc.hessCost)
+%     mpc.hessCost = zeros(mpc.Nu+mpc.Nx+mpc.Nv);
+% end
+% 
+% mpc.hessTerminalCost = zeros(mpc.Nx+mpc.Nu+mpc.Nv);
+% N = mpc.Nx+mpc.Nu;
+% mpc.hessTerminalCost(N-mpc.nx+1: N,N-mpc.nx+1 : N) = 2*P;
+% 
+% mpc.hessCost = mpc.hessCost + mpc.hessTerminalCost;
 
 % if terminal_constraint 
 %     % fi_ter = e_xN'*P*e_xN - vi < 0

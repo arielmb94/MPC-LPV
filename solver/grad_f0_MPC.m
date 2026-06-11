@@ -80,8 +80,10 @@ for k = 2:mpc.N
             grad_J(index) = grad_J(index) + mpc.gradPerfqz(index);
         end
     end
-
 end
 
-
+if mpc.ter_ingredients
+    index = mpc.s_index_k(:,mpc.N+1);
+    grad_J(index) = grad_J(index) - mpc.P2*(mpc.xN_ref-mpc.s_ter);
+end
 end

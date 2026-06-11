@@ -25,9 +25,9 @@ end
 if mpc.ter_ingredients
     s_index = mpc.s_index_k(:,mpc.N+1);
 
-    mpc.P2 = -2*mpc.P;
+    mpc.P2 = 2*mpc.P;
     mpc.hessCost(s_index,s_index) = ...
-            mpc.hessCost(s_index,s_index) + 2*mpc.P;
+            mpc.hessCost(s_index,s_index) + mpc.P2;
 end
 
 end
