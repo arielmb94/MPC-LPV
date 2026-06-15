@@ -24,7 +24,7 @@
 %   - x0_pred: Nx+Nu column vector, refined state and input trajectory.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [Pk_pred, x0_pred] = compute_schedul_iterative(mpc, x0, x_prev, u_prev, xref, d, sched_fun, ...
+function [Pk_pred, x0_pred] = compute_schedul_iterative(mpc, x0, x_prev, u_prev, xref, d, x_ref_ter, sched_fun, ...
                                                     n_rho, n_iter, A0, B0, Bd0, varargin)
     
     % Iterative state variable (starts with provided warm-start)
@@ -61,7 +61,7 @@ function [Pk_pred, x0_pred] = compute_schedul_iterative(mpc, x0, x_prev, u_prev,
         mpc_pred = update_mpc_sys_dynamics(mpc, A0, B0, Bd0, Pk_curr, n_rho, varargin{:});
         
         % Solve preliminary MPC to obtain refined prediction (x_next)
-        [~, x_next] = mpc_solve(mpc_pred, x_curr, x_prev, u_prev, xref, d, [], [], [], ...
+        [~, x_next] = mpc_solve(mpc_pred, x_curr, x_prev, u_prev, xref, d, x_ref_ter, [], [], ...
                                 A0, Bd0, Pk_curr, n_rho, varargin{:});
                                 
         % Safeguard: Abort iterations if solver fails
