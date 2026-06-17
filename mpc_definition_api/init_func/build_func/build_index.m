@@ -408,6 +408,8 @@ if nh_min_0 || nh_max_0
     [S_gi_0,S_vi_0] = expand_inequal_index(mpc.h_cnstr,S_gi_0,S_vi_0,has_vi,1);
 end
 
+S_vi_0_tmplt = find(S_vi_0);
+S_vi_0 = S_vi_0(S_vi_0_tmplt);
 
 for k = 2:mpc.N
 
@@ -445,7 +447,8 @@ for k = 2:mpc.N
     end
 
     S_gi_k = [S_gi_k S_gi];
-    S_vi_k = [S_vi_k S_vi];
+    S_vi_k_tmplt = find(S_vi);
+    S_vi_k = [S_vi_k S_vi(S_vi_k_tmplt)];
 end
 
 % S constr
@@ -456,9 +459,11 @@ end
 
 mpc.S_gi_0 = S_gi_0;
 mpc.S_vi_0 = S_vi_0;
+mpc.S_vi_0_tmplt = S_vi_0_tmplt;
 mpc.S_gi_k = S_gi_k;
-mpc.S_gi_k = S_gi_k;
+mpc.S_vi_k = S_vi_k;
+mpc.S_vi_k_tmplt = S_vi_k_tmplt;
 mpc.S_gi_ter = S_gi_ter;
-mpc.S_gi_ter = S_gi_ter;
+mpc.S_vi_ter = S_vi_ter;
 
 end
