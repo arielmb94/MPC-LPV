@@ -30,7 +30,14 @@
 %   - mpc: updated CHRONOS mpc structure
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function mpc = init_mpc_system(mpc,A,B,Bd,C,D,Dd)
+function mpc = init_mpc_system(mpc,A,B,Bd,C,D,Dd, Ts)
+
+if nargin > 7 && ~isempty(Ts)
+    mpc.Ts = Ts;
+    mpc.is_CT = true;
+else
+    mpc.is_CT = false;
+end
 
 mpc.A = A;
 mpc.B = B;

@@ -1,0 +1,137 @@
+restoredefaultpath; 
+
+% This is just to set the path in MATLAB
+folder = 'C:\Users\vinic\Documents\Doutorado\CHRONOS-MPC (branch ct)\CHRONOS-MPC'; 
+addpath(folder);
+
+addpath(genpath(folder));
+
+%% Parameters
+
+% Tank reactor parameters
+theta_f = 20;
+k = 300;
+M = 5;
+xf = 0.3947;
+xc = 0.3816;
+alpha = 0.117;
+
+% Intial state values
+c0 = 0.2632;
+v0 = 0.6519;
+% State vector
+x_prev = [c0;v0];
+
+% Sampling Time
+Ts = 0.1;
+
+%% Create MPC object
+
+N = 15;         % Prediction Horizon
+N_h_ctr = 5;    % Control Horizon
+
+% Create mpc struct
+mpc = init_mpc(N,N_h_ctr);
+
+%% Define system dynamics
+
+% Get LPV model frozen at current state vector
+A = [-1/theta_f-k*exp(-M/v0) -k*c0*M*exp(-M/v0)/(v0^2);
+     k*exp(-M/v0) -1/theta_f];
+B = [0; -alpha*(v0-xc)];
+Bd = [1/theta_f k*c0*M*exp(-M/v0)/(v0^2); xf/theta_f 0];
+C = eye(2);
+
+% Initialize system dynamics
+% System passed in continuous time:
+% x_dot = A*x + B*u + Bd*d
+% The sampling time Ts is given as 8th argument to activate Backward Euler inside
+mpc = init_mpc_system(mpc, A, B, Bd, C, [0;0], 0, Ts);
+
+%% Constraints
+
+% State constraints
+x_min = [0;0];
+x_max = [1;1];
+slack_cost = 1;
+mpc = init_mpc_state_cnstr(mpc,x_min,x_max,slack_cost,slack_cost);
+
+% Control input constraints
+u_min = 0;
+u_max = 1;
+mpc = init_mpc_u_cnstr(mpc,u_min,u_max);
+
+% Control inputs variation constraints
+du_min = -0.1*ones(mpc.nu,1);
+du_max = 0.1*ones(mpc.nu,1);
+mpc = init_mpc_delta_u_cnstr(mpc,du_min,du_max);
+
+% Output constraints
+y_min = [];
+y_max = [];
+%mpc = init_mpc_output_cnstr(mpc,y_min,y_max);
+
+%% General Linear Inequalities
+
+% General Linear Inequalities are defined as:
+% yh = Ch*x+Dh*u+Ddh*di
+Ch = [];
+Dh = [];
+Ddh = [];
+
+h_min = [];
+h_max = [];
+
+%mpc = init_mpc_lin_custom_cnstr(mpc,Ch,Dh,Ddh,h_min,h_max);
+
+%% Terminal Ingredients
+
+% Terminal ingredients are computed using the dLQR method
+Qx = [];                % State Penalty
+Ru = [];                % Control Penalty
+x_ref_is_y = 1;         % The terminal reference can be extracted 
+                        % mpc tracking reference
+ter_constraint = 0;     % Only terminal cost
+
+% Initialize terminal ingredients using the dLQR method
+%[mpc] = init_mpc_ter_ingredients_dlqr(mpc,Qx,Ru,x_ref_is_y,ter_constraint);
+
+%% Costs
+
+% Tracking penalty
+Qe = diag([5000 250]);
+mpc = init_mpc_Tracking_cost(mpc,Qe);
+
+% Control inputs variation penalty
+Rdu = [];
+%mpc = init_mpc_DiffControl_cost(mpc,Rdu);
+
+% Control penalty
+Ru = [];
+%mpc = init_mpc_Control_cost(mpc,Ru);
+
+%% Performance Cost Matrix
+
+% Performance Vector are defined as:
+% z = Cz*x+Dz*u+Ddz*dz
+Cz = [];
+Dz = [];
+Ddz = [];
+
+Qz = [];    % Quadratic penalty on performance vector: z'*Qz*z
+qz = [];    % Linear penalty on performance vector: qz'*z 
+
+% Init performance cost
+%mpc = init_mpc_Lin_Custom_cost(mpc,Cz,Dz,Ddz,Qz,qz);
+
+%% Set QP solver to be more aggressive
+
+mpc.t = 500; % Default value is t = 50, increasing t makes the solver give 
+             % priority to cost penalties over constraints
+
+%% Init conditions for simulation
+
+% use warm start function to get optimization vector initial value
+u_prev = 0.45;
+d = [1;v0];
+[mpc,x0] = build_chronos_mpc(mpc,x_prev,u_prev,[],d);
