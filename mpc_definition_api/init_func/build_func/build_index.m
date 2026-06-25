@@ -68,6 +68,13 @@ s_index_k = [];
 su_index_k = [];
 u_index_k = [];
 
+g_index_0 = [];
+g_index_k = [];
+g_index_ter = [];
+v_index_0 = [];
+v_index_k = [];
+v_index_ter = [];
+
 gs_min_index_k = [];
 gs_max_index_k = [];
 gu_min_index_k = [];
@@ -86,384 +93,188 @@ vy_max_index_k = [];
 vh_min_index_k = [];
 vh_max_index_k = [];
 
+
+%% x
 start_index = 1;
 
 % k = 0
-dim = [mpc.nu ...                                           % u
-       nu_min nu_max ndu_min ndu_max nh_min_0 nh_max_0,...  % gu gdu gh_0
-       nh_min_0 nh_max_0];                                  % vh_0
+dim = mpc.nu;                                  % u
 % u
-[start_index,u_index,u_index_k] = expand_index(dim,start_index,1,u_index,u_index_k);
-% gu
-[start_index,g_index,gu_min_index_k] = expand_index(dim,start_index,2,g_index,gu_min_index_k);
-[start_index,g_index,gu_max_index_k] = expand_index(dim,start_index,3,g_index,gu_max_index_k);
-% gdu
-[start_index,g_index,gdu_min_index_k] = expand_index(dim,start_index,4,g_index,gdu_min_index_k);
-[start_index,g_index,gdu_max_index_k] = expand_index(dim,start_index,5,g_index,gdu_max_index_k);
-% gh_0
-[start_index,g_index,gh_min_index_k] = expand_index(dim,start_index,6,g_index,gh_min_index_k);
-[start_index,g_index,gh_max_index_k] = expand_index(dim,start_index,7,g_index,gh_max_index_k);
-% vh_0
-[start_index,v_index,vh_min_index_k] = expand_index(dim,start_index,8,v_index,vh_min_index_k);
-[start_index,v_index,vh_max_index_k] = expand_index(dim,start_index,9,v_index,vh_max_index_k);
+[start_index,u_index,u_index_k] = expand_index(dim,start_index,1,u_index);
 
+s_index_k = zeros(mpc.nx,1);
+su_index_k = zeros(mpc.nu*du,1);
 for k = 1:mpc.N-1
 
-dim = [mpc.nx mpc.nu*du mpc.nu ...                                                  % s su u
-       ns_min ns_max nu_min nu_max ndu_min ndu_max ny_min ny_max nh_min nh_max...   % gs gu gdu gy gh
-       ns_min ns_max ny_min ny_max nh_min nh_max];                                  % vs vy vh
+dim = [mpc.nx mpc.nu*du mpc.nu];                                                  % s su u
 
 % s
-[start_index,s_index,s_index_k] = expand_index(dim,start_index,1,s_index,s_index_k);
+[start_index,s_index,s_index_k_vec] = expand_index(dim,start_index,1,s_index);
 
 % su
-[start_index,su_index,su_index_k] = expand_index(dim,start_index,2,su_index,su_index_k);
+[start_index,su_index,su_index_k_vec] = expand_index(dim,start_index,2,su_index);
 
 % u
-[start_index,u_index,u_index_k] = expand_index(dim,start_index,3,u_index,u_index_k);
+[start_index,u_index,u_index_k_vec] = expand_index(dim,start_index,3,u_index);
 
-% gs
-[start_index,g_index,gs_min_index_k] = expand_index(dim,start_index,4,g_index,gs_min_index_k);
-[start_index,g_index,gs_max_index_k] = expand_index(dim,start_index,5,g_index,gs_max_index_k);
-
-% gu
-[start_index,g_index,gu_min_index_k] = expand_index(dim,start_index,6,g_index,gu_min_index_k);
-[start_index,g_index,gu_max_index_k] = expand_index(dim,start_index,7,g_index,gu_max_index_k);
-
-% gdu
-[start_index,g_index,gdu_min_index_k] = expand_index(dim,start_index,8,g_index,gdu_min_index_k);
-[start_index,g_index,gdu_max_index_k] = expand_index(dim,start_index,9,g_index,gdu_max_index_k);
-
-% gy
-[start_index,g_index,gy_min_index_k] = expand_index(dim,start_index,10,g_index,gy_min_index_k);
-[start_index,g_index,gy_max_index_k] = expand_index(dim,start_index,11,g_index,gy_max_index_k);
-
-% gh
-[start_index,g_index,gh_min_index_k] = expand_index(dim,start_index,12,g_index,gh_min_index_k);
-[start_index,g_index,gh_max_index_k] = expand_index(dim,start_index,13,g_index,gh_max_index_k);
-
-% vs
-[start_index,v_index,vs_min_index_k] = expand_index(dim,start_index,14,v_index,vs_min_index_k);
-[start_index,v_index,vs_max_index_k] = expand_index(dim,start_index,15,v_index,vs_max_index_k);
-
-% vy
-[start_index,v_index,vy_min_index_k] = expand_index(dim,start_index,16,v_index,vy_min_index_k);
-[start_index,v_index,vy_max_index_k] = expand_index(dim,start_index,17,v_index,vy_max_index_k);
-
-% vh
-[start_index,v_index,vh_min_index_k] = expand_index(dim,start_index,18,v_index,vh_min_index_k);
-[start_index,v_index,vh_max_index_k] = expand_index(dim,start_index,19,v_index,vh_max_index_k);
+s_index_k = [s_index_k s_index_k_vec];
+su_index_k = [su_index_k su_index_k_vec];
+u_index_k = [u_index_k u_index_k_vec];
 
 end
 
 % k = N
-dim = [mpc.nx ...           % s
-    ns_min ns_max ...       % gs
-    ns_min ns_max];         % vs
-
+dim = mpc.nx;           % s
 % s
-[start_index,s_index,s_index_k] = expand_index(dim,start_index,1,s_index,s_index_k);
+[start_index,s_index,s_index_k_vec] = expand_index(dim,start_index,1,s_index);
+s_index_k = [s_index_k s_index_k_vec];
 
-% gs
-[start_index,g_index,gs_min_index_k] = expand_index(dim,start_index,2,g_index,gs_min_index_k);
-[start_index,g_index,gs_max_index_k] = expand_index(dim,start_index,3,g_index,gs_max_index_k);
+mpc.s_index = s_index;
+mpc.su_index = su_index;
+mpc.u_index = u_index;
 
-% vs
-[start_index,v_index,vs_min_index_k] = expand_index(dim,start_index,4,v_index,vs_min_index_k);
-[start_index,v_index,vs_max_index_k] = expand_index(dim,start_index,5,v_index,vs_max_index_k);
+mpc.s_index_k = s_index_k;
+mpc.su_index_k = su_index_k;
+mpc.u_index_k = u_index_k;
 
+mpc.se_index_k = [mpc.s_index_k(:,2:mpc.N);mpc.su_index_k(:,2:mpc.N)];
 
-mpc.s_index = s_index';
-mpc.s_index_k = [zeros(mpc.nx,1) s_index_k'];
-mpc.su_index = su_index';
-mpc.su_index_k = [zeros(mpc.nu,1) su_index_k' zeros(mpc.nu,1)];
-mpc.u_index = u_index';
-mpc.u_index_k = [u_index_k' zeros(mpc.nu,1)];
-mpc.g_index = g_index';
-mpc.v_index = v_index';
+mpc.nvar = start_index-1;
+mpc.variables_index = [1:mpc.nvar]';
 
-x(mpc.g_index) = 1;
-x(mpc.v_index) = 1;
-mpc.slack_index = find(x==1);
-mpc.variables_index = find(x==0);
+mpc.ru_k = zeros(mpc.nu,mpc.N);
+mpc.rse_k = zeros(mpc.nx+du*mpc.nu,mpc.N-1);
+mpc.rs_ter = zeros(mpc.nx,1);
 
-mpc.g = x(mpc.g_index);
-mpc.v = x(mpc.v_index);
-mpc.slacks = x(mpc.slack_index);
+mpc.ru_hat_k = zeros(mpc.nu,mpc.N);
+mpc.rse_hat_k = zeros(mpc.nx+du*mpc.nu,mpc.N-1);
+mpc.rs_hat_ter = zeros(mpc.nx,1);
 
-if mpc.has_s_cnstr
-    if mpc.s_cnstr.min_limit
-    mpc.s_cnstr.g_min_index_k = [zeros(mpc.nx,1) gs_min_index_k'];
-    mpc.s_cnstr.v_min_index_k = [zeros(mpc.nx,1) vs_min_index_k'];
-    end
-    if mpc.s_cnstr.max_limit
-    mpc.s_cnstr.g_max_index_k = [zeros(mpc.nx,1) gs_max_index_k'];
-    mpc.s_cnstr.v_max_index_k = [zeros(mpc.nx,1) vs_max_index_k'];
-    end
-end
-
-if mpc.has_u_cnstr
-    if mpc.u_cnstr.min_limit
-    mpc.u_cnstr.g_min_index_k = [gu_min_index_k' zeros(mpc.nu,1)];
-    end
-    if mpc.u_cnstr.max_limit
-    mpc.u_cnstr.g_max_index_k = [gu_max_index_k' zeros(mpc.nu,1)];
-    end
-end
-
-if mpc.has_du_cnstr
-    if mpc.du_cnstr.min_limit
-    mpc.du_cnstr.g_min_index_k = [gdu_min_index_k' zeros(mpc.nu,1)];
-    end
-    if mpc.du_cnstr.max_limit
-    mpc.du_cnstr.g_max_index_k = [gdu_max_index_k' zeros(mpc.nu,1)];
-    end
-end
-
-if mpc.has_y_cnstr
-    if mpc.y_cnstr.min_limit
-    mpc.y_cnstr.g_min_index_k = [zeros(mpc.ny,1) gy_min_index_k' zeros(mpc.ny,1)];
-    mpc.y_cnstr.v_min_index_k = [zeros(mpc.ny,1) vy_min_index_k' zeros(mpc.ny,1)];
-    end
-    if mpc.y_cnstr.max_limit
-    mpc.y_cnstr.g_max_index_k = [zeros(mpc.ny,1) gy_max_index_k' zeros(mpc.ny,1)];
-    mpc.y_cnstr.v_max_index_k = [zeros(mpc.ny,1) vy_max_index_k' zeros(mpc.ny,1)];
-    end
-end
-
-if mpc.has_h_cnstr
-    if mpc.h_cnstr.min_limit
-    mpc.h_cnstr.g_min_index_k = [zeros(mpc.nh-nh_min_0,1) gh_min_index_k' zeros(mpc.nh,1)];
-    mpc.h_cnstr.v_min_index_k = [zeros(mpc.nh-nh_min_0,1) vh_min_index_k' zeros(mpc.nh,1)];
-    end
-    if mpc.h_cnstr.max_limit
-    mpc.h_cnstr.g_max_index_k = [zeros(mpc.nh-nh_max_0,1) gh_max_index_k' zeros(mpc.nh,1)];
-    mpc.h_cnstr.v_max_index_k = [zeros(mpc.nh-nh_max_0,1) vh_max_index_k' zeros(mpc.nh,1)];
-    end
-end
-
-%% Equality rows 
-start_index = 1;
-
-dyn_k = [];
-su_dyn_k = [];
-s_min_eq_index_k = [];
-s_max_eq_index_k = [];
-u_min_eq_index_k = [];
-u_max_eq_index_k = [];
-du_min_eq_index_k = [];
-du_max_eq_index_k = [];
-y_min_eq_index_k = [];
-y_max_eq_index_k = [];
-h_min_eq_index_k = [];
-h_max_eq_index_k = [];
-
-index_eq_k = [];
-index_eq_N = [];
-index_ineq_0 = [];
-index_ineq_k = [];
-index_ineq_ter = [];
+%% g
 
 % k = 0
-% Dynamics
-index_eq = [];
-[start_index,dyn_k,index_eq] = expand_equal_index(mpc.nx,start_index,dyn_k,index_eq);
-[start_index,su_dyn_k,index_eq] = expand_equal_index(mpc.nu*du,start_index,su_dyn_k,index_eq);
+dim = [nu_min nu_max ndu_min ndu_max nh_min_0 nh_max_0];  % gu gdu gh_0
 
-% U constr
-[start_index,u_min_eq_index_k,index_ineq_0] = expand_equal_index(nu_min,start_index,u_min_eq_index_k,index_ineq_0);
-[start_index,u_max_eq_index_k,index_ineq_0] = expand_equal_index(nu_max,start_index,u_max_eq_index_k,index_ineq_0);
+% gu
+[start_index,g_index,gu_min_index_k] = expand_index(dim,start_index,1,g_index);
+[start_index,g_index,gu_max_index_k] = expand_index(dim,start_index,2,g_index);
+% gdu
+[start_index,g_index,gdu_min_index_k] = expand_index(dim,start_index,3,g_index);
+[start_index,g_index,gdu_max_index_k] = expand_index(dim,start_index,4,g_index);
+% gh_0
+[start_index,g_index,gh_min_index_k] = expand_index(dim,start_index,5,g_index);
+[start_index,g_index,gh_max_index_k] = expand_index(dim,start_index,6,g_index);
 
-% DU constr
-[start_index,du_min_eq_index_k,index_ineq_0] = expand_equal_index(ndu_min,start_index,du_min_eq_index_k,index_ineq_0);
-[start_index,du_max_eq_index_k,index_ineq_0] = expand_equal_index(ndu_max,start_index,du_max_eq_index_k,index_ineq_0);
+g_index_0 = [gu_min_index_k;gu_max_index_k;
+            gdu_min_index_k;gdu_max_index_k;
+            gh_min_index_k;gh_max_index_k];
 
-% H constr
-[start_index,h_min_eq_index_k,index_ineq_0] = expand_equal_index(nh_min_0,start_index,h_min_eq_index_k,index_ineq_0);
-[start_index,h_max_eq_index_k,index_ineq_0] = expand_equal_index(nh_min_0,start_index,h_max_eq_index_k,index_ineq_0);
-
-index_eq_k = [index_eq_k index_eq];
 for k = 1:mpc.N-1
 
-    % Dynamics
-    index_eq = [];
+dim = [ns_min ns_max nu_min nu_max ndu_min ndu_max ny_min ny_max nh_min nh_max];   % gs gu gdu gy gh
 
-    [start_index,dyn_k,index_eq] = expand_equal_index(mpc.nx,start_index,dyn_k,index_eq);
-    if k ~= mpc.N-1
-        [start_index,su_dyn_k,index_eq] = expand_equal_index(mpc.nu*du,start_index,su_dyn_k,index_eq);
-    end
+% gs
+[start_index,g_index,gs_min_index_k] = expand_index(dim,start_index,1,g_index);
+[start_index,g_index,gs_max_index_k] = expand_index(dim,start_index,2,g_index);
 
-    index_ineq = [];
+% gu
+[start_index,g_index,gu_min_index_k] = expand_index(dim,start_index,3,g_index);
+[start_index,g_index,gu_max_index_k] = expand_index(dim,start_index,4,g_index);
 
-    % S constr
-    [start_index,s_min_eq_index_k,index_ineq] = expand_equal_index(ns_min,start_index,s_min_eq_index_k,index_ineq);
-    [start_index,s_max_eq_index_k,index_ineq] = expand_equal_index(ns_max,start_index,s_max_eq_index_k,index_ineq);
+% gdu
+[start_index,g_index,gdu_min_index_k] = expand_index(dim,start_index,5,g_index);
+[start_index,g_index,gdu_max_index_k] = expand_index(dim,start_index,6,g_index);
 
-    % U constr
-    [start_index,u_min_eq_index_k,index_ineq] = expand_equal_index(nu_min,start_index,u_min_eq_index_k,index_ineq);
-    [start_index,u_max_eq_index_k,index_ineq] = expand_equal_index(nu_max,start_index,u_max_eq_index_k,index_ineq);
+% gy
+[start_index,g_index,gy_min_index_k] = expand_index(dim,start_index,7,g_index);
+[start_index,g_index,gy_max_index_k] = expand_index(dim,start_index,8,g_index);
 
-    % DU constr
-    [start_index,du_min_eq_index_k,index_ineq] = expand_equal_index(ndu_min,start_index,du_min_eq_index_k,index_ineq);
-    [start_index,du_max_eq_index_k,index_ineq] = expand_equal_index(ndu_max,start_index,du_max_eq_index_k,index_ineq);
+% gh
+[start_index,g_index,gh_min_index_k] = expand_index(dim,start_index,9,g_index);
+[start_index,g_index,gh_max_index_k] = expand_index(dim,start_index,10,g_index);
 
-    % Y constr
-    [start_index,y_min_eq_index_k,index_ineq] = expand_equal_index(ny_min,start_index,y_min_eq_index_k,index_ineq);
-    [start_index,y_max_eq_index_k,index_ineq] = expand_equal_index(ny_max,start_index,y_max_eq_index_k,index_ineq);
+g_index_k_vec = [gs_min_index_k;gs_max_index_k;
+                 gu_min_index_k;gu_max_index_k;
+                 gdu_min_index_k;gdu_max_index_k;
+                 gy_min_index_k;gy_max_index_k;
+                 gh_min_index_k;gh_max_index_k];
 
-    % H constr
-    [start_index,h_min_eq_index_k,index_ineq] = expand_equal_index(nh_min,start_index,h_min_eq_index_k,index_ineq);
-    [start_index,h_max_eq_index_k,index_ineq] = expand_equal_index(nh_max,start_index,h_max_eq_index_k,index_ineq);
+g_index_k = [g_index_k g_index_k_vec];
 
-    if k ~= mpc.N-1
-        index_eq_k = [index_eq_k index_eq];
-    else
-        index_eq_N = index_eq;
-    end
-    index_ineq_k = [index_ineq_k index_ineq];
 end
 
-% S constr
-[start_index,s_min_eq_index_k,index_ineq_ter] = expand_equal_index(ns_min,start_index,s_min_eq_index_k,index_ineq_ter);
-[start_index,s_max_eq_index_k,index_ineq_ter] = expand_equal_index(ns_max,start_index,s_max_eq_index_k,index_ineq_ter);
+% k = N
+dim = [ns_min ns_max];       % gs
 
-mpc.dyn_k = dyn_k;
-mpc.su_dyn_k = su_dyn_k;
+% gs
+[start_index,g_index,gs_min_index_k] = expand_index(dim,start_index,1,g_index);
+[start_index,g_index,gs_max_index_k] = expand_index(dim,start_index,2,g_index);
 
-mpc.index_eq_k = index_eq_k;
-mpc.index_eq_N = index_eq_N;
-mpc.index_ineq_0 = index_ineq_0;
-mpc.index_ineq_k = index_ineq_k;
-mpc.index_ineq_ter = index_ineq_ter;
+g_index_ter = [gs_min_index_k;gs_max_index_k];
 
-if mpc.has_s_cnstr
-    if mpc.s_cnstr.min_limit
-    mpc.s_cnstr.min_eq_index_k = [zeros(mpc.nx,1) s_min_eq_index_k];
-    end
-    if mpc.s_cnstr.max_limit
-    mpc.s_cnstr.max_eq_index_k = [zeros(mpc.nx,1) s_max_eq_index_k];
-    end
-end
-if mpc.has_u_cnstr
-    if mpc.u_cnstr.min_limit
-    mpc.u_cnstr.min_eq_index_k = [u_min_eq_index_k zeros(mpc.nu,1)];
-    end
-    if mpc.u_cnstr.max_limit
-    mpc.u_cnstr.max_eq_index_k = [u_max_eq_index_k zeros(mpc.nu,1)];
-    end
-end
-if mpc.has_du_cnstr
-    if mpc.du_cnstr.min_limit
-    mpc.du_cnstr.min_eq_index_k = [du_min_eq_index_k zeros(mpc.nu,1)];
-    end
-    if mpc.du_cnstr.max_limit
-    mpc.du_cnstr.max_eq_index_k = [du_max_eq_index_k zeros(mpc.nu,1)];
-    end
-end
-if mpc.has_y_cnstr
-    if mpc.y_cnstr.min_limit
-    mpc.y_cnstr.min_eq_index_k = [zeros(mpc.ny,1) y_min_eq_index_k zeros(mpc.ny,1)];
-    end
-    if mpc.y_cnstr.max_limit
-    mpc.y_cnstr.max_eq_index_k = [zeros(mpc.ny,1) y_max_eq_index_k zeros(mpc.ny,1)];
-    end
-end
-if mpc.has_h_cnstr
-    if mpc.h_cnstr.min_limit
-    mpc.h_cnstr.min_eq_index_k = [zeros(mpc.nh-nh_min_0,1) h_min_eq_index_k zeros(mpc.nh,1)];
-    end
-    if mpc.h_cnstr.max_limit
-    mpc.h_cnstr.max_eq_index_k = [zeros(mpc.nh-nh_max_0,1) h_max_eq_index_k zeros(mpc.nh,1)];
-    end
-end
+mpc.g_index = g_index;
 
-%% Index for KKT linear system
+mpc.g_index_0 = g_index_0;
+mpc.g_index_k = g_index_k;
+mpc.g_index_ter = g_index_ter;
 
-% IMPORTANT: order of constraints must be the same as the one set during
-% the equality constraints for the inequalities
+mpc.g_0 = g_index_0*0;
+mpc.g_k = g_index_k*0;
+mpc.g_ter = g_index_ter*0;
 
-S_gi_0 = [];
-S_vi_0 = [];
-S_gi_k = [];
-S_vi_k = [];
-S_gi_ter = [];
-S_vi_ter = [];
+%% v
 
 % k = 0
-% U constr
-if mpc.has_u_cnstr
-    has_vi = false;
-    [S_gi_0,S_vi_0] = expand_inequal_index(mpc.u_cnstr,S_gi_0,S_vi_0,has_vi,1);
+dim = [nh_min_0 nh_max_0];                                  % vh_0
+
+% vh_0
+[start_index,v_index,vh_min_index_k] = expand_index(dim,start_index,1,v_index);
+[start_index,v_index,vh_max_index_k] = expand_index(dim,start_index,2,v_index);
+
+v_index_0 = [vh_min_index_k;vh_max_index_k];
+
+for k = 1:mpc.N-1
+
+dim = [ns_min ns_max ny_min ny_max nh_min nh_max];  % vs vy vh
+
+% vs
+[start_index,v_index,vs_min_index_k] = expand_index(dim,start_index,1,v_index);
+[start_index,v_index,vs_max_index_k] = expand_index(dim,start_index,2,v_index);
+
+% vy
+[start_index,v_index,vy_min_index_k] = expand_index(dim,start_index,3,v_index);
+[start_index,v_index,vy_max_index_k] = expand_index(dim,start_index,4,v_index);
+
+% vh
+[start_index,v_index,vh_min_index_k] = expand_index(dim,start_index,5,v_index);
+[start_index,v_index,vh_max_index_k] = expand_index(dim,start_index,6,v_index);
+
+v_index_k_vec = [vs_min_index_k;vs_max_index_k;
+                 vy_min_index_k;vy_max_index_k;
+                 vh_min_index_k;vh_max_index_k];
+
+v_index_k = [v_index_k v_index_k_vec];
+
 end
 
-% DU constr
-if mpc.has_du_cnstr
-    has_vi = false;
-    [S_gi_0,S_vi_0] = expand_inequal_index(mpc.du_cnstr,S_gi_0,S_vi_0,has_vi,1);
-end
+% k = N
+dim = [ns_min ns_max];         % vs
 
-% H constr
-if nh_min_0 || nh_max_0
-    has_vi = true;
-    [S_gi_0,S_vi_0] = expand_inequal_index(mpc.h_cnstr,S_gi_0,S_vi_0,has_vi,1);
-end
+% vs
+[start_index,v_index,vs_min_index_k] = expand_index(dim,start_index,1,v_index);
+[start_index,v_index,vs_max_index_k] = expand_index(dim,start_index,2,v_index);
 
-S_vi_0_tmplt = find(S_vi_0);
-S_vi_0 = S_vi_0(S_vi_0_tmplt);
+v_index_ter = [vs_min_index_k;vs_max_index_k];
 
-for k = 2:mpc.N
+mpc.v_index = v_index;
 
-    S_gi = [];
-    S_vi = [];
+mpc.v_index_0 = v_index_0;
+mpc.v_index_k = v_index_k;
+mpc.v_index_ter = v_index_ter;
 
-    % S constr
-    if mpc.has_s_cnstr
-        has_vi = true;
-        [S_gi,S_vi] = expand_inequal_index(mpc.s_cnstr,S_gi,S_vi,has_vi,k);
-    end
+mpc.v_0 = v_index_0*0;
+mpc.v_k = v_index_k*0;
+mpc.v_ter = v_index_ter*0;
 
-    % U constr
-    if mpc.has_u_cnstr
-        has_vi = false;
-        [S_gi,S_vi] = expand_inequal_index(mpc.u_cnstr,S_gi,S_vi,has_vi,k);
-    end
-
-    % DU constr
-    if mpc.has_du_cnstr
-        has_vi = false;
-        [S_gi,S_vi] = expand_inequal_index(mpc.du_cnstr,S_gi,S_vi,has_vi,k);
-    end
-
-    % Y constr
-    if mpc.has_y_cnstr
-        has_vi = true;
-        [S_gi,S_vi] = expand_inequal_index(mpc.y_cnstr,S_gi,S_vi,has_vi,k);
-    end
-
-    % H constr
-    if mpc.has_h_cnstr
-        has_vi = true;
-        [S_gi,S_vi] = expand_inequal_index(mpc.h_cnstr,S_gi,S_vi,has_vi,k);
-    end
-
-    S_gi_k = [S_gi_k S_gi];
-    S_vi_k_tmplt = find(S_vi);
-    S_vi_k = [S_vi_k S_vi(S_vi_k_tmplt)];
-end
-
-% S constr
-if mpc.has_s_cnstr
-    has_vi = true;
-    [S_gi_ter,S_vi_ter] = expand_inequal_index(mpc.s_cnstr,S_gi_ter,S_vi_ter,has_vi,mpc.N+1);
-end
-
-mpc.S_gi_0 = S_gi_0;
-mpc.S_vi_0 = S_vi_0;
-mpc.S_vi_0_tmplt = S_vi_0_tmplt;
-mpc.S_gi_k = S_gi_k;
-mpc.S_vi_k = S_vi_k;
-mpc.S_vi_k_tmplt = S_vi_k_tmplt;
-mpc.S_gi_ter = S_gi_ter;
-mpc.S_vi_ter = S_vi_ter;
 
 end

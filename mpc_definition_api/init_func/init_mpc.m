@@ -162,6 +162,9 @@ mpc.gradPerfQz_0 = [];
 mpc.gradPerfqz = [];
 mpc.hessPerfTerm = [];
 mpc.hessTerminalCost = [];
+mpc.tracking_cost_index_k = [];
+mpc.custom_cost_index_k = [];
+
 mpc.s = [];
 mpc.s_all = [];
 mpc.s_ter = [];
@@ -171,6 +174,7 @@ mpc.y = [];
 mpc.h = [];
 mpc.z = [];
 mpc.m = 0;
+mpc.nvar = 0;
 mpc.t = 50;
 mpc.Beta = 0.75;
 mpc.min_l = 1e-6;

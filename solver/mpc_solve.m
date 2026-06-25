@@ -124,7 +124,11 @@ while mpc.eps <= lambda2*0.5 && continue_Newton && iter < mpc.max_iter
     hess_fi_Ind = zeros(n,1);
     hess_fi_Ind(mpc.slack_index) = 1./(mpc.slacks-mpc.slack_epsilon).^2;
 
-    grad_f0 = grad_f0_MPC(mpc);
+    mpc = grad_f0_MPC(mpc);
+
+    mpc = equality_residuals(mpc);
+
+    mpc = reduced_KKT_elements(mpc);
 
     % 4. Compute gradient at x0 : grad(J) = t*grad(f0)+grad(Phi)
     grad_J_x0 = mpc.t*grad_f0+grad_fi_Ind;
