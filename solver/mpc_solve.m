@@ -49,8 +49,9 @@
 %   starting point finder
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [u0,iter,mpc] = mpc_solve(mpc,s_prev,u_prev,...
-    r_in,d_in,xN_ref_in,dz_in,dh_in)
+function [u0,iter,mpc] = mpc_solve(mpc,s_prev,u_prev, ...
+                                   r_in,xN_ref_in,...
+                                   d_in,dz_in,dh_in)
 
 % number of variables
 n = mpc.n;
@@ -129,6 +130,9 @@ while mpc.eps <= lambda2*0.5 && continue_Newton && iter < mpc.max_iter
     mpc = equality_residuals(mpc);
 
     mpc = reduced_KKT_elements(mpc);
+
+    [delta_u,delta_se,mu] = riccati_KKT(mpc,mpc.Q_k,mpc.R_k,mpc.Y_k,...  
+                            mpc.ru_hat_k,mpc.rse_hat_k,mpc.rp)
 
     % 4. Compute gradient at x0 : grad(J) = t*grad(f0)+grad(Phi)
     grad_J_x0 = mpc.t*grad_f0+grad_fi_Ind;
