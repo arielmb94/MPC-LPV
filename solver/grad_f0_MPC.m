@@ -23,7 +23,7 @@ if mpc.quad_custom_cost
 end
 if mpc.lin_custom_cost
     if mpc.z_use_u
-        mpc.grad_f0_0 = mpc.grad_f0_0 + mpc.mpc.gradPerfqz_0;
+        mpc.grad_f0_0 = mpc.grad_f0_0 + mpc.gradPerfqz_0;
     end
 end
 

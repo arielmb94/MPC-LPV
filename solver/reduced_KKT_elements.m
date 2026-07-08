@@ -24,7 +24,7 @@ end
 
 mpc.S_0(:) = mpc.g_0.^2;
 if mpc.nv_k(1)
-    mpc.S_0(:) = mpc.S_0 + mpc.v_0.^2;
+    mpc.S_0(mpc.vi_0) = mpc.S_0(mpc.vi_0) + mpc.v_0.^2;
 end
 mpc.iS_0(:) = 1./mpc.S_0;
 
@@ -49,10 +49,10 @@ if mpc.ng_k(mpc.N+1)
     rx_ineq_ter = mpc.Ai_ter'*(mpc.ri_hat_ter.*mpc.iS_ter);
 end
 
-mpc.ru_hat_k(1) = mpc.ru_k(1) +  rx_ineq_0;
+mpc.ru_hat_k(:,1) = mpc.ru_k(:,1) +  rx_ineq_0;
 
 mpc.rse_hat_k(:,1:mpc.N-1) = mpc.rse_k(:,1:mpc.N-1) + rx_ineq_k(1:mpc.nse,:);
-mpc.ru_hat_k(2:mpc.N) = mpc.ru_k(2:mpc.N) +  rx_ineq_k(mpc.nse+1:mpc.nse+mpc.nu,:);
+mpc.ru_hat_k(:,2:mpc.N) = mpc.ru_k(:,2:mpc.N) +  rx_ineq_k(mpc.nse+1:mpc.nse+mpc.nu,:);
 
 mpc.rse_hat_k(:,mpc.N) = mpc.rse_k(:,mpc.N) + rx_ineq_ter;
 
@@ -64,7 +64,7 @@ for k = 1:mpc.N-1
                         mpc.Ai_k(:,:,k)'*diag(mpc.iS_k(:,k))*mpc.Ai_k(:,:,k);
 
     mpc.Q_k(:,:,k) = mpc.H_k(1:mpc.nse,1:mpc.nse,k);
-    mpc.R_k(:,:,k+1) = mpc.H_k(mpc.nse+1:mpc.nvar_k,mpc.nse+1:mpc.nvar_k);
+    mpc.R_k(:,:,k+1) = mpc.H_k(mpc.nse+1:mpc.nvar_k,mpc.nse+1:mpc.nvar_k,k);
     mpc.Y_k(:,:,k) = mpc.H_k(mpc.nse+1:mpc.nvar_k,1:mpc.nse,k);
 end
 
