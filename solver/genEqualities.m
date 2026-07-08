@@ -10,8 +10,8 @@ N = mpc.N;
 
 mpc.nse = nse;
 
-r_len = (mpc.Nx) + (mpc.Nu-mpc.nu)*du + sum(mpc.ng_k);
-c_len = mpc.Nx+mpc.Nu+(mpc.Nu-mpc.nu)*du+sum(mpc.ng_k)+sum(mpc.nv_k);
+r_len = (mpc.Nx) + (mpc.Nu)*du + sum(mpc.ng_k);
+c_len = mpc.Nx+mpc.Nu+(mpc.Nu)*du+sum(mpc.ng_k)+sum(mpc.nv_k);
 
 beq = zeros(nse,mpc.N);
 bi_0 = zeros(mpc.ng_k(1),1);
@@ -429,7 +429,7 @@ mpc.Ai_k = Ai_k;
 mpc.bi_k = bi_k;
 
 start_index = 1;
-Ai_ter = zeros(mpc.ng_k(mpc.N+1),nx);
+Ai_ter = zeros(mpc.ng_k(mpc.N+1),nse);
 bi_ter = zeros(mpc.ng_k(mpc.N+1),1);
 s_col = 1:mpc.nx;
 if mpc.has_s_cnstr

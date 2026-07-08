@@ -3,17 +3,16 @@ function mpc = init_costs(mpc)
 mpc.nvar_k = mpc.nse+mpc.nu;
 mpc.H_f0_0 = zeros(mpc.nu);
 mpc.H_f0_k = zeros(mpc.nvar_k,mpc.nvar_k,mpc.N-1);
-mpc.H_f0_ter = zeros(mpc.nx);
+mpc.H_f0_ter = zeros(mpc.nse);
 
 mpc.H_k = zeros(mpc.nvar_k,mpc.nvar_k,mpc.N-1);
-mpc.Q_k = zeros(mpc.nse,mpc.nse,mpc.N-1);
+mpc.Q_k = zeros(mpc.nse,mpc.nse,mpc.N);
 mpc.R_k = zeros(mpc.nu,mpc.nu,mpc.N);
 mpc.Y_k = zeros(mpc.nu,mpc.nse,mpc.N-1);
-mpc.Q_ter = zeros(mpc.nx);
 
 mpc.grad_f0_0 = zeros(mpc.nu,1);
 mpc.grad_f0_k = zeros(mpc.nvar_k,mpc.N-1);
-mpc.grad_f0_ter = zeros(mpc.nx,1);
+mpc.grad_f0_ter = zeros(mpc.nse,1);
 
 if mpc.tracking_cost
     mpc = genTrackingCost(mpc);   
@@ -37,7 +36,7 @@ end
 
 if mpc.ter_ingredients
     mpc.P2 = 2*mpc.P;
-    mpc.H_f0_ter = mpc.H_f0_ter + mpc.P2;
+    mpc.H_f0_ter(1:mpc.nx,1:mpc.nx) = mpc.H_f0_ter(1:mpc.nx,1:mpc.nx) + mpc.P2;
 end
 
 end

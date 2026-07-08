@@ -61,12 +61,12 @@ for k = 1:mpc.N-1
 end
 
 if mpc.ter_ingredients
-    mpc.grad_f0_ter = mpc.grad_f0_ter - mpc.P2*(mpc.xN_ref-mpc.s_ter);
+    mpc.grad_f0_ter(1:mpc.nx) = mpc.grad_f0_ter(1:mpc.nx) - mpc.P2*(mpc.xN_ref-mpc.s_ter);
 end
 
 u_index = mpc.nse+1:mpc.nvar_k;
 mpc.ru_k(:,:) = mpc.t*[mpc.grad_f0_0 mpc.grad_f0_k(u_index,:)];
-mpc.rse_k(:,:) = mpc.t*mpc.grad_f0_k(1:mpc.nse,:);
-mpc.rs_ter(:) = mpc.t*mpc.grad_f0_ter;
+mpc.rse_k(:,1:mpc.N-1) = mpc.t*mpc.grad_f0_k(1:mpc.nse,:);
+mpc.rse_k(:,mpc.N) = mpc.t*mpc.grad_f0_ter;
 
 end

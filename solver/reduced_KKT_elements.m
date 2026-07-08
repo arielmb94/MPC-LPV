@@ -41,20 +41,20 @@ end
 
 %% rx hat
 
-rx_ineq_0 = mpc.Ai_0'*(mpc.ri_hat_0./mpc.iS_0);
+rx_ineq_0 = mpc.Ai_0'*(mpc.ri_hat_0.*mpc.iS_0);
 for k = 1:mpc.N-1
-    rx_ineq_k(:,k) = mpc.Ai_k(:,:,k)'*(mpc.ri_hat_k(:,k)./mpc.iS_k(:,k));
+    rx_ineq_k(:,k) = mpc.Ai_k(:,:,k)'*(mpc.ri_hat_k(:,k).*mpc.iS_k(:,k));
 end
-if mpc.ng_k(mpc.N*1)
-    rx_ineq_ter = mpc.Ai_ter'*(mpc.ri_hat_ter./mpc.iS_ter);
+if mpc.ng_k(mpc.N+1)
+    rx_ineq_ter = mpc.Ai_ter'*(mpc.ri_hat_ter.*mpc.iS_ter);
 end
 
 mpc.ru_hat_k(1) = mpc.ru_k(1) +  rx_ineq_0;
 
-mpc.rse_hat_k(1:mpc.nse,:) = mpc.rse_k + rx_ineq_k(1:mpc.nse,:);
+mpc.rse_hat_k(:,1:mpc.N-1) = mpc.rse_k(:,1:mpc.N-1) + rx_ineq_k(1:mpc.nse,:);
 mpc.ru_hat_k(2:mpc.N) = mpc.ru_k(2:mpc.N) +  rx_ineq_k(mpc.nse+1:mpc.nse+mpc.nu,:);
 
-mpc.rs_hat_ter(:) = mpc.rs_ter + rx_ineq_ter;
+mpc.rse_hat_k(:,mpc.N) = mpc.rse_k(:,mpc.N) + rx_ineq_ter;
 
 %% H
 
@@ -68,9 +68,9 @@ for k = 1:mpc.N-1
     mpc.Y_k(:,:,k) = mpc.H_k(mpc.nse+1:mpc.nvar_k,1:mpc.nse,k);
 end
 
-mpc.Q_ter = mpc.t*mpc.H_f0_ter;
-if mpc.ng_k(mpc.N*1)
-    mpc.Q_ter(:,:) = mpc.Q_ter + mpc.Ai_ter'*diag(mpc.iS_ter)*mpc.Ai_ter;
+mpc.Q_k(:,:,mpc.N) = mpc.t*mpc.H_f0_ter;
+if mpc.ng_k(mpc.N+1)
+    mpc.Q_k(:,:,mpc.N) = mpc.Q_k(:,:,mpc.N) + mpc.Ai_ter'*diag(mpc.iS_ter)*mpc.Ai_ter;
 end
 
 end

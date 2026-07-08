@@ -48,7 +48,7 @@ end
 
 
 %% Optimization variables x
-mpc.n = mpc.Nx+mpc.Nu+(mpc.Nu-mpc.nu)*du+...
+mpc.n = mpc.Nx+mpc.Nu+mpc.Nu*du+...
         (ns_min*mpc.N+ns_max*mpc.N)*2+...
         nu_min*mpc.N+nu_max*mpc.N+...
         (ndu_min*mpc.N+ndu_max*mpc.N)*du+...
@@ -102,8 +102,6 @@ dim = mpc.nu;                                  % u
 % u
 [start_index,u_index,u_index_k] = expand_index(dim,start_index,1,u_index);
 
-s_index_k = zeros(mpc.nx,1);
-su_index_k = zeros(mpc.nu*du,1);
 for k = 1:mpc.N-1
 
 dim = [mpc.nx mpc.nu*du mpc.nu];                                                  % s su u
@@ -124,10 +122,16 @@ u_index_k = [u_index_k u_index_k_vec];
 end
 
 % k = N
-dim = mpc.nx;           % s
+dim = [mpc.nx mpc.nu*du];           % s su
 % s
 [start_index,s_index,s_index_k_vec] = expand_index(dim,start_index,1,s_index);
+
+% su
+[start_index,su_index,su_index_k_vec] = expand_index(dim,start_index,2,su_index);
+
 s_index_k = [s_index_k s_index_k_vec];
+su_index_k = [su_index_k su_index_k_vec];
+
 
 mpc.s_index = s_index;
 mpc.su_index = su_index;
@@ -137,18 +141,16 @@ mpc.s_index_k = s_index_k;
 mpc.su_index_k = su_index_k;
 mpc.u_index_k = u_index_k;
 
-mpc.se_index_k = [mpc.s_index_k(:,2:mpc.N);mpc.su_index_k(:,2:mpc.N)];
+mpc.se_index_k = [mpc.s_index_k;mpc.su_index_k];
 
 mpc.nvar = start_index-1;
 mpc.variables_index = [1:mpc.nvar]';
 
 mpc.ru_k = zeros(mpc.nu,mpc.N);
-mpc.rse_k = zeros(mpc.nx+du*mpc.nu,mpc.N-1);
-mpc.rs_ter = zeros(mpc.nx,1);
+mpc.rse_k = zeros(mpc.nx+du*mpc.nu,mpc.N);
 
 mpc.ru_hat_k = zeros(mpc.nu,mpc.N);
-mpc.rse_hat_k = zeros(mpc.nx+du*mpc.nu,mpc.N-1);
-mpc.rs_hat_ter = zeros(mpc.nx,1);
+mpc.rse_hat_k = zeros(mpc.nx+du*mpc.nu,mpc.N);
 
 %% g
 
