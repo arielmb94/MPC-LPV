@@ -1,17 +1,17 @@
 % Computes output vectors of the form: y = Cs + Du + Dd
-function mpc = get_mpc_y(mpc)
+function mpc = get_mpc_y(mpc,u_k,d_k)
 
 mpc.y(:,:)=0;
-for k = 2:mpc.N
+for k = 1:mpc.N-1
     if mpc.y_use_s
-        mpc.y(:,k-1) = mpc.y(:,k-1) + mpc.C*mpc.s(:,k);
+        mpc.y(:,k) = mpc.y(:,k) + mpc.C*mpc.s(:,k);
     end
     if mpc.y_use_u
-        mpc.y(:,k-1) = mpc.y(:,k-1) + mpc.D*mpc.u(:,k);
+        mpc.y(:,k) = mpc.y(:,k) + mpc.D*u_k(:,k);
     end
     if mpc.y_use_d
-        mpc.y(:,k-1) = mpc.y(:,k-1) + mpc.Dd*mpc.d(:,k);
+        mpc.y(:,k) = mpc.y(:,k) + mpc.Dd*d_k(:,k);
     end
 end
-mpc.err = mpc.r-mpc.y;
+mpc.err(:,:) = mpc.r-mpc.y;
 end

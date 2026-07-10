@@ -61,7 +61,8 @@ end
 
     x0 = rollstates(mpc,s_prev,u_prev,x_ref,mpc.d);
 
-    x0(mpc.slack_index) = 1/mpc.t;
+    x0(mpc.g_index) = 1/mpc.t;
+    x0(mpc.v_index) = 1/mpc.t;
     mpc.x0 = x0;
     
 end
@@ -72,7 +73,7 @@ x0 = zeros(mpc.n,1);
 
 x_k = s_prev;
 u_k_prev = u_prev;
-
+ 
 for k = 1 : mpc.N
     % Compute Raw Control Input
     if ~isempty(mpc.K) && ~isempty(x_ref)
@@ -85,33 +86,33 @@ for k = 1 : mpc.N
 
     u_k = u_raw;
 
-    % 2. Clip for Rate Constraints (Delta u)
-    if mpc.has_du_cnstr
-        % Check minimum rate limit
-        if mpc.du_cnstr.min_limit
-            du_min_strict = mpc.du_cnstr.min + mpc.slack_epsilon;
-            u_k = max(u_k_prev + du_min_strict, u_k);
-        end
-        % Check maximum rate limit
-        if mpc.du_cnstr.max_limit
-            du_max_strict = mpc.du_cnstr.max - mpc.slack_epsilon;
-            u_k = min(u_k_prev + du_max_strict, u_k);
-        end
+% 2. Clip for Rate Constraints (Delta u)
+if mpc.has_du_cnstr
+    % Check minimum rate limit
+    if mpc.du_cnstr.min_limit
+        du_min_strict = mpc.du_cnstr.min + mpc.slack_epsilon;
+        u_k = max(u_k_prev + du_min_strict, u_k);
     end
+    % Check maximum rate limit
+    if mpc.du_cnstr.max_limit
+        du_max_strict = mpc.du_cnstr.max - mpc.slack_epsilon;
+        u_k = min(u_k_prev + du_max_strict, u_k);
+    end
+end
 
-    % 3. Clip for Absolute Constraints (u)
-    if mpc.has_u_cnstr
-        % Check minimum absolute limit
-        if mpc.u_cnstr.min_limit
-            u_min_strict = mpc.u_cnstr.min + mpc.slack_epsilon;
-            u_k = max(u_min_strict, u_k);
-        end
-        % Check maximum absolute limit
-        if mpc.u_cnstr.max_limit
-            u_max_strict = mpc.u_cnstr.max - mpc.slack_epsilon;
-            u_k = min(u_max_strict, u_k);
-        end
+% 3. Clip for Absolute Constraints (u)
+if mpc.has_u_cnstr
+    % Check minimum absolute limit
+    if mpc.u_cnstr.min_limit
+        u_min_strict = mpc.u_cnstr.min + mpc.slack_epsilon;
+        u_k = max(u_min_strict, u_k);
     end
+    % Check maximum absolute limit
+    if mpc.u_cnstr.max_limit
+        u_max_strict = mpc.u_cnstr.max - mpc.slack_epsilon;
+        u_k = min(u_max_strict, u_k);
+    end
+end
 
     % 4. Propagate Dynamics
     % x_{k+1} = A*x_k + B*u_k + D*d_k
@@ -119,22 +120,22 @@ for k = 1 : mpc.N
     if ~isempty(mpc.Bd) && ~isempty(d_in)
         x_next = x_next + mpc.Bd * d_in(:,k);
     end
-    % clamp x: for safety net in case we are dealing with unstable
-    % system
-    if mpc.has_s_cnstr
-        % Check minimum state limits
-        if mpc.s_cnstr.min_limit
-            s_min_strict = mpc.s_cnstr.min + mpc.slack_epsilon;
+% clamp x: for safety net in case we are dealing with unstable
+% system
+if mpc.has_s_cnstr
+    % Check minimum state limits
+    if mpc.s_cnstr.min_limit
+        s_min_strict = mpc.s_cnstr.min + mpc.slack_epsilon;
             x_next = max(s_min_strict, x_next);
-        end
+    end
 
-        % Check maximum state limits
-        if mpc.s_cnstr.max_limit
-            s_max_strict = mpc.s_cnstr.max - mpc.slack_epsilon;
+    % Check maximum state limits
+    if mpc.s_cnstr.max_limit
+        s_max_strict = mpc.s_cnstr.max - mpc.slack_epsilon;
             x_next = min(s_max_strict, x_next);
 
-        end
     end
+end
 
     % 5. Map to Primal Optimization Vector
     % Indexing math for [u0; x1; u1; x2; ...]
@@ -142,7 +143,7 @@ for k = 1 : mpc.N
     if mpc.has_du && any(mpc.su_index_k(:,k))
         x0(mpc.su_index_k(:,k)) = u_k_prev;
     end
-    x0(mpc.s_index_k(:,k+1)) = x_next;
+    x0(mpc.s_index_k(:,k)) = x_next;
 
     % 6. Prepare for next step
     x_k = x_next;

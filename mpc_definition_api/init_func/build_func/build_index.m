@@ -93,7 +93,6 @@ vy_max_index_k = [];
 vh_min_index_k = [];
 vh_max_index_k = [];
 
-
 %% x
 start_index = 1;
 
@@ -132,25 +131,27 @@ dim = [mpc.nx mpc.nu*du];           % s su
 s_index_k = [s_index_k s_index_k_vec];
 su_index_k = [su_index_k su_index_k_vec];
 
-
+mpc.u_index = u_index;
 mpc.s_index = s_index;
 mpc.su_index = su_index;
-mpc.u_index = u_index;
 
+mpc.u_index_k = u_index_k;
 mpc.s_index_k = s_index_k;
 mpc.su_index_k = su_index_k;
-mpc.u_index_k = u_index_k;
-
-mpc.se_index_k = [mpc.s_index_k;mpc.su_index_k];
+mpc.se_index_k = [s_index_k;su_index_k];
 
 mpc.nvar = start_index-1;
 mpc.variables_index = [1:mpc.nvar]';
 
-mpc.ru_k = zeros(mpc.nu,mpc.N);
-mpc.rse_k = zeros(mpc.nx+du*mpc.nu,mpc.N);
+mpc.ru_0 = zeros(mpc.nu,1);
+mpc.ru_k = zeros(mpc.nu,mpc.N-1);
+mpc.rse_k = zeros(mpc.nx+du*mpc.nu,mpc.N-1);
+mpc.rse_ter = zeros(mpc.nx+du*mpc.nu,1);
 
-mpc.ru_hat_k = zeros(mpc.nu,mpc.N);
-mpc.rse_hat_k = zeros(mpc.nx+du*mpc.nu,mpc.N);
+mpc.ru_hat_0 = zeros(mpc.nu,1);
+mpc.ru_hat_k = zeros(mpc.nu,mpc.N-1);
+mpc.rse_hat_k = zeros(mpc.nx+du*mpc.nu,mpc.N-1);
+mpc.rse_hat_ter = zeros(mpc.nx+du*mpc.nu,1);
 
 %% g
 
@@ -224,6 +225,14 @@ mpc.g_0 = g_index_0*0;
 mpc.g_k = g_index_k*0;
 mpc.g_ter = g_index_ter*0;
 
+mpc.rg_0 = g_index_0*0;
+mpc.rg_k = g_index_k*0;
+mpc.rg_ter = g_index_ter*0;
+
+mpc.g2_0 = g_index_0*0;
+mpc.g2_k = g_index_k*0;
+mpc.g2_ter = g_index_ter*0;
+
 %% v
 
 % k = 0
@@ -278,5 +287,12 @@ mpc.v_0 = v_index_0*0;
 mpc.v_k = v_index_k*0;
 mpc.v_ter = v_index_ter*0;
 
+mpc.rv_0 = v_index_0*0;
+mpc.rv_k = v_index_k*0;
+mpc.rv_ter = v_index_ter*0;
+
+mpc.v2_0 = v_index_0*0;
+mpc.v2_k = v_index_k*0;
+mpc.v2_ter = v_index_ter*0;
 
 end

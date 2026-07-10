@@ -6,9 +6,15 @@ mpc.H_f0_k = zeros(mpc.nvar_k,mpc.nvar_k,mpc.N-1);
 mpc.H_f0_ter = zeros(mpc.nse);
 
 mpc.H_k = zeros(mpc.nvar_k,mpc.nvar_k,mpc.N-1);
-mpc.Q_k = zeros(mpc.nse,mpc.nse,mpc.N);
-mpc.R_k = zeros(mpc.nu,mpc.nu,mpc.N);
+mpc.R_0 = zeros(mpc.nu);
+mpc.Q_k = zeros(mpc.nse,mpc.nse,mpc.N-1);
+mpc.R_k = zeros(mpc.nu,mpc.nu,mpc.N-1);
 mpc.Y_k = zeros(mpc.nu,mpc.nse,mpc.N-1);
+mpc.Q_ter = zeros(mpc.nse);
+
+mpc.rx_ineq_0 = zeros(mpc.nu,1);
+mpc.rx_ineq_k = zeros(mpc.nse+mpc.nu,mpc.N-1);
+mpc.rx_ineq_ter = zeros(mpc.nse,1);
 
 mpc.grad_f0_0 = zeros(mpc.nu,1);
 mpc.grad_f0_k = zeros(mpc.nvar_k,mpc.N-1);
@@ -83,7 +89,7 @@ if mpc.quad_custom_cost
         gradPerfQz = grad_z*mpc.Qz;
         hessPerfCost = gradPerfQz*grad_z';
 
-        mpc.gradPerfQz(:,:,k) = gradPerfQz;
+        mpc.gradPerfQz_k(:,:,k) = gradPerfQz;
         mpc.H_f0_k(index_k,index_k,k) = mpc.H_f0_k(index_k,index_k,k) + ...
                                         + hessPerfCost;
     end
@@ -143,7 +149,7 @@ for k = 1:mpc.N-1
     gradErrQe = grad_err*mpc.Qe;
     hessErrCost = gradErrQe*grad_err';
     
-    mpc.gradErrQe(:,:,k) = gradErrQe;
+    mpc.gradErrQe_k(:,:,k) = gradErrQe;
     mpc.H_f0_k(index_k,index_k,k) = mpc.H_f0_k(index_k,index_k,k) + ...
                                     + hessErrCost;
 end
@@ -153,22 +159,22 @@ function mpc = genControlCost(mpc)
 
 if mpc.quad_control_cost
 
-    mpc.gradCtlrRu(:,:,1) = mpc.Ru;
+    mpc.gradCtlrRu_0 = mpc.Ru;
     mpc.H_f0_0 = mpc.H_f0_0 + mpc.Ru;
 
-    for k = 2:mpc.N
+    for k = 1:mpc.N-1
         u_index = mpc.nse+1:mpc.nvar_k;
 
-        mpc.gradCtlrRu(:,:,k) = mpc.Ru;
-        mpc.H_f0_k(u_index,u_index,k-1) = mpc.H_f0_k(u_index,u_index,k-1) + ...
+        mpc.gradCtlrRu_k(:,:,k) = mpc.Ru;
+        mpc.H_f0_k(u_index,u_index,k) = mpc.H_f0_k(u_index,u_index,k) + ...
                                             + mpc.Ru;
     end
 end
 
 if mpc.lin_control_cost
-    mpc.gradCtlrru = zeros(mpc.nu,mpc.N);
-    for k = 1:mpc.N
-        mpc.gradCtlrru(:,k) = mpc.ru;
+    mpc.gradCtlrru_0 = mpc.ru;
+    for k = 1:mpc.N-1
+        mpc.gradCtlrru_k(:,k) = mpc.ru;
     end
 end
 
@@ -193,7 +199,7 @@ for k = 1:mpc.N-1
     gradDUCost = grad_du*mpc.Rdu;
     hessDUCost = gradDUCost*grad_du';
 
-    mpc.gradDiffCtlrR(:,:,k) = gradDUCost;
+    mpc.gradDiffCtlrR_k(:,:,k) = gradDUCost;
     mpc.H_f0_k(index_k,index_k,k) = mpc.H_f0_k(index_k,index_k,k) + ...
                                         + hessDUCost;
 end

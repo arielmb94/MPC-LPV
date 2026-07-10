@@ -6,10 +6,10 @@ mpc.grad_f0_ter(:) = 0;
 
 % k=0
 if mpc.quad_control_cost
-    mpc.grad_f0_0 = mpc.grad_f0_0 + mpc.gradCtlrRu(:,:,1)*mpc.u(:,1);
+    mpc.grad_f0_0 = mpc.grad_f0_0 + mpc.gradCtlrRu_0*mpc.u(:,1);
 end
 if mpc.lin_control_cost
-    mpc.grad_f0_0 = mpc.grad_f0_0 + mpc.gradCtlrru(:,1);
+    mpc.grad_f0_0 = mpc.grad_f0_0 + mpc.gradCtlrru_0;
 end
 
 if mpc.diffcontrol_cost
@@ -31,28 +31,28 @@ for k = 1:mpc.N-1
 
     if mpc.tracking_cost
         index = mpc.tracking_cost_index_k;
-        mpc.grad_f0_k(index,k) = mpc.grad_f0_k(index,k) + mpc.gradErrQe(:,:,k)*mpc.err(:,k);
+        mpc.grad_f0_k(index,k) = mpc.grad_f0_k(index,k) + mpc.gradErrQe_k(:,:,k)*mpc.err(:,k);
     end
 
     if mpc.quad_control_cost
         index = mpc.nse+1:mpc.nvar_k;
-        mpc.grad_f0_k(index,k) = mpc.grad_f0_k(index,k) + mpc.gradCtlrRu(:,:,k+1)*mpc.u(:,k+1);
+        mpc.grad_f0_k(index,k) = mpc.grad_f0_k(index,k) + mpc.gradCtlrRu_k(:,:,k)*mpc.u(:,k+1);
     end
     if mpc.lin_control_cost
         index = mpc.nse+1:mpc.nvar_k;
-        mpc.grad_f0_k(index,k) = mpc.grad_f0_k(index,k) + mpc.gradCtlrru(:,k+1);
+        mpc.grad_f0_k(index,k) = mpc.grad_f0_k(index,k) + mpc.gradCtlrru_k(:,k);
     end
 
     if mpc.diffcontrol_cost
         index = mpc.du_index_k;
-        mpc.grad_f0_k(index,k) = mpc.grad_f0_k(index,k) + mpc.gradDiffCtlrR(:,:,k)*mpc.du(:,k+1);
+        mpc.grad_f0_k(index,k) = mpc.grad_f0_k(index,k) + mpc.gradDiffCtlrR_k(:,:,k)*mpc.du(:,k+1);
     end
 
     if mpc.quad_custom_cost || mpc.lin_custom_cost
         index = mpc.custom_cost_index_k;
 
         if mpc.quad_custom_cost
-            mpc.grad_f0_k(index,k) = mpc.grad_f0_k(index,k) + mpc.gradPerfQz(:,:,k)*mpc.z(:,k+1);
+            mpc.grad_f0_k(index,k) = mpc.grad_f0_k(index,k) + mpc.gradPerfQz_k(:,:,k)*mpc.z(:,k+1);
         end
         if mpc.lin_custom_cost
             mpc.grad_f0_k(index,k) = mpc.grad_f0_k(index,k) + mpc.gradPerfqz_k(:,k);
@@ -65,8 +65,12 @@ if mpc.ter_ingredients
 end
 
 u_index = mpc.nse+1:mpc.nvar_k;
-mpc.ru_k(:,:) = mpc.t*[mpc.grad_f0_0 mpc.grad_f0_k(u_index,:)];
-mpc.rse_k(:,1:mpc.N-1) = mpc.t*mpc.grad_f0_k(1:mpc.nse,:);
-mpc.rse_k(:,mpc.N) = mpc.t*mpc.grad_f0_ter;
+
+mpc.ru_0(:) = mpc.t*mpc.grad_f0_0;
+
+mpc.ru_k(:,:) = mpc.t*mpc.grad_f0_k(u_index,:);
+mpc.rse_k(:,:) = mpc.t*mpc.grad_f0_k(1:mpc.nse,:);
+
+mpc.rse_ter(:) = mpc.t*mpc.grad_f0_ter;
 
 end

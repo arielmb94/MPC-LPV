@@ -17,8 +17,10 @@ beq = zeros(nse,mpc.N);
 bi_0 = zeros(mpc.ng_k(1),1);
 bi_k = zeros(mpc.ng_k(2),mpc.N-1);
 
-mpc.rp = zeros(nse,mpc.N);
-mpc.beq = zeros(nx,mpc.N);
+mpc.rp_0 = zeros(nse,1);
+mpc.rp_k = zeros(nse,mpc.N-1);
+mpc.beq_0 = zeros(nx,1);
+mpc.beq_k = zeros(nx,mpc.N-1);
 mpc.ri_0 = zeros(mpc.ng_k(1),1);
 mpc.ri_k = zeros(mpc.ng_k(2),mpc.N-1);
 mpc.ri_ter = zeros(mpc.ng_k(mpc.N+1),1);
