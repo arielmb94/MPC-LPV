@@ -108,7 +108,7 @@ end
 continue_Newton = true;
 iter = 0;
 
-mpc = get_mpc_variables(mpc,x0,s_prev,u_prev);
+mpc = get_mpc_variables(mpc,x0,u_prev);
 
 opts.SYM = true;
 lambda2 = 1;
@@ -117,13 +117,13 @@ while mpc.eps <= lambda2*0.5 && continue_Newton && iter < mpc.max_iter
 
     % Compute gradient:
 
-    % 1. Compute gradient/Hessian of box inequalities at x0:
-    % init inequalities gradient vector
-    grad_fi_Ind = zeros(n,1);
-    grad_fi_Ind(mpc.slack_index) = -1./(mpc.slacks-mpc.slack_epsilon);
-    % init inequalities hessian vector
-    hess_fi_Ind = zeros(n,1);
-    hess_fi_Ind(mpc.slack_index) = 1./(mpc.slacks-mpc.slack_epsilon).^2;
+%     % 1. Compute gradient/Hessian of box inequalities at x0:
+%     % init inequalities gradient vector
+%     grad_fi_Ind = zeros(n,1);
+%     grad_fi_Ind(mpc.slack_index) = -1./(mpc.slacks-mpc.slack_epsilon);
+%     % init inequalities hessian vector
+%     hess_fi_Ind = zeros(n,1);
+%     hess_fi_Ind(mpc.slack_index) = 1./(mpc.slacks-mpc.slack_epsilon).^2;
 
     mpc = grad_f0_MPC(mpc);
 
@@ -131,27 +131,33 @@ while mpc.eps <= lambda2*0.5 && continue_Newton && iter < mpc.max_iter
 
     mpc = reduced_KKT_elements(mpc);
 
-    [delta_u,delta_se,mu] = riccati_KKT(mpc,mpc.Q_k,mpc.R_k,mpc.Y_k,...  
-                            mpc.ru_hat_k,mpc.rse_hat_k,mpc.rp)
+    [delta_u,delta_se,mu] = riccati_KKT(mpc,mpc.Q_k,mpc.Q_ter,...
+                                        mpc.R_0,mpc.R_k,mpc.Y_k,...
+                                        mpc.ru_hat_0,mpc.ru_hat_k,...
+                                        mpc.rse_hat_k,mpc.rse_hat_ter,...
+                                        mpc.rp_0,mpc.rp_k);  
 
-    % 4. Compute gradient at x0 : grad(J) = t*grad(f0)+grad(Phi)
-    grad_J_x0 = mpc.t*grad_f0+grad_fi_Ind;
+    [delta_g_0,delta_g_k,delta_g_ter,delta_v_0,delta_v_k,delta_v_ter] =...
+                    recover_slacks(mpc,delta_u,delta_se);
 
-    % 3. Compute Hessian of f(x0,t):
-    hess_J_x0 = mpc.t*mpc.hessCost+mpc.eps_thknv*eye(n);
-    for k = 1:length(mpc.slack_index)
-        i = mpc.slack_index(k);
-        hess_J_x0(i,i) = hess_J_x0(i,i) + hess_fi_Ind(i);
-    end
+%     % 4. Compute gradient at x0 : grad(J) = t*grad(f0)+grad(Phi)
+%     grad_J_x0 = mpc.t*grad_f0+grad_fi_Ind;
+% 
+%     % 3. Compute Hessian of f(x0,t):
+%     hess_J_x0 = mpc.t*mpc.hessCost+mpc.eps_thknv*eye(n);
+%     for k = 1:length(mpc.slack_index)
+%         i = mpc.slack_index(k);
+%         hess_J_x0(i,i) = hess_J_x0(i,i) + hess_fi_Ind(i);
+%     end
 
     % solve KKT system
     %KKT = [hess_J_x0 mpc.Aeq';mpc.Aeq zeros(n_eq)];
 
-   [delta_var,delta_g,delta_v] = reduced_KKT(mpc,x0,grad_f0,opts);
-   delta_x_prim = zeros(n,1);
-   delta_x_prim(mpc.variables_index) = delta_var;
-   delta_x_prim(mpc.g_index) = delta_g;
-   delta_x_prim(mpc.v_index) = delta_v;
+%    [delta_var,delta_g,delta_v] = reduced_KKT(mpc,x0,grad_f0,opts);
+%    delta_x_prim = zeros(n,1);
+%    delta_x_prim(mpc.variables_index) = delta_var;
+%    delta_x_prim(mpc.g_index) = delta_g;
+%    delta_x_prim(mpc.v_index) = delta_v;
 
 %     delta_x = - linsolve(KKT,[grad_J_x0;mpc.Aeq*x0-mpc.beq],opts);
 %     delta_x_prim = delta_x(1:n);
