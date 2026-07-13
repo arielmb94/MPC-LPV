@@ -7,10 +7,10 @@ for k = 1:mpc.N-1
         mpc.y(:,k) = mpc.y(:,k) + mpc.C*mpc.s(:,k);
     end
     if mpc.y_use_u
-        mpc.y(:,k) = mpc.y(:,k) + mpc.D*u_k(:,k);
+        mpc.y(:,k) = mpc.y(:,k) + mpc.D*u_k(:,k+1);
     end
     if mpc.y_use_d
-        mpc.y(:,k) = mpc.y(:,k) + mpc.Dd*d_k(:,k);
+        mpc.y(:,k) = mpc.y(:,k) + mpc.Dd*d_k(:,k+1);
     end
 end
 mpc.err(:,:) = mpc.r-mpc.y;

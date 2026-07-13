@@ -53,10 +53,6 @@ function [u0,iter,mpc] = mpc_solve(mpc,s_prev,u_prev, ...
                                    r_in,xN_ref_in,...
                                    d_in,dz_in,dh_in)
 
-% number of variables
-n = mpc.n;
-% number of equality constraints
-n_eq = size(mpc.Aeq,1);
 
 x0 = mpc.x0;
 % handle input vector sizes
@@ -110,7 +106,6 @@ iter = 0;
 
 mpc = get_mpc_variables(mpc,x0,u_prev);
 
-opts.SYM = true;
 lambda2 = 1;
 
 while mpc.eps <= lambda2*0.5 && continue_Newton && iter < mpc.max_iter
@@ -140,6 +135,9 @@ while mpc.eps <= lambda2*0.5 && continue_Newton && iter < mpc.max_iter
     [delta_g_0,delta_g_k,delta_g_ter,delta_v_0,delta_v_k,delta_v_ter] =...
                     recover_slacks(mpc,delta_u,delta_se);
 
+    [delta_x_prim,grad_J_x0] = stage2vec(mpc,delta_u,delta_se,delta_g_0,delta_g_k,delta_g_ter,...
+                        delta_v_0,delta_v_k,delta_v_ter);
+
 %     % 4. Compute gradient at x0 : grad(J) = t*grad(f0)+grad(Phi)
 %     grad_J_x0 = mpc.t*grad_f0+grad_fi_Ind;
 % 
@@ -163,13 +161,14 @@ while mpc.eps <= lambda2*0.5 && continue_Newton && iter < mpc.max_iter
 %     delta_x_prim = delta_x(1:n);
 
     % compute lambda^2
-    lambda2 = -grad_J_x0'*delta_x_prim;
+    lambda2 = -grad_J_x0*delta_x_prim;
 
     % Feasibility line search
     l = 1;
     xhat = x0+l*delta_x_prim;
 
-    feas = all(xhat(mpc.slack_index)>mpc.slack_epsilon);
+    feas = all(xhat(mpc.g_index)>mpc.slack_epsilon) &&...
+           all(xhat(mpc.v_index)>mpc.slack_epsilon);
 
     if feas
         x0 = xhat;
@@ -179,14 +178,15 @@ while mpc.eps <= lambda2*0.5 && continue_Newton && iter < mpc.max_iter
 
             xhat = x0+l*delta_x_prim;
 
-            feas = all(xhat(mpc.slack_index)>mpc.slack_epsilon);
+            feas = all(xhat(mpc.g_index)>mpc.slack_epsilon) &&...
+                   all(xhat(mpc.v_index)>mpc.slack_epsilon);
         end
         x0 = xhat;
         if l<mpc.min_l
             continue_Newton = false;
         end
     end
-    mpc = get_mpc_variables(mpc,x0,s_prev,u_prev);
+    mpc = get_mpc_variables(mpc,x0,u_prev);
     iter = iter+1;
 end
 

@@ -13,7 +13,7 @@ end
 
 % tracking outputs
 if mpc.ny
-    mpc = get_mpc_y(mpc,mpc.u(:,2:mpc.N),mpc.d(:,2:mpc.N));
+    mpc = get_mpc_y(mpc,mpc.u,mpc.d);
 end
 
 % general constraints
@@ -28,12 +28,13 @@ end
 
 % get slack variables 
 if any(mpc.ng_k)
-   %mpc.slacks(:) = x(mpc.slack_index);
+   mpc.g(:) = x(mpc.g_index);
    mpc.g_0(:) = x(mpc.g_index_0);
    mpc.g_k(:,:) = x(mpc.g_index_k);
    mpc.g_ter(:) = x(mpc.g_index_ter);
 end
 if any(mpc.nv_k)
+   mpc.v(:) = x(mpc.v_index);
    mpc.v_0(:) = x(mpc.v_index_0);
    mpc.v_k(:,:) = x(mpc.v_index_k);
    mpc.v_ter(:) = x(mpc.v_index_ter);

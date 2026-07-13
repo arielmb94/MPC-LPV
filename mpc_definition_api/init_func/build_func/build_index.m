@@ -221,6 +221,7 @@ mpc.g_index_0 = g_index_0;
 mpc.g_index_k = g_index_k;
 mpc.g_index_ter = g_index_ter;
 
+mpc.g = g_index*0;
 mpc.g_0 = g_index_0*0;
 mpc.g_k = g_index_k*0;
 mpc.g_ter = g_index_ter*0;
@@ -283,6 +284,7 @@ mpc.v_index_0 = v_index_0;
 mpc.v_index_k = v_index_k;
 mpc.v_index_ter = v_index_ter;
 
+mpc.v = v_index*0;
 mpc.v_0 = v_index_0*0;
 mpc.v_k = v_index_k*0;
 mpc.v_ter = v_index_ter*0;
