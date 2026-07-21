@@ -53,14 +53,20 @@ function [u0,iter,mpc] = mpc_solve(mpc,s_prev,u_prev, ...
                                    r_in,xN_ref_in,...
                                    d_in,dz_in,dh_in)
 
-
 x0 = mpc.x0;
+
 % handle input vector sizes
 len_r_in = size(r_in,2);
-if ~isempty(r_in) && len_r_in < mpc.N-1
-    mpc.r(:,:) = fill_vec(mpc.r,r_in,1);
-else
-    mpc.r(:,:) = r_in;
+if len_r_in 
+    if len_r_in < mpc.N
+        mpc.r(:,:) = fill_vec(mpc.r,r_in,1);
+        if mpc.y_use_k0, mpc.r_0(:) = mpc.r(:,1); end
+        if mpc.y_use_ter, mpc.r_ter(:) = mpc.r(:,mpc.N-1); end
+    else 
+        mpc.r(:,:) = r_in(:,1:mpc.N-1);
+        if mpc.y_use_k0, mpc.r_0(:) = mpc.r(:,1); end
+        if mpc.y_use_ter, mpc.r_ter(:) = r_in(:,mpc.N); end
+    end
 end
 
 len_d_in = size(d_in,2);
@@ -71,14 +77,14 @@ else
 end
 
 len_dz_in = size(dz_in,2);
-if ~isempty(dz_in) && len_dz_in < mpc.Nz
+if ~isempty(dz_in) && len_dz_in < mpc.N
     mpc.dz(:,:) = fill_vec(mpc.dz,dz_in,1);
 else
     mpc.dz(:,:) = dz_in;
 end
 
 len_dh_in = size(dh_in,2);
-if ~isempty(dh_in) && len_dh_in < mpc.Nh
+if ~isempty(dh_in) && len_dh_in < mpc.N
     mpc.dh(:,:) = fill_vec(mpc.dh,dh_in,1);
 else
     mpc.dh(:,:) = dh_in;
@@ -104,21 +110,11 @@ end
 continue_Newton = true;
 iter = 0;
 
-mpc = get_mpc_variables(mpc,x0,u_prev);
+mpc = get_mpc_variables(mpc,x0,s_prev,u_prev);
 
 lambda2 = 1;
 
 while mpc.eps <= lambda2*0.5 && continue_Newton && iter < mpc.max_iter
-
-    % Compute gradient:
-
-%     % 1. Compute gradient/Hessian of box inequalities at x0:
-%     % init inequalities gradient vector
-%     grad_fi_Ind = zeros(n,1);
-%     grad_fi_Ind(mpc.slack_index) = -1./(mpc.slacks-mpc.slack_epsilon);
-%     % init inequalities hessian vector
-%     hess_fi_Ind = zeros(n,1);
-%     hess_fi_Ind(mpc.slack_index) = 1./(mpc.slacks-mpc.slack_epsilon).^2;
 
     mpc = grad_f0_MPC(mpc);
 
@@ -126,39 +122,17 @@ while mpc.eps <= lambda2*0.5 && continue_Newton && iter < mpc.max_iter
 
     mpc = reduced_KKT_elements(mpc);
 
-    [delta_u,delta_se,mu] = riccati_KKT(mpc,mpc.Q_k,mpc.Q_ter,...
-                                        mpc.R_0,mpc.R_k,mpc.Y_k,...
-                                        mpc.ru_hat_0,mpc.ru_hat_k,...
-                                        mpc.rse_hat_k,mpc.rse_hat_ter,...
-                                        mpc.rp_0,mpc.rp_k);  
+    mpc = riccati_KKT(mpc,mpc.Q_k,mpc.Q_ter,...
+                      mpc.R_0,mpc.R_k,mpc.Y_k,...
+                      mpc.ru_hat_0,mpc.ru_hat_k,...
+                      mpc.rse_hat_k,mpc.rse_hat_ter,...
+                      mpc.rp_0,mpc.rp_k);  
 
-    [delta_g_0,delta_g_k,delta_g_ter,delta_v_0,delta_v_k,delta_v_ter] =...
-                    recover_slacks(mpc,delta_u,delta_se);
+    mpc = recover_slacks(mpc,mpc.delta_u,mpc.delta_se);
 
-    [delta_x_prim,grad_J_x0] = stage2vec(mpc,delta_u,delta_se,delta_g_0,delta_g_k,delta_g_ter,...
-                        delta_v_0,delta_v_k,delta_v_ter);
-
-%     % 4. Compute gradient at x0 : grad(J) = t*grad(f0)+grad(Phi)
-%     grad_J_x0 = mpc.t*grad_f0+grad_fi_Ind;
-% 
-%     % 3. Compute Hessian of f(x0,t):
-%     hess_J_x0 = mpc.t*mpc.hessCost+mpc.eps_thknv*eye(n);
-%     for k = 1:length(mpc.slack_index)
-%         i = mpc.slack_index(k);
-%         hess_J_x0(i,i) = hess_J_x0(i,i) + hess_fi_Ind(i);
-%     end
-
-    % solve KKT system
-    %KKT = [hess_J_x0 mpc.Aeq';mpc.Aeq zeros(n_eq)];
-
-%    [delta_var,delta_g,delta_v] = reduced_KKT(mpc,x0,grad_f0,opts);
-%    delta_x_prim = zeros(n,1);
-%    delta_x_prim(mpc.variables_index) = delta_var;
-%    delta_x_prim(mpc.g_index) = delta_g;
-%    delta_x_prim(mpc.v_index) = delta_v;
-
-%     delta_x = - linsolve(KKT,[grad_J_x0;mpc.Aeq*x0-mpc.beq],opts);
-%     delta_x_prim = delta_x(1:n);
+    [delta_x_prim,grad_J_x0] = stage2vec(mpc,mpc.delta_u,mpc.delta_se,...
+                                        mpc.delta_g_0,mpc.delta_g_k,mpc.delta_g_ter,...
+                                        mpc.delta_v_0,mpc.delta_v_k,mpc.delta_v_ter);
 
     % compute lambda^2
     lambda2 = -grad_J_x0*delta_x_prim;
@@ -186,12 +160,11 @@ while mpc.eps <= lambda2*0.5 && continue_Newton && iter < mpc.max_iter
             continue_Newton = false;
         end
     end
-    mpc = get_mpc_variables(mpc,x0,u_prev);
+    mpc = get_mpc_variables(mpc,x0,s_prev,u_prev);
     iter = iter+1;
 end
 
 u0 = mpc.u(:,1);
 mpc.x0(:) = x0;
-
 
 end

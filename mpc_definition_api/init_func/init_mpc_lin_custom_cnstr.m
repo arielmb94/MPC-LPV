@@ -51,26 +51,41 @@
 %         weight will default to the value stored in mpc.qv
 %       - Passing a scalar to the slack or qv inputs will automatically apply 
 %         that setting across all constrained outputs.
-function mpc = init_mpc_lin_custom_cnstr(mpc,Ch,Dh,Ddh,h_min,h_max, ...
-               qv_min,qv_max)
+function mpc = init_mpc_lin_custom_cnstr(mpc,Ch,Dh,Dsuh,Ddh,...
+                                            h_min,h_max, ...
+                                            qv_min,qv_max)
 arguments
     mpc
-    Ch
-    Dh
-    Ddh
+    Ch = []
+    Dh = []
+    Dsuh = []
+    Ddh = []
     h_min = []
     h_max = []
     qv_min = []
     qv_max = []
 end
 
+% general constraints boolean
+mpc.has_h_cnstr = 1;
+
 % General Inequality Matrix
 mpc.Ch = Ch;
 mpc.Dh = Dh;
+mpc.Dsuh = Dsuh;
 mpc.Ddh = Ddh;
 
+%number of general inequalities
+if ~isempty(Ch) && max(any(Ch))
+    mpc.nh = size(Ch,1);  
+elseif ~isempty(Dh) && max(any(Dh))
+    mpc.nh = size(Dh,1);
+elseif ~isempty(Dsuh) && max(any(Dsuh))
+    mpc.nh = size(Dsuh,1);
+end
 mpc.ndh = size(Ddh,2);  %number of disturbance inputs to general inequalities
-mpc.nh = size(Ch,1);  %number of general inequalities
+
+if ~isempty(Dsuh) && max(any(Dsuh)), mpc.has_du = 1; end
 
 % INPUT DIMENSION VALIDATION 
 validate_column_vector(h_min, mpc.nh, 'h_min');
@@ -78,66 +93,199 @@ validate_column_vector(h_max, mpc.nh, 'h_max');
 validate_column_vector(qv_min, mpc.nh, 'qv_min');
 validate_column_vector(qv_max, mpc.nh, 'qv_max');
 
-% Expand scalars to full local vectors if needed
-if isscalar(h_min), h_min = h_min * ones(mpc.nh, 1); end
-if isscalar(h_max), h_max = h_max * ones(mpc.nh, 1); end
-
-if mpc.Dh == 0
-    mpc.Nh = (mpc.N-1)*mpc.nh;
+if ~isempty(mpc.Ch) && max(any(mpc.Ch))
+    h_cnstr.use_s = 1;
 else
-    mpc.Nh = mpc.N*mpc.nh;
+    h_cnstr.use_s = 0;
+end
+if ~isempty(mpc.Dh) && max(any(mpc.Dh))
+    h_cnstr.use_u = 1;
+else
+    h_cnstr.use_u = 0;
+end
+if ~isempty(mpc.Dsuh) && max(any(mpc.Dsuh))
+    h_cnstr.use_su = 1;
+else
+    h_cnstr.use_su = 0;
+end
+if ~isempty(mpc.Ddh) && max(any(mpc.Ddh))
+    h_cnstr.use_d = 1;
+else
+    h_cnstr.use_d = 0;
 end
 
-mpc.h = zeros(mpc.Nh,1);
+h_cnstr.use_k0 = 0;
+h_cnstr.use_ter = 0;
 
-mpc.Ndh = mpc.N*mpc.ndh;
+% at k = 0, only rows with Dh!=0 (with dependence on control action u) are
+% considered
+h_row_0 = find(~all(Dh==0,2));
+mpc.nh_0 = length(h_row_0);
+
+if mpc.nh_0
+    h_cnstr.rows_k0 = h_row_0;
+    h_cnstr.use_k0 = 1;
+
+    if h_cnstr.use_s, mpc.Ch_0 = Ch(h_cnstr.rows_k0,:); end
+    if h_cnstr.use_u, mpc.Dh_0 = Dh(h_cnstr.rows_k0,:); end
+    if h_cnstr.use_su, mpc.Dsuh_0 = Dsuh(h_cnstr.rows_k0,:); end
+    if h_cnstr.use_d, mpc.Ddh_0 = Ddh(h_cnstr.rows_k0,:); end
+end
+
+% at k = N, only rows strictly dependent on s are considered
+if  ~isempty(Ch)
+    strict_s_rows = any(Ch~=0,2);
+    if h_cnstr.use_u, strict_s_rows = strict_s_rows & all(Dh==0,2); end
+    if h_cnstr.use_su, strict_s_rows = strict_s_rows & all(Dsuh==0,2); end
+    if h_cnstr.use_d, strict_s_rows = strict_s_rows & all(Ddh==0,2); end
+
+    h_row_ter = find(strict_s_rows);
+    mpc.nh_ter = length(h_row_ter);
+else
+    mpc.nh_ter = 0;
+end
+if mpc.nh_ter
+    h_cnstr.rows_ter = h_row_ter;
+    h_cnstr.use_ter = 1;
+
+    mpc.Ch_ter = Ch(h_cnstr.rows_ter,:); 
+end
+
+% init h vector
+if h_cnstr.use_k0, mpc.h_0 = zeros(mpc.nh_0,1); else, mpc.h_0=[]; end
+mpc.h = zeros(mpc.nh,mpc.N-1);
+if h_cnstr.use_ter, mpc.h_ter = zeros(mpc.nh_ter,1); else, mpc.h_ter=[]; end
+
+% init dh disturbance vector
+if h_cnstr.use_d
+    mpc.dh = zeros(mpc.ndh,mpc.N);
+end
+
+% Expand scalars to full vectors if needed
+if isscalar(h_min), h_min = h_min * ones(mpc.nh, 1); end
+if isscalar(h_max), h_max = h_max * ones(mpc.nh, 1); end
 
 % General Inequalites box constraints
 h_cnstr.min = h_min;
 h_cnstr.max = h_max;
 
+if h_cnstr.use_k0
+
+    if ~isempty(h_cnstr.min)
+        h_min_0 = h_min(h_cnstr.rows_k0);
+        h_cnstr.min_0 = h_min_0;
+    end
+
+    if ~isempty(h_cnstr.max)
+        h_max_0 = h_max(h_cnstr.rows_k0);
+        h_cnstr.max_0 = h_max_0;
+    end
+end
+
+if h_cnstr.use_ter
+
+    if ~isempty(h_cnstr.min)
+        h_min_ter = h_min(h_cnstr.rows_ter);
+        h_cnstr.min_ter = h_min_ter;
+    end
+
+    if ~isempty(h_cnstr.max)
+        h_max_ter = h_max(h_cnstr.rows_ter);
+        h_cnstr.max_ter = h_max_ter;
+    end
+end
+
 if ~isempty(h_cnstr.min)
 
     h_cnstr.min_limit = 1;
 
-    h_cnstr.fi_min_x0 = zeros(mpc.Nh,1);
+    if h_cnstr.use_k0
+        mpc.ng_k(1) = mpc.ng_k(1) + mpc.nh_0;
+        mpc.nv_k(1) = mpc.nv_k(1) + mpc.nh_0;
+    end
+    mpc.ng_k(2) = mpc.ng_k(2) + mpc.nh;
+    mpc.nv_k(2) = mpc.nv_k(2) + mpc.nh;
+    if h_cnstr.use_ter
+        mpc.ng_k(3) = mpc.ng_k(3) + mpc.nh_ter;
+        mpc.nv_k(3) = mpc.nv_k(3) + mpc.nh_ter;
+    end
 
-    h_cnstr.grad_min = -1 * genGradY(mpc.Ch,mpc.Dh,mpc.N,mpc.N_ctr_hor,...
-                            mpc.Nx,mpc.Nu,mpc.Nh,mpc.nx,mpc.nu,mpc.nh,mpc.Nv);
+    h_cnstr.g_min_index_k = [];
+    h_cnstr.v_min_index_k = [];
 
-    % consider slack variable on the gradient
-    [mpc,h_cnstr] = init_slack_min_condition(mpc,h_cnstr,qv_min, ...
-                    mpc.Nh,mpc.nh);
-    
-    % hessian created after slack is considered on the gradient
-    [h_cnstr.hess_min,mi] = genHessIneq(h_cnstr.grad_min);
-    mpc.m = mpc.m+mi;
+    % Initialize Penalty term for new slack variables
+    if isempty(qv_min)
+        % if qv isnt defined, it is not initialized until build_chronos_mpc(),
+        % but we need to make space 
+        if h_cnstr.use_k0, qv_min_0 = zeros(mpc.nh_0,1); end
+        qv_min_k = zeros(mpc.nh,1);
+        if h_cnstr.use_ter, qv_min_ter = zeros(mpc.nh_ter,1); end
+
+    elseif isscalar(qv_min)
+        if h_cnstr.use_k0, qv_min_0 = qv_min*ones(mpc.nh_0,1); end
+        qv_min_k = qv_min*ones(mpc.nh,1);
+        if h_cnstr.use_ter, qv_min_ter = qv_min*ones(mpc.nh_ter,1); end
+
+    else % full vector is passed, pick elements for k=0 and k=N
+        if h_cnstr.use_k0, qv_min_0 = qv_min(h_cnstr.rows_k0); end
+        qv_min_k = qv_min;
+        if h_cnstr.use_ter, qv_min_ter = qv_min(h_cnstr.rows_ter); end
+    end
+
+    if h_cnstr.use_k0, h_cnstr.qv_min_0 = qv_min_0; end
+    h_cnstr.qv_min = qv_min_k;
+    if h_cnstr.use_ter, h_cnstr.qv_min_ter = qv_min_ter; end
+   
 else
     h_cnstr.min_limit = 0;
 end
+
+
 if ~isempty(h_cnstr.max)
 
     h_cnstr.max_limit = 1;
 
-    h_cnstr.fi_max_x0 = zeros(mpc.Nh,1);
+    if h_cnstr.use_k0
+        mpc.ng_k(1) = mpc.ng_k(1) + mpc.nh_0;
+        mpc.nv_k(1) = mpc.nv_k(1) + mpc.nh_0;
+    end
+    mpc.ng_k(2) = mpc.ng_k(2) + mpc.nh;
+    mpc.nv_k(2) = mpc.nv_k(2) + mpc.nh;
+    if h_cnstr.use_ter
+        mpc.ng_k(3) = mpc.ng_k(3) + mpc.nh_ter;
+        mpc.nv_k(3) = mpc.nv_k(3) + mpc.nh_ter;
+    end
 
-    h_cnstr.grad_max = genGradY(mpc.Ch,mpc.Dh,mpc.N,mpc.N_ctr_hor,...
-                       mpc.Nx,mpc.Nu,mpc.Nh,mpc.nx,mpc.nu,mpc.nh,mpc.Nv);
+    h_cnstr.g_max_index_k = [];
+    h_cnstr.v_max_index_k = [];
 
-    % consider slack variable on the gradient
-    [mpc,h_cnstr] = init_slack_max_condition(mpc,h_cnstr,qv_max,...
-                    mpc.Nh,mpc.nh);
+    % Initialize Penalty term for new slack variables
+    if isempty(qv_max)
+        % if qv isnt defined, it is not initialized until build_chronos_mpc(),
+        % but we need to make space
+        if h_cnstr.use_k0, qv_max_0 = zeros(mpc.nh_0,1); end
+        qv_max_k = zeros(mpc.nh,1);
+        if h_cnstr.use_ter, qv_max_ter = zeros(mpc.nh_ter,1); end
 
-    % hessian created after slack is considered on the gradient
-    [h_cnstr.hess_max,mi] = genHessIneq(h_cnstr.grad_max);
-    mpc.m = mpc.m+mi;
+    elseif length(qv_max) == 1
+        if h_cnstr.use_k0, qv_max_0 = qv_max*ones(mpc.nh_0,1); end
+        qv_max_k = qv_max*ones(mpc.nh,1);
+        if h_cnstr.use_ter, qv_max_ter = qv_max*ones(mpc.nh_ter,1); end
+
+    else % full vector is passed, pick elements for k=0 and k=N
+        if h_cnstr.use_k0, qv_max_0 = qv_max(h_cnstr.rows_k0); end
+        qv_max_k = qv_max;
+        if h_cnstr.use_ter, qv_max_ter = qv_max(h_cnstr.rows_ter); end
+    end
+
+    if h_cnstr.use_k0, h_cnstr.qv_max_0 = qv_max_0; end
+    h_cnstr.qv_max = qv_max_k;
+    if h_cnstr.use_ter, h_cnstr.qv_max_ter = qv_max_ter; end
+
 else
     h_cnstr.max_limit = 0;
 end
 
 mpc.h_cnstr = h_cnstr;
-
-% adapt gradients due to added slack variables
-mpc = expand_gradients_hessians(mpc);
 
 end

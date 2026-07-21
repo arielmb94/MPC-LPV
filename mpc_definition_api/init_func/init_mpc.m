@@ -60,20 +60,12 @@
 %   unfeasible. 
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function mpc = init_mpc(N,N_ctr_hor)
+function mpc = init_mpc(N)
 arguments
     N = 2
-    N_ctr_hor = 0
 end
 
 mpc.N = N;
-if N_ctr_hor && N_ctr_hor > N
-    mpc.N_ctr_hor = N;
-elseif N_ctr_hor
-    mpc.N_ctr_hor = N_ctr_hor;
-else
-    mpc.N_ctr_hor = N;
-end
 
 mpc.Qe = [];
 mpc.Rdu = [];
@@ -100,9 +92,13 @@ mpc.nu = 0;
 mpc.nd = 0;
 mpc.ny = 0;
 mpc.ndz = 0;
+mpc.nz_0 = 0;
 mpc.nz = 0;
+mpc.nz_ter = 0;
 mpc.ndh = 0;
+mpc.nh_0 = 0;
 mpc.nh = 0;
+mpc.nh_ter = 0;
 mpc.Nx = 0;
 mpc.Nu = 0;
 mpc.Nd = 0;
@@ -117,10 +113,14 @@ mpc.dyn_use_d = 0;
 mpc.y_use_s = 0;
 mpc.y_use_u = 0;
 mpc.y_use_d = 0;
+mpc.y_use_k0 = 0;
+mpc.y_use_ter = 0;
 mpc.z_use_s = 0;
 mpc.z_use_u = 0;
 mpc.z_use_su = 0;
 mpc.z_use_d = 0;
+mpc.z_use_k0 = 0;
+mpc.z_use_ter = 0;
 
 mpc.s = [];
 mpc.s_ter = [];
@@ -212,8 +212,8 @@ mpc.y_cnstr = [];
 mpc.h_cnstr = [];
 mpc.fi_ter_x0 = 0;
 
-mpc.ng_k = zeros(1,N+1); % inequalites per horizon step
-mpc.nv_k = zeros(1,N+1); % soft inequalites per horizon step
+mpc.ng_k = [0 0 0]; % inequalites per horizon step
+mpc.nv_k = [0 0 0]; % soft inequalites per horizon step
 
 mpc.Nv = 0;
 mpc.qv = 1e3; % Slack variable penalty

@@ -1,7 +1,7 @@
 function v_full = fill_vec(v_full, v, fill_style)
 
-[~, step_v] = size(v);
-[~, step_full] = size(v_full);
+step_v = size(v,2);
+step_full = size(v_full,2);
 
 % Copy available stages
 v_full(:,1:step_v) = v;

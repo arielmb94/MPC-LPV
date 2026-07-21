@@ -17,23 +17,42 @@ end
 
 function cnstr = init_gradSlack(mpc,cnstr)
 
+if ~isempty(mpc.Qe)
+    qv = max(eig(mpc.Qe))*10;
+else
+    qv = mpc.qv;
+end
+
 if cnstr.min_limit
+    if cnstr.use_k0
+        if ~any(cnstr.qv_min_0)
+            cnstr.qv_min_0(:) = qv;
+        end
+    end
     if ~any(cnstr.qv_min)
-        if ~isempty(mpc.Qe)
-            cnstr.qv_min(:) = max(eig(mpc.Qe))*10;
-        else
-            cnstr.qv_min(:) = mpc.qv;
+        cnstr.qv_min(:) = qv;
+    end
+    if cnstr.use_ter
+        if ~any(cnstr.qv_min_ter)
+            cnstr.qv_min_ter(:) = qv;
         end
     end
 end
 
 if cnstr.max_limit
+    if cnstr.use_k0
+        if ~any(cnstr.qv_max_0)
+            cnstr.qv_max_0(:) = qv;
+        end
+    end
     if ~any(cnstr.qv_max)
-        if ~isempty(mpc.Qe)
-            cnstr.qv_max(:) = max(eig(mpc.Qe))*10;
-        else
-            cnstr.qv_max(:) = mpc.qv;
+        cnstr.qv_max(:) = qv;
+    end
+    if cnstr.use_ter
+        if ~any(cnstr.qv_max_ter)
+            cnstr.qv_max_ter(:) = qv;
         end
     end
 end
+
 end

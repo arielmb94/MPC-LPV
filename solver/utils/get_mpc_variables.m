@@ -1,4 +1,4 @@
-function mpc = get_mpc_variables(mpc,x,u_prev)
+function mpc = get_mpc_variables(mpc,x,s_prev,u_prev)
 
 %states
 mpc = get_mpc_x(mpc,x);
@@ -12,18 +12,18 @@ if mpc.has_du
 end
 
 % tracking outputs
-if mpc.ny
-    mpc = get_mpc_y(mpc,mpc.u,mpc.d);
+if mpc.ny || mpc.ny_0 || mpc.ny_ter
+    mpc = get_mpc_y(mpc);
 end
 
 % general constraints
 if mpc.has_h_cnstr
-    mpc = get_mpc_h(mpc);
+    mpc = get_mpc_h(mpc,s_prev,u_prev);
 end
 
 if mpc.quad_custom_cost || mpc.lin_custom_cost
     % compute vector z
-    mpc = get_mpc_z(mpc);
+    mpc = get_mpc_z(mpc,s_prev,u_prev);
 end
 
 % get slack variables 
