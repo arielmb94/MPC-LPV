@@ -98,13 +98,22 @@ if mpc.ter_ingredients
     end
 end
 
-% update b matrix from equality condition
-mpc = update_mpc_beq(mpc,s_prev,u_prev);
-
-% Recompute hessian if cost terms have been updated
+% Recompute gradient/hessian if cost terms have been updated
+if mpc.update_tracking
+    mpc = update_tracking_cost(mpc);
+end
+if mpc.update_customcost_quad
+    mpc = update_custom_cost_quad(mpc);
+end
+if mpc.update_customcost_lin
+    mpc = update_custom_cost_lin(mpc);
+end
 if mpc.recompute_cost_hess
     mpc = update_mpc_f0_hess(mpc);
 end
+
+% update b matrix from equality condition
+mpc = update_mpc_beq(mpc,s_prev,u_prev);
 
 % Set Newton solver condition at start
 continue_Newton = true;

@@ -44,58 +44,19 @@
 %   - mpc: updated CHRONOS mpc structure
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function mpc = update_mpc_Lin_Custom_cost(mpc,Cz,Dz,Ddz,Qz,qz)
+function mpc = update_mpc_Custom_cost(mpc,Qz,qz)
 
-updatelp = 0;
-updateqp = 0;
-
-if ~isempty(Cz)
-    mpc.Cz = Cz;
-
-    updatelp = 1;
-    updateqp = 1;
+if ~isempty(Qz)
+    mpc.update_customcost_quad = 1;
+    mpc.Qz(:,:) = Qz;
+    if mpc.z_use_k0, mpc.Qz_0(:,:) = Qz(mpc.z_rows_k0,mpc.z_rows_k0); end
+    if mpc.z_use_ter, mpc.Qz_ter(:,:) = Qz(mpc.z_rows_ter,mpc.z_rows_ter); end
 end
-
-if ~isempty(Dz)
-    mpc.Dz = Dz;
-
-    updatelp = 1;
-    updateqp = 1;
-end
-
-if ~isempty(Ddz)   
-    mpc.Ddz = Ddz;
-end
-
-if ~isempty(Qz)   
-    mpc.Qz = Qz;
-
-    updateqp = 1;
-end
-
-if ~isempty(qz)   
-    mpc.qz = qz;
-
-    updatelp = 1;
-end
-
-% Update Quatric cost term gradient and Hessian
-if ~isempty(mpc.Qz) && updateqp
-
-    mpc.recompute_cost_hess = 1;
-
-    [mpc.gradPerfQz(:,:),mpc.hessPerfTerm(:,:)] = genLinOutGradHess(mpc.Qz, ...
-        mpc.Cz,mpc.Dz,mpc.N,mpc.N_ctr_hor,mpc.Nx,mpc.Nu,mpc.Nz,...
-        mpc.nx,mpc.nu,mpc.nz,mpc.Nv);
-
-end
-
-% Update Linear cost term gradient
-if ~isempty(mpc.qz) && updatelp
-
-    mpc.gradPerfqz(:,:) = genGenPerfLPGrad(mpc.qz,mpc.Cz,mpc.Dz,...
-        mpc.N,mpc.N_ctr_hor,mpc.Nx,mpc.Nu,mpc.nx,mpc.nu,mpc.NV);
-
+if ~isempty(qz)
+    mpc.update_customcost_lin = 1;
+    mpc.qz(:) = qz;
+    if mpc.z_use_k0, mpc.qz_0(:) = qz(mpc.z_rows_k0); end
+    if mpc.z_use_ter, mpc.qz_ter(:) = qz(mpc.z_rows_ter); end
 end
     
 end

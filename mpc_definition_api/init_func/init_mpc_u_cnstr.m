@@ -33,21 +33,22 @@ validate_column_vector(u_max, mpc.nu, 'u_max');
 if isscalar(u_min), u_min = u_min * ones(mpc.nu, 1); end
 if isscalar(u_max), u_max = u_max * ones(mpc.nu, 1); end
 
+mpc.has_u_cnstr = 1;
 u_cnstr.min = u_min;
 u_cnstr.max = u_max;
+u_cnstr.use_k0 = 0;
+u_cnstr.use_ter = 0;
+u_cnstr.rows_k0 = [];
+u_cnstr.rows_ter = [];
 
 if ~isempty(u_cnstr.min)
 
     u_cnstr.min_limit = 1;
 
-    u_cnstr.fi_min_x0 = zeros(mpc.Nu,1);
+    mpc.ng_k(1:2) = mpc.ng_k(1:2) + mpc.nu;
 
-    % Control box constraints
-    u_cnstr.grad_min = -1 * genGradU(mpc.N_ctr_hor,...
-                                     mpc.Nx,mpc.Nu,mpc.nx,mpc.nu,mpc.Nv);
+    u_cnstr.g_min_index_k = [];
 
-    [u_cnstr.hess_min,mi] = genHessIneq(u_cnstr.grad_min);
-    mpc.m = mpc.m+mi;
 else
     u_cnstr.min_limit = 0;
 end
@@ -56,14 +57,9 @@ if ~isempty(u_cnstr.max)
 
     u_cnstr.max_limit = 1;
 
-    u_cnstr.fi_max_x0 = zeros(mpc.Nu,1);
-
-    % Control box constraints
-    u_cnstr.grad_max = genGradU(mpc.N_ctr_hor,...
-                                mpc.Nx,mpc.Nu,mpc.nx,mpc.nu,mpc.Nv);
-
-    [u_cnstr.hess_max,mi] = genHessIneq(u_cnstr.grad_max);
-    mpc.m = mpc.m+mi;
+    mpc.ng_k(1:2) = mpc.ng_k(1:2) + mpc.nu;
+    
+    u_cnstr.g_max_index_k = [];
     
 else
     u_cnstr.max_limit = 0;

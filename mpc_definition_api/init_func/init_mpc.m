@@ -143,7 +143,7 @@ mpc.xN_ref = [];
 mpc.tracking_cost = 0;
 mpc.quad_control_cost = 0;
 mpc.lin_control_cost = 0;
-mpc.diffcontrol_cost = 0;
+mpc.controlrate_cost = 0;
 mpc.quad_custom_cost = 0;
 mpc.lin_custom_cost = 0;
 
@@ -168,6 +168,11 @@ mpc.hessTerminalCost = [];
 mpc.tracking_cost_index_k = [];
 mpc.custom_cost_index_k = [];
 
+mpc.update_tracking = 0;
+mpc.update_customcost_quad = 0;
+mpc.update_customcost_lin = 0;
+mpc.recompute_cost_hess = 0;
+
 mpc.s = [];
 mpc.s_all = [];
 mpc.s_ter = [];
@@ -189,7 +194,6 @@ mpc.xN_ref_is_y = 0;
 mpc.P = [];
 mpc.P2 = [];
 mpc.K = [];
-mpc.recompute_cost_hess = 0;
 mpc.t_feas = 500;
 mpc.v0_feas = 10;
 mpc.qfeas = 1e-5;

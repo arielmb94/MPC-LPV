@@ -49,6 +49,8 @@ validate_column_vector(qv_max, mpc.ny, 'qv_max');
 
 y_cnstr.use_k0 = mpc.y_use_k0;
 y_cnstr.use_ter = mpc.y_use_ter;
+y_cnstr.rows_k0 = mpc.y_rows_k0;
+y_cnstr.rows_ter = mpc.y_rows_ter;
 
 % Expand scalars to full local vectors if needed
 if isscalar(y_min), y_min = y_min * ones(mpc.ny, 1); end
@@ -66,7 +68,6 @@ if mpc.y_use_ter
     if ~isempty(y_cnstr.min), y_cnstr.min_ter = y_min(mpc.y_rows_ter); end
     if ~isempty(y_cnstr.max), y_cnstr.max_ter = y_max(mpc.y_rows_ter); end
 end
-
 
 if ~isempty(y_cnstr.min)
 

@@ -38,16 +38,38 @@
 %       across all slacks active on the soft constraint.
 %       - Passing an [ni x 1] vector you can modify individually the penalty
 %       weight for each constraint element.
-function mpc = update_mpc_min_slack_cost(mpc,cnstr,qv_min_in)
+function mpc = update_mpc_slack_cost(mpc,cnstr,qv_min,qv_max)
 
-n_i = length(cnstr.min);
-qv_min = zeros(n_i,1);
-if length(qv_min_in)==1 && n_i > 1
-    qv_min(:) = qv_min_in*ones(n_i,1);
-else
-    qv_min(:) = qv_min_in;
+if ~isempty(qv_min)
+    if isscalar(qv_min) 
+        if cnstr.use_k0, mpc.grad_qv_0(cnstr.min_row_v_0) = qv_min; end
+        for k = 1:mpc.N-1
+            mpc.grad_qv_k(cnstr.min_row_v_k,k) = qv_min;
+        end
+        if cnstr.use_ter, mpc.grad_qv_ter(cnstr.min_ineqRow_ter) = qv_min; end
+    else
+        if cnstr.use_k0, mpc.grad_qv_0(cnstr.min_row_v_0) = qv_min(cnstr.rows_k0); end
+        for k = 1:mpc.N-1
+            mpc.grad_qv_k(cnstr.min_row_v_k,k) = qv_min;
+        end
+        if cnstr.use_ter, mpc.grad_qv_ter(cnstr.min_ineqRow_ter) = qv_min(cnstr.rows_ter); end
+    end
 end
 
-mpc.gradSlackqv(mpc.Nx+mpc.Nu+cnstr.min_v_global_index) = qv_min;
+if ~isempty(qv_max)
+    if isscalar(qv_max) 
+        if cnstr.use_k0, mpc.grad_qv_0(cnstr.max_row_v_0) = qv_max; end
+        for k = 1:mpc.N-1
+            mpc.grad_qv_k(cnstr.max_row_v_k,k) = qv_max;
+        end
+        if cnstr.use_ter, mpc.grad_qv_ter(cnstr.max_ineqRow_ter) = qv_max; end
+    else
+        if cnstr.use_k0, mpc.grad_qv_0(cnstr.max_row_v_0) = qv_max(cnstr.rows_k0); end
+        for k = 1:mpc.N-1
+            mpc.grad_qv_k(cnstr.max_row_v_k,k) = qv_max;
+        end
+        if cnstr.use_ter, mpc.grad_qv_ter(cnstr.max_ineqRow_ter) = qv_max(cnstr.rows_ter); end
+    end
+end
 
 end

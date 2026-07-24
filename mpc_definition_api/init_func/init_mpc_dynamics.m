@@ -30,28 +30,25 @@
 %   - mpc: updated CHRONOS mpc structure
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function mpc = init_mpc_system(mpc,A,B,Bd,C,D,Dd)
+function mpc = init_mpc_dynamics(mpc,A,B,Bd)
 arguments
     mpc
     A = []
     B = []
     Bd = []
-    C = []
-    D = []
-    Dd = []
 end
 
 mpc.A = A;
 mpc.B = B;
 mpc.Bd = Bd;
-mpc.C = C;
-mpc.D = D;
-mpc.Dd = Dd;
 
 mpc.nx = size(mpc.A,1);  %number of states
 mpc.nu = size(mpc.B,2);  %number of control inputs
-if any(Bd) || any(D), mpc.nd = max([size(mpc.Bd,2) size(mpc.D,2)]); end  %number of disturbance inputs
-mpc.ny = max([size(mpc.C,1) size(mpc.D,1)]);  %number of measurements
+if any(Bd), mpc.nd = max([size(mpc.Bd,2) mpc.nd]); end  %number of disturbance inputs
+
+if ~isempty(mpc.Bd) && max(any(mpc.Bd))
+    mpc.dyn_use_d = 1;
+end
 
 mpc.Nx = mpc.N*mpc.nx;
 mpc.Nu = mpc.N*mpc.nu;
@@ -67,51 +64,22 @@ if mpc.nd
     mpc.d = zeros(mpc.nd,mpc.N);
 end
 
-if mpc.ny
+% Assume C = I*x
+mpc.C = eye(mpc.nx);
+mpc.C_ter = eye(mpc.nx);
 
-if ~isempty(mpc.C) && max(any(mpc.C))
-    mpc.y_use_s = 1;
-end
-if ~isempty(mpc.D) && max(any(mpc.D))
-    mpc.y_use_u = 1;
-end
-if ~isempty(mpc.Dd) && max(any(mpc.Dd))
-    mpc.y_use_d = 1;
-end
+mpc.ny = mpc.nx;
+mpc.ny_0 = 0;
+mpc.ny_ter = mpc.nx;
 
-% at k = 0, only rows with D!=0 (with dependence on control action u) are
-% considered
-y_row_0 = find(~all(D==0,2));
-mpc.ny_0 = length(y_row_0);
+mpc.y_use_k0 = 0;
+mpc.y_rows_k0 = [];
+mpc.y_use_ter = 1;
+mpc.y_rows_ter = 1:mpc.nx; 
 
-if mpc.ny_0
-    mpc.y_rows_k0 = y_row_0;
-    mpc.y_use_k0 = 1;
-
-    if mpc.y_use_s, mpc.C_0 = C(mpc.y_rows_k0,:); end
-    if mpc.y_use_u, mpc.D_0 = D(mpc.y_rows_k0,:); end
-    if mpc.y_use_d, mpc.Dd_0 = Dd(mpc.y_rows_k0,:); end
-else
-    mpc.y_use_k0 = 0;
-end
-
-% at k = N, only rows strictly dependent on s are considered
-if ~isempty(C)
-    strict_s_rows = any(C~=0,2);
-    if mpc.y_use_u, strict_s_rows = strict_s_rows & all(D==0,2); end
-    if mpc.y_use_d, strict_s_rows = strict_s_rows & all(Dd==0,2); end
-
-    y_row_ter = find(strict_s_rows);
-    mpc.ny_ter = length(y_row_ter);
-else
-    mpc.ny_ter = 0;
-end
-if mpc.ny_ter
-    mpc.y_rows_ter = y_row_ter;
-    mpc.y_use_ter = 1;
-
-    mpc.C_ter = C(mpc.y_rows_ter,:);
-end
+mpc.y_use_s = 1;
+mpc.y_use_u = 0;
+mpc.y_use_d = 0;
 
 % init y, reference and error vectors
 mpc.r_0 = zeros(mpc.ny_0,1);
@@ -123,7 +91,5 @@ mpc.err = zeros(mpc.ny,mpc.N-1);
 mpc.r_ter = zeros(mpc.ny_ter,1);
 mpc.y_ter = zeros(mpc.ny_ter,1);
 mpc.err_ter = zeros(mpc.ny_ter,1);
-
-end
 
 end

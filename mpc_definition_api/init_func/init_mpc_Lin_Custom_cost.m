@@ -131,13 +131,13 @@ end
 if ~isempty(Qz)
     mpc.quad_custom_cost = 1;
 
-    if mpc.z_use_k0, mpc.Qz_0 = Qz(mpc.z_rows_0,mpc.z_rows_0); end
+    if mpc.z_use_k0, mpc.Qz_0 = Qz(mpc.z_rows_k0,mpc.z_rows_k0); end
     if mpc.z_use_ter, mpc.Qz_ter = Qz(mpc.z_rows_ter,mpc.z_rows_ter); end
 end
 if ~isempty(qz)
     mpc.lin_custom_cost = 1;
 
-    if mpc.z_use_k0, mpc.qz_0 = qz(mpc.z_rows_0); end
+    if mpc.z_use_k0, mpc.qz_0 = qz(mpc.z_rows_k0); end
     if mpc.z_use_ter, mpc.qz_ter = qz(mpc.z_rows_ter); end
 end
  

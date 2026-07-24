@@ -37,25 +37,11 @@ end
 mpc.Ru = Ru;
 mpc.ru = ru;
 
-% Quadratic Cost
 if ~isempty(Ru)
-
-    if isempty(mpc.hessCost)
-        mpc.hessCost = zeros(mpc.Nu+mpc.Nx+mpc.Nv);
-    end
-
-    [mpc.gradCtlrRu,mpc.hessCtrlTerm] = genControlGradHess(Ru,mpc.N_ctr_hor,...
-                                        mpc.Nx,mpc.Nu,mpc.nx,mpc.nu,mpc.Nv);
-
-    mpc.hessCost = mpc.hessCost + mpc.hessCtrlTerm;
+    mpc.quad_control_cost = 1;
 end
-
-% Linear Cost
 if ~isempty(ru)
-
-    mpc.gradCtlrru = genControlLPGrad(ru,mpc.N_ctr_hor,mpc.Nx,mpc.Nu,...
-                    mpc.nx,mpc.nu,mpc.Nv);
-    
+    mpc.lin_control_cost = 1;
 end
 
 end
