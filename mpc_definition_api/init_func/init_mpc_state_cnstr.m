@@ -51,23 +51,34 @@ if isscalar(x_max), x_max = x_max * ones(mpc.nx, 1); end
 
 s_cnstr.min = x_min;
 s_cnstr.max = x_max;
+s_cnstr.use_k0 = 0;
+s_cnstr.use_ter = 0;
+s_cnstr.rows_k0 = [];
+s_cnstr.rows_ter = [];
+
+mpc.has_s_cnstr = 1;
 
 if ~isempty(s_cnstr.min)
 
     s_cnstr.min_limit = 1;
-    
-    s_cnstr.fi_min_x0 = zeros(mpc.Nx,1);
+   
+    mpc.ng_k(2:3) = mpc.ng_k(2:3) + mpc.nx;
+    mpc.nv_k(2:3) = mpc.nv_k(2:3) + mpc.nx;
 
-    s_cnstr.grad_min = -1 * genGradX(mpc.N,mpc.N_ctr_hor,...
-                                mpc.Nx,mpc.Nu,mpc.nx,mpc.nu,mpc.Nv);
+    s_cnstr.g_min_index_k = [];
+    s_cnstr.v_min_index_k = [];
 
-    % consider slack variable on the gradient
-    [mpc,s_cnstr] = init_slack_min_condition(mpc,s_cnstr,qv_min,...
-                    mpc.Nx,mpc.nx);
+    % Initialize Penalty term for new slack variables
+    if isempty(qv_min)
+        % if qv isnt defined, it is not initialized until build_chronos_mpc(),
+        % but we need to make space
+        qv_min = zeros(mpc.nx,1);
+    elseif length(qv_min) == 1
+        qv_min = qv_min*ones(mpc.nx,1);
+    end
 
-    % hessian created after slack is considered on the gradient
-    [s_cnstr.hess_min,mi] = genHessIneq(s_cnstr.grad_min);
-    mpc.m = mpc.m+mi;
+    s_cnstr.qv_min = qv_min;
+
 else
     s_cnstr.min_limit = 0;
 end
@@ -75,27 +86,28 @@ end
 if ~isempty(s_cnstr.max)
 
     s_cnstr.max_limit = 1;
-    
-    s_cnstr.fi_max_x0 = zeros(mpc.Nx,1);
 
-    s_cnstr.grad_max = genGradX(mpc.N,mpc.N_ctr_hor,...
-                                mpc.Nx,mpc.Nu,mpc.nx,mpc.nu,mpc.Nv);
+    mpc.ng_k(2:3) = mpc.ng_k(2:3) + mpc.nx;
+    mpc.nv_k(2:3) = mpc.nv_k(2:3) + mpc.nx;
 
-    % consider slack variable on the gradient
-    [mpc,s_cnstr] = init_slack_max_condition(mpc,s_cnstr,qv_max,...
-                    mpc.Nx,mpc.nx);
+    s_cnstr.g_max_index_k = [];
+    s_cnstr.v_max_index_k = [];
 
-    % hessian created after slack is considered on the gradient
-    [s_cnstr.hess_max,mi] = genHessIneq(s_cnstr.grad_max);
-    mpc.m = mpc.m+mi;
+    % Initialize Penalty term for new slack variables
+    if isempty(qv_max)
+        % if qv isnt defined, it is not initialized until build_chronos_mpc(),
+        % but we need to make space
+        qv_max = zeros(mpc.nx,1);
+    elseif length(qv_max) == 1
+        qv_max = qv_max*ones(mpc.nx,1);
+    end
+
+    s_cnstr.qv_max = qv_max;
+
 else
-    s_cnstr.max_limit = 0;
-    
+    s_cnstr.max_limit = 0; 
 end
 
 mpc.s_cnstr = s_cnstr;
-
-% adapt gradients due to added slack variables
-mpc = expand_gradients_hessians(mpc);
 
 end

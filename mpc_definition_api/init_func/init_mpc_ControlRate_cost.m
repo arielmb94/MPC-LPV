@@ -15,20 +15,10 @@
 %   - mpc: updated CHRONOS mpc structure
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function mpc = init_mpc_DiffControl_cost(mpc,Rdu)
+function mpc = init_mpc_ControlRate_cost(mpc,Rdu)
 
 mpc.Rdu = Rdu;
-
-if isempty(mpc.hessCost)
-    mpc.hessCost = zeros(mpc.Nu+mpc.Nx+mpc.Nv);
-end
-
-mpc.gradDiffCtlrR = zeros(mpc.Nu+mpc.Nx+mpc.Nv,mpc.Nu);
-mpc.gradDiffCtlr = zeros(mpc.Nu+mpc.Nx+mpc.Nv,mpc.Nu);
-mpc.hessDiffCtrlTerm = zeros(mpc.Nu+mpc.Nx+mpc.Nv);
-
-mpc = genDiffControlGradHess(mpc,Rdu,mpc.N_ctr_hor,mpc.nx,mpc.nu);
-
-mpc.hessCost = mpc.hessCost + mpc.hessDiffCtrlTerm;
+mpc.has_du = 1;
+mpc.controlrate_cost = 1;
 
 end

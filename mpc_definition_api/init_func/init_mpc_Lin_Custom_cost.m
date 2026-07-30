@@ -39,12 +39,13 @@
 % the appropiate field on mpc_solve() during runtime MPC execution.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function mpc = init_mpc_Lin_Custom_cost(mpc,Cz,Dz,Ddz,Qz,qz)
+function mpc = init_mpc_Lin_Custom_cost(mpc,Cz,Dz,Dsuz,Ddz,Qz,qz)
 arguments
     mpc
-    Cz
-    Dz
-    Ddz
+    Cz = []
+    Dz = []
+    Dsuz = []
+    Ddz = []
     Qz = [];
     qz = [];
 end
@@ -54,40 +55,90 @@ mpc.qz = qz;
 
 mpc.Cz = Cz;
 mpc.Dz = Dz;
+mpc.Dsuz = Dsuz;
 mpc.Ddz = Ddz;
 
-mpc.ndz = size(Ddz,2);  %number of disturbance inputs to performance cost
-mpc.nz = size(Cz,1);  %number of performances
+%number of general inequalities
+if ~isempty(Cz) && max(any(Cz))
+    mpc.nz = size(Cz,1);  
+elseif ~isempty(Dz) && max(any(Dz))
+    mpc.nz = size(Dz,1);
+elseif ~isempty(Dsuz) && max(any(Dsuz))
+    mpc.nz = size(Dsuz,1);
+end
+mpc.ndz = size(Ddz,2);  %number of disturbance inputs to general inequalities
 
-if mpc.Dz == 0
-    mpc.Nz = (mpc.N-1)*mpc.nz;
+if ~isempty(Dsuz) && max(any(Dsuz)), mpc.has_du = 1; end
+
+if ~isempty(mpc.Cz) && max(any(mpc.Cz))
+    mpc.z_use_s = 1;
+end
+if ~isempty(mpc.Dz) && max(any(mpc.Dz))
+    mpc.z_use_u = 1;
+end
+if ~isempty(mpc.Dsuz) && max(any(mpc.Dsuz))
+    mpc.z_use_su = 1;
+end
+if ~isempty(mpc.Ddz) && max(any(mpc.Ddz))
+    mpc.z_use_d = 1;
+end
+
+mpc.z_use_k0 = 0;
+mpc.z_use_ter = 0;
+% at k = 0, only rows with Dz!=0 (with dependence on control action u) are
+% considered
+z_row_0 = find(~all(Dz==0,2));
+mpc.nz_0 = length(z_row_0);
+
+if mpc.nz_0
+    mpc.z_rows_k0 = z_row_0;
+    mpc.z_use_k0 = 1;
+
+    if mpc.z_use_s, mpc.Cz_0 = Cz(mpc.z_rows_k0,:); end
+    if mpc.z_use_u, mpc.Dz_0 = Dz(mpc.z_rows_k0,:); end
+    if mpc.z_use_su, mpc.Dsuz_0 = Dsuz(mpc.z_rows_k0,:); end
+    if mpc.z_use_d, mpc.Ddz_0 = Ddz(mpc.z_rows_k0,:); end
+end
+
+% at k = N, only rows strictly dependent on s are considered
+if  ~isempty(Cz)
+    strict_s_rows = any(Cz~=0,2);
+    if mpc.z_use_u, strict_s_rows = strict_s_rows & all(Dz==0,2); end
+    if mpc.z_use_su, strict_s_rows = strict_s_rows & all(Dsuz==0,2); end
+    if mpc.z_use_d, strict_s_rows = strict_s_rows & all(Ddz==0,2); end
+
+    z_row_ter = find(strict_s_rows);
+    mpc.nz_ter = length(z_row_ter);
 else
-    mpc.Nz = mpc.N*mpc.nz;
+    mpc.nz_ter = 0;
+end
+if mpc.nz_ter
+    mpc.z_rows_ter = z_row_ter;
+    mpc.z_use_ter = 1;
+
+    mpc.Cz_ter = Cz(mpc.z_rows_ter,:); 
 end
 
-mpc.z = zeros(mpc.Nz,1);
-mpc.Ndz = mpc.N*mpc.ndz;
+% init z vector
+if mpc.z_use_k0, mpc.z_0 = zeros(mpc.nz_0,1); else, mpc.z_0=[]; end
+mpc.z = zeros(mpc.nz,mpc.N-1);
+if mpc.z_use_ter, mpc.z_ter = zeros(mpc.nz_ter,1); else, mpc.z_ter=[]; end
+% init d vector
+if mpc.ndz
+    mpc.dz = zeros(mpc.ndz,mpc.N);
+end
 
-% Quadratic Cost Term Gradient and Hessian Computation
 if ~isempty(Qz)
-    
-    if isempty(mpc.hessCost)
-        mpc.hessCost = zeros(mpc.Nu+mpc.Nx+mpc.Nv);
-    end
-    
-    [mpc.gradPerfQz,mpc.hessPerfTerm] = genLinOutGradHess(Qz,Cz,Dz,mpc.N,...
-        mpc.N_ctr_hor,mpc.Nx,mpc.Nu,mpc.Nz,mpc.nx,mpc.nu,mpc.nz,mpc.Nv);
+    mpc.quad_custom_cost = 1;
 
-    mpc.hessCost = mpc.hessCost + mpc.hessPerfTerm;
-
+    if mpc.z_use_k0, mpc.Qz_0 = Qz(mpc.z_rows_k0,mpc.z_rows_k0); end
+    if mpc.z_use_ter, mpc.Qz_ter = Qz(mpc.z_rows_ter,mpc.z_rows_ter); end
 end
-
-% Linear Cost Term gradient Computation
 if ~isempty(qz)
+    mpc.lin_custom_cost = 1;
 
-    mpc.gradPerfqz = genGenPerfLPGrad(qz,Cz,Dz,mpc.N,mpc.N_ctr_hor,...
-                        mpc.Nx,mpc.Nu,mpc.nx,mpc.nu,mpc.Nv);
-
+    if mpc.z_use_k0, mpc.qz_0 = qz(mpc.z_rows_k0); end
+    if mpc.z_use_ter, mpc.qz_ter = qz(mpc.z_rows_ter); end
 end
-    
+ 
 end

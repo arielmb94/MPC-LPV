@@ -31,25 +31,16 @@
 %   - mpc: updated CHRONOS mpc structure
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function mpc = update_mpc_sys_dynamics(mpc,A,B,Bd)
-
-updateEqualities = 0;
+function mpc = update_mpc_dynamics(mpc,A,B,Bd)
 
 if ~isempty(A)
     mpc.A = A;
-    updateEqualities = 1;
+    mpc.A_kkt(mpc.s_col,mpc.s_col) = mpc.A;
 end
 
 if ~isempty(B)
     mpc.B = B;
-    updateEqualities = 1;
-end
-
-if updateEqualities
-
-    % A equality contraint 
-    mpc = genEqualities(mpc,mpc.A,mpc.B,mpc.N,mpc.N_ctr_hor,...
-        mpc.nx,mpc.nu);
+    mpc.B_kkt(mpc.s_col,:) = mpc.B;
 end
 
 if ~isempty(Bd)   

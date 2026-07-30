@@ -15,14 +15,26 @@
 %   - mpc: updated CHRONOS mpc structure
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function mpc = update_mpc_u_cnstr(mpc,u_min,u_max)
+function cnstr = update_mpc_cnstr_limits(cnstr,min,max)
 
-if ~isempty(u_min)    
-    mpc.u_cnstr.min = u_min;
+if ~isempty(min)    
+    cnstr.min(:) = min;
+    if cnstr.use_k0
+        cnstr.min_0(:) = min(cnstr.rows_k0);
+    end
+    if cnstr.use_ter
+        cnstr.min_ter(:) = min(cnstr.rows_ter);
+    end
 end
 
-if ~isempty(u_max)    
-    mpc.u_cnstr.max = u_max;
+if ~isempty(max)    
+    cnstr.max(:) = max;
+    if cnstr.use_k0
+        cnstr.max_0(:) = max(cnstr.rows_k0);
+    end
+    if cnstr.use_ter
+        cnstr.max_ter(:) = max(cnstr.rows_ter);
+    end
 end
 
 end

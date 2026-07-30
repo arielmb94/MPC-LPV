@@ -40,67 +40,57 @@
 %   - mpc: updated CHRONOS mpc structure
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function mpc = update_mpc_sys_output(mpc,C,D,Dd,Qe,y_min,y_max)
+function mpc = update_mpc_Custom_cost_vector(mpc,Cz,Dz,Dsuz,Ddz)
 
-update_gradients = 0;
-update_cost_gradient = 0;
+mpc.update_customcost_quad = mpc.quad_custom_cost;
+mpc.update_customcost_lin = mpc.lin_custom_cost;
+update_grad = 0;
 
-if ~isempty(C)
-    mpc.C = C;
-    update_gradients = 1;
-end
-
-if ~isempty(D)
-    mpc.D = D;
-    update_gradients = 1;
-end
-
-if ~isempty(Dd)   
-    mpc.Dd = Dd;
-end
-
-if ~isempty(Qe)   
-    mpc.Qe = Qe;
-    update_cost_gradient = 1;
-end
-
-if ~isempty(mpc.y_cnstr) 
-    if ~isempty(y_min)   
-        mpc.y_cnstr.min = y_min;
-    end
-    
-    if ~isempty(y_max)    
-        mpc.y_cnstr.max = y_max;
+if ~isempty(Cz)
+    update_grad = 1;
+    mpc.Cz(:,:) = Cz;
+    if mpc.z_use_k0, mpc.Cz_0(:,:) = Cz(mpc.z_rows_k0,:); end
+    if mpc.z_use_ter
+        mpc.Cz_ter(:,:) = Cz(mpc.z_rows_ter,:); 
+        mpc.grad_z_ter(:,:) = mpc.Cz_ter';
     end
 end
 
-if update_cost_gradient || update_gradients
-
-    % If tracking Cost exists, update gradients
-    if ~isempty(mpc.Qe) || ~isempty(Qe)
-        mpc = update_mpc_Tracking_cost(mpc,Qe);
-    end
+if ~isempty(Dz)
+    update_grad = 1;
+    mpc.Dz(:,:) = Dz;
+    % if there is D it means there is k0
+    mpc.Dz_0(:,:) = Dz(mpc.z_rows_k0,:); 
+    mpc.grad_z_0(:,:) = mpc.Dz_0';
 end
 
-if update_gradients
-    % If Outputs constraint exists, update box constraints gradients
-    if ~isempty(mpc.y_cnstr) 
-    
-        if ~isempty(mpc.y_cnstr.min)
-            mpc.y_cnstr.grad_min(:,:) = -1 * genGradY(mpc.C,mpc.D,mpc.N,mpc.N_ctr_hor,...
-                            mpc.Nx,mpc.Nu,mpc.Ny,mpc.nx,mpc.nu,mpc.ny,mpc.Nv);
-
-            [mpc.y_cnstr.hess_min,~] = genHessIneq(mpc.y_cnstr.grad_min);
-        end
-        
-        if ~isempty(mpc.y_cnstr.max)
-            mpc.y_cnstr.grad_max(:,:) = genGradY(mpc.C,mpc.D,mpc.N,mpc.N_ctr_hor,...
-                            mpc.Nx,mpc.Nu,mpc.Ny,mpc.nx,mpc.nu,mpc.ny,mpc.Nv);
-
-            [mpc.y_cnstr.hess_max,~] = genHessIneq(mpc.y_cnstr.grad_max);
-        end    
-    end
+if ~isempty(Dsuz)
+    update_grad = 1;
+    mpc.Dsuz(:,:) = Dsuz;
+    if mpc.z_use_k0, mpc.Dsuz_0(:,:) = Dsuz(mpc.z_rows_k0,:); end
 end
 
+if ~isempty(Ddz)   
+    mpc.Ddz(:,:) = Ddz;
+    if mpc.z_use_k0, mpc.Ddz_0(:,:) = Ddz(mpc.z_rows_k0,:); end
+end
+
+if update_grad
+    if mpc.z_use_s && mpc.z_use_su && mpc.z_use_u
+        mpc.grad_z(:,:) = [mpc.Cz'; mpc.Dsuz'; mpc.Dz'];
+    elseif mpc.z_use_s && mpc.z_use_su
+        mpc.grad_z(:,:) = [mpc.Cz'; mpc.Dsuz'];
+    elseif mpc.z_use_s && mpc.z_use_u
+        mpc.grad_z(:,:) = [mpc.Cz'; mpc.Dz'];
+    elseif mpc.z_use_su && mpc.z_use_u
+        mpc.grad_z(:,:) = [mpc.Dsuz'; mpc.Dz'];
+    elseif mpc.z_use_s
+        mpc.grad_z(:,:) = mpc.Cz';
+    elseif mpc.z_use_su
+        mpc.grad_z(:,:) = mpc.Dsuz';
+    elseif mpc.z_use_u
+        mpc.grad_z(:,:) = mpc.Dz';
+    end
+end
 
 end

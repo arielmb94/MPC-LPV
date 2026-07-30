@@ -1,9 +1,9 @@
-function mpc = get_mpc_diff_u(u_prev,mpc)
+function mpc = get_mpc_diff_u(mpc,x,u_prev)
 
-    u_total = [u_prev reshape(mpc.u,[mpc.nu,mpc.N_ctr_hor])];
-    
-    delta_u = diff(u_total,1,2);
+    mpc.su(:,:) = x(mpc.su_index_k);
 
-    mpc.du(:) = reshape(delta_u,[mpc.Nu 1]);
+    mpc.du(:,1) = mpc.u(:,1)-u_prev;
+    % delta u needs to bo computed with su to match gradient definition
+    mpc.du(:,2:mpc.N) = mpc.u(:,2:mpc.N)-mpc.su(:,1:mpc.N-1);
         
 end

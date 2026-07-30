@@ -20,10 +20,9 @@ Ts = 0.1;
 %% Create MPC object
 
 N = 15;         % Prediction Horizon
-N_h_ctr = 5;    % Control Horizon
 
 % Create mpc struct
-mpc = init_mpc(N,N_h_ctr);
+mpc = init_mpc(N);
 
 %% Define system dynamics
 
@@ -32,19 +31,18 @@ A = [-1/theta_f-k*exp(-M/v0) -k*c0*M*exp(-M/v0)/(v0^2);
      k*exp(-M/v0) -1/theta_f];
 B = [0; -alpha*(v0-xc)];
 Bd = [1/theta_f k*c0*M*exp(-M/v0)/(v0^2); xf/theta_f 0];
-C = eye(2);
 
 % Initialize system dynamics
 % System discretized with forward Euler discretization:
 % x+ = (I+Ts*A)*x+Ts*B*u+Ts*Bd*d
-mpc = init_mpc_system(mpc,eye(2)+Ts*A,Ts*B,Ts*Bd,C,[0;0],0);
+mpc = init_mpc_dynamics(mpc,eye(2)+Ts*A,Ts*B,Ts*Bd);
 
 %% Constraints
 
 % State constraints
 x_min = [0;0];
 x_max = [1;1];
-slack_cost = 1;
+slack_cost = 10;
 mpc = init_mpc_state_cnstr(mpc,x_min,x_max,slack_cost,slack_cost);
 
 % Control input constraints
@@ -125,4 +123,4 @@ mpc.t = 500; % Default value is t = 50, increasing t makes the solver give
 % use warm start function to get optimization vector initial value
 u_prev = 0.45;
 d = [1;v0];
-[mpc,x0] = build_chronos_mpc(mpc,x_prev,u_prev,[],d);
+mpc = build_chronos_mpc(mpc,x_prev,u_prev,d);

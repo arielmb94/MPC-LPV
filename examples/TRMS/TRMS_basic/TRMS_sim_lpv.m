@@ -56,18 +56,19 @@ TththRef = TththRef_v(i);
 % Define reference vector
 ref = [WhRef OmhRef TththRef WvRef OmvRef TthtvRef-Thtv0]';
 
-tic
+
 % Update LPV model to current scheduling values
 sys = qLPV_TRMS_SS(Wh,Omh,Thth,Wv,Thtv);
 % Update mpc problem structure
 % System discretized with forward Euler discretization:
 % x+ = (I+Ts*A)*x+Ts*B*u+Ts*Bd*d
-mpc = update_mpc_sys_dynamics(mpc,eye(6)+Ts*sys.A,Ts*sys.B,[]);
+tic
+mpc = update_mpc_dynamics(mpc,eye(6)+Ts*sys.A,Ts*sys.B,[]);
 
 % Adjust Vertical Angle State
 x_mpc = [Wh;Omh;Thth;Wv;Omv;Thtv-Thtv0];
 % Solve mpc iteration
-[u_prev,x0] = mpc_solve(mpc,x0,x_mpc,u_prev,ref,[],[],[],[]);
+[u_prev,iter,mpc] = mpc_solve(mpc,x_mpc,u_prev,ref,[],[],[],[]);
 ti(i) = toc;
 
 % Assign control actions

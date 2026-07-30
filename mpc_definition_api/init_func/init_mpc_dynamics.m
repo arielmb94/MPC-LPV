@@ -30,42 +30,66 @@
 %   - mpc: updated CHRONOS mpc structure
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function mpc = init_mpc_system(mpc,A,B,Bd,C,D,Dd)
+function mpc = init_mpc_dynamics(mpc,A,B,Bd)
+arguments
+    mpc
+    A = []
+    B = []
+    Bd = []
+end
 
 mpc.A = A;
 mpc.B = B;
 mpc.Bd = Bd;
-mpc.C = C;
-mpc.D = D;
-mpc.Dd = Dd;
 
-mpc.nx = size(A,1);  %number of states
-mpc.nu = size(B,2);  %number of control inputs
-mpc.nd = size(Bd,2);  %number of disturbance inputs
-mpc.ny = size(C,1);  %number of measurements
+mpc.nx = size(mpc.A,1);  %number of states
+mpc.nu = size(mpc.B,2);  %number of control inputs
+if any(Bd), mpc.nd = max([size(mpc.Bd,2) mpc.nd]); end  %number of disturbance inputs
 
-mpc.Nx = mpc.N*mpc.nx;
-mpc.Nu = mpc.N_ctr_hor*mpc.nu;
-mpc.Nd = mpc.N*mpc.nd;
-
-mpc.s = zeros(mpc.Nx,1);
-mpc.s_all = zeros(mpc.Nx+mpc.nx,1);
-mpc.s_ter = zeros(mpc.nx,1);
-mpc.u = zeros(mpc.Nu,1);
-mpc.du = zeros(mpc.Nu,1);
-
-if mpc.D == 0
-    mpc.Ny = (mpc.N-1)*mpc.ny;
-else
-    mpc.Ny = mpc.N*mpc.ny;
+if ~isempty(mpc.Bd) && max(any(mpc.Bd))
+    mpc.dyn_use_d = 1;
 end
 
-mpc.y = zeros(mpc.Ny,1);
-mpc.err = zeros(mpc.Ny,1);
+mpc.Nx = mpc.N*mpc.nx;
+mpc.Nu = mpc.N*mpc.nu;
+mpc.Nd = mpc.N*mpc.nd;
 
-% A equality contraint (b equality constraints depends on x0 and d(k)
-mpc.Aeq = zeros(mpc.Nx,mpc.Nx+mpc.Nu);
-mpc = genEqualities(mpc,A,B,mpc.N,mpc.N_ctr_hor,mpc.nx,mpc.nu);
-mpc.beq = zeros(size(mpc.Aeq,1),1);
+mpc.s = zeros(mpc.nx,mpc.N);
+mpc.s_ter = zeros(mpc.nx,1);
+mpc.su = zeros(mpc.nu,mpc.N);
+mpc.u = zeros(mpc.nu,mpc.N);
+mpc.du = zeros(mpc.nu,mpc.N);
+
+if mpc.nd
+    mpc.d = zeros(mpc.nd,mpc.N);
+end
+
+% Assume C = I*x
+mpc.C = eye(mpc.nx);
+mpc.C_ter = eye(mpc.nx);
+
+mpc.ny = mpc.nx;
+mpc.ny_0 = 0;
+mpc.ny_ter = mpc.nx;
+
+mpc.y_use_k0 = 0;
+mpc.y_rows_k0 = [];
+mpc.y_use_ter = 1;
+mpc.y_rows_ter = 1:mpc.nx; 
+
+mpc.y_use_s = 1;
+mpc.y_use_u = 0;
+mpc.y_use_d = 0;
+
+% init y, reference and error vectors
+mpc.r_0 = zeros(mpc.ny_0,1);
+mpc.y_0 = zeros(mpc.ny_0,1);
+mpc.err_0 = zeros(mpc.ny_0,1);
+mpc.r = zeros(mpc.ny,mpc.N-1);
+mpc.y = zeros(mpc.ny,mpc.N-1);
+mpc.err = zeros(mpc.ny,mpc.N-1);
+mpc.r_ter = zeros(mpc.ny_ter,1);
+mpc.y_ter = zeros(mpc.ny_ter,1);
+mpc.err_ter = zeros(mpc.ny_ter,1);
 
 end

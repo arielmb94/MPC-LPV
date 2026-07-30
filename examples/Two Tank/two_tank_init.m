@@ -14,10 +14,9 @@ Ts = 0.01;
 %% Create MPC object
 
 N = 10;         % Prediction Horizon
-N_h_ctr = 5;    % Control Horizon
 
 % Create mpc struct
-mpc = init_mpc(N,N_h_ctr);
+mpc = init_mpc(N);
 %% LTI system
 
 % Get LPV model frozen at current state vector
@@ -25,13 +24,15 @@ A = [-sqrt(2*g)*sqrt(h1)/(Ab*h1) 0;
      sqrt(2*g)*sqrt(h1)/(Ab*h1) -sqrt(2*g)*sqrt(h2)/(Ab*h2)];
 B = [1/Ab; 0];
 
-% Tracking objective is the water height on the second tank
-C = [0 1];
-
 % Initialize system dynamics
 % System discretized with forward Euler discretization:
 % x+ = (I+Ts*A)*x+Ts*B*u+Ts*Bd*d
-mpc = init_mpc_system(mpc,eye(2)+Ts*A,Ts*B,0,C,0,0);
+mpc = init_mpc_dynamics(mpc,eye(2)+Ts*A,Ts*B,0);
+
+% Tracking objective is the water height on the second tank
+C = [0 1];
+
+mpc = init_mpc_output(mpc,C,[],[]);
 
 %% Constraints
 
@@ -39,11 +40,6 @@ mpc = init_mpc_system(mpc,eye(2)+Ts*A,Ts*B,0,C,0,0);
 x_min = 0.01*ones(mpc.nx,1);
 x_max = 1*ones(mpc.nx,1);
 mpc = init_mpc_state_cnstr(mpc,x_min,x_max);
-
-% State constraints only on terminal states
-x_ter_min = [];
-x_ter_max = [];
-%mpc = init_mpc_ter_state_cnstr(mpc,x_ter_min,x_ter_max);
 
 % Control input constraints
 u_min = 0*ones(mpc.nu,1);
@@ -80,10 +76,9 @@ Qx = diag([30 30]);         % State Penalty
 Ru = 1;                     % Control Penalty
 x_ref_is_y = 0;             % The terminal reference cannnot be extracted 
                             % from the mpc tracking reference
-ter_constraint = 0;         % Only terminal cost
 
 % Initialize terminal ingredients using the dLQR method                           
-[mpc] = init_mpc_ter_ingredients_dlqr(mpc,Qx,Ru,x_ref_is_y,ter_constraint);
+[mpc] = init_mpc_ter_ingredients_dlqr(mpc,Qx,Ru,x_ref_is_y);
 
 %% Costs
 
@@ -93,7 +88,7 @@ mpc = init_mpc_Tracking_cost(mpc,Qe);
 
 % Control inputs variation penalty
 Rdu = 1;
-mpc = init_mpc_DiffControl_cost(mpc,Rdu);
+mpc = init_mpc_ControlRate_cost(mpc,Rdu);
 
 % Control penalty
 Ru = [];    % Quadratic penalty on control action u'*Ru*u
@@ -106,17 +101,18 @@ ru = [];    % Linear penalty on control action vector: ru'*u
 % z = Cz*x+Dz*u+Ddz*dz
 Cz = [];
 Dz = [];
+Dsuz = [];
 Ddz = [];
 
 Qz = [];    % Quadratic penalty on performance vector: z'*Qz*z
 qz = [];    % Linear penalty on performance vector: qz'*z 
 
 % Init performance cost
-%mpc = init_mpc_Lin_Custom_cost(mpc,Cz,Dz,Ddz,Qz,qz);
+%mpc = init_mpc_Lin_Custom_cost(mpc,Cz,Dz,Dsuz,Ddz,Qz,qz);
 
 %% Init conditions for simulation
 
 % use warm start function to get optimization vector initial value
 x_prev = [h1; h2];
 u_prev = 3.7;
-[mpc,x0] = build_chronos_mpc(mpc,x_prev,u_prev);
+mpc = build_chronos_mpc(mpc,x_prev,u_prev);

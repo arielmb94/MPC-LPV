@@ -60,20 +60,13 @@
 %   unfeasible. 
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function mpc = init_mpc(N,N_ctr_hor)
+function mpc = init_mpc(N)
 arguments
     N = 2
-    N_ctr_hor = 0
 end
 
 mpc.N = N;
-if N_ctr_hor && N_ctr_hor > N
-    mpc.N_ctr_hor = N;
-elseif N_ctr_hor
-    mpc.N_ctr_hor = N_ctr_hor;
-else
-    mpc.N_ctr_hor = N;
-end
+
 mpc.Qe = [];
 mpc.Rdu = [];
 mpc.Ru = [];
@@ -89,17 +82,23 @@ mpc.qz = [];
 mpc.Cz = [];
 mpc.Dz = [];
 mpc.Ddz = [];
+mpc.Dsuz = [];
 mpc.Ch = [];
 mpc.Dh = [];
+mpc.Dsuh = [];
 mpc.Ddh = [];
 mpc.nx = 0;
 mpc.nu = 0;
 mpc.nd = 0;
 mpc.ny = 0;
 mpc.ndz = 0;
+mpc.nz_0 = 0;
 mpc.nz = 0;
+mpc.nz_ter = 0;
 mpc.ndh = 0;
+mpc.nh_0 = 0;
 mpc.nh = 0;
+mpc.nh_ter = 0;
 mpc.Nx = 0;
 mpc.Nu = 0;
 mpc.Nd = 0;
@@ -110,38 +109,70 @@ mpc.Ndz = 0;
 mpc.Ndh = 0;
 mpc.Aeq = [];
 mpc.beq = [];
+mpc.dyn_use_d = 0;
+mpc.y_use_s = 0;
+mpc.y_use_u = 0;
+mpc.y_use_d = 0;
+mpc.y_use_k0 = 0;
+mpc.y_use_ter = 0;
+mpc.z_use_s = 0;
+mpc.z_use_u = 0;
+mpc.z_use_su = 0;
+mpc.z_use_d = 0;
+mpc.z_use_k0 = 0;
+mpc.z_use_ter = 0;
+
+mpc.s = [];
+mpc.s_ter = [];
+mpc.u = [];
+mpc.su = [];
+mpc.du = [];
+mpc.r = [];
+mpc.y = [];
+mpc.err = [];
+mpc.d = [];
+mpc.z = [];
+mpc.dz = [];
+mpc.h = [];
+mpc.dh = [];
+mpc.g = [];
+mpc.v = [];
+mpc.slacks = [];
+mpc.xN_ref = [];
+
+mpc.tracking_cost = 0;
+mpc.quad_control_cost = 0;
+mpc.lin_control_cost = 0;
+mpc.controlrate_cost = 0;
+mpc.quad_custom_cost = 0;
+mpc.lin_custom_cost = 0;
+
 mpc.hessCost = [];
-mpc.gradErrQe = [];
+mpc.gradErrQe_k = [];
 mpc.hessErrTerm = [];
-mpc.gradDiffCtlrR = [];
+mpc.gradDiffCtlrR_k = [];
+mpc.gradDiffCtlrR_0 = [];
 mpc.gradDiffCtlr = [];
 mpc.hessDiffCtrlTerm = [];
-mpc.gradCtlrRu = [];
-mpc.gradCtlrru = [];
+mpc.gradCtlrRu_0 = [];
+mpc.gradCtlrRu_k = [];
+mpc.gradCtlrru_0 = [];
+mpc.gradCtlrru_k = [];
 mpc.hessCtrlTerm = [];
-mpc.gradPerfQz = [];
-mpc.gradPerfqz = [];
+mpc.gradPerfQz_0 = [];
+mpc.gradPerfQz_k = [];
+mpc.gradPerfqz_0 = [];
+mpc.gradPerfqz_k = [];
 mpc.hessPerfTerm = [];
-mpc.gradXmin = [];
-mpc.gradXmax = [];
-mpc.hessXmin = [];
-mpc.hessXmax = [];
-mpc.gradUmin = [];
-mpc.gradUmax = [];
-mpc.hessUmin = [];
-mpc.hessUmax = [];
-mpc.gradYmin = [];
-mpc.gradYmax = [];
-mpc.hessYmin = [];
-mpc.hessYmax = [];
-mpc.gradHmin = [];
-mpc.gradHmax = [];
-mpc.hessHmin = [];
-mpc.hessHmax = [];
-mpc.gradDeltaUmin = [];
-mpc.gradDeltaUmax = [];
-mpc.hessDeltaUmin = [];
-mpc.hessDeltaUmax = [];
+mpc.hessTerminalCost = [];
+mpc.tracking_cost_index_k = [];
+mpc.custom_cost_index_k = [];
+
+mpc.update_tracking = 0;
+mpc.update_customcost_quad = 0;
+mpc.update_customcost_lin = 0;
+mpc.recompute_cost_hess = 0;
+
 mpc.s = [];
 mpc.s_all = [];
 mpc.s_ter = [];
@@ -151,6 +182,7 @@ mpc.y = [];
 mpc.h = [];
 mpc.z = [];
 mpc.m = 0;
+mpc.nvar = 0;
 mpc.t = 50;
 mpc.Beta = 0.75;
 mpc.min_l = 1e-6;
@@ -158,11 +190,10 @@ mpc.eps = 1e-4;
 mpc.max_iter = 10;
 mpc.ter_ingredients = 0;
 mpc.ter_constraint = 0;
-mpc.x_ref_is_y = 0;
+mpc.xN_ref_is_y = 0;
 mpc.P = [];
+mpc.P2 = [];
 mpc.K = [];
-mpc.hessTerminalCost = [];
-mpc.recompute_cost_hess = 0;
 mpc.t_feas = 500;
 mpc.v0_feas = 10;
 mpc.qfeas = 1e-5;
@@ -171,6 +202,13 @@ mpc.feas_lambda = 100;
 mpc.max_feas_iter = 10;
 mpc.unfeasible = 0;
 
+mpc.has_s_cnstr = 0;
+mpc.has_u_cnstr = 0;
+mpc.has_du = 0;
+mpc.has_du_cnstr = 0;
+mpc.has_y_cnstr = 0;
+mpc.has_h_cnstr = 0;
+
 mpc.s_cnstr = [];
 mpc.u_cnstr = [];
 mpc.du_cnstr = [];
@@ -178,12 +216,16 @@ mpc.y_cnstr = [];
 mpc.h_cnstr = [];
 mpc.fi_ter_x0 = 0;
 
+mpc.ng_k = [0 0 0]; % inequalites per horizon step
+mpc.nv_k = [0 0 0]; % soft inequalites per horizon step
+
 mpc.Nv = 0;
-mpc.qv = 1e3; % Slack variable penalty
+mpc.qv = 50; % Slack variable penalty
+mpc.Qv_fctr = 10;
 mpc.gradSlackqv = [];
 mpc.v = [];
 mpc.slack_epsilon = 1e-3;
 mpc.slack_ter_epsilon = 1e-4;
-mpc.eps_thknv = 1e-4;
+mpc.eps_thknv = 1e-6;
 
 end

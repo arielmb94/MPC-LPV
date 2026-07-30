@@ -23,13 +23,9 @@ function mpc = init_mpc_Tracking_cost(mpc,Qe)
 
 mpc.Qe = Qe;
 
-if isempty(mpc.hessCost)
-    mpc.hessCost = zeros(mpc.Nu+mpc.Nx+mpc.Nv);
-end
+if mpc.y_use_k0, mpc.Qe_0 = Qe(mpc.y_rows_k0,mpc.y_rows_k0); end
+if mpc.y_use_ter, mpc.Qe_ter = Qe(mpc.y_rows_ter,mpc.y_rows_ter); end
 
-[mpc.gradErrQe,mpc.hessErrTerm] = genLinOutGradHess(Qe,mpc.C,mpc.D,mpc.N,...
-        mpc.N_ctr_hor,mpc.Nx,mpc.Nu,mpc.Ny,mpc.nx,mpc.nu,mpc.ny,mpc.Nv);
-
-mpc.hessCost = mpc.hessCost + mpc.hessErrTerm;
+mpc.tracking_cost = 1;
 
 end

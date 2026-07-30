@@ -39,11 +39,18 @@ arguments
     qv_max = []
 end
 
+mpc.has_y_cnstr = 1;
+
 % INPUT DIMENSION VALIDATION 
 validate_column_vector(y_min, mpc.ny, 'y_min');
 validate_column_vector(y_max, mpc.ny, 'y_max');
 validate_column_vector(qv_min, mpc.ny, 'qv_min');
 validate_column_vector(qv_max, mpc.ny, 'qv_max');
+
+y_cnstr.use_k0 = mpc.y_use_k0;
+y_cnstr.use_ter = mpc.y_use_ter;
+y_cnstr.rows_k0 = mpc.y_rows_k0;
+y_cnstr.rows_ter = mpc.y_rows_ter;
 
 % Expand scalars to full local vectors if needed
 if isscalar(y_min), y_min = y_min * ones(mpc.ny, 1); end
@@ -52,23 +59,57 @@ if isscalar(y_max), y_max = y_max * ones(mpc.ny, 1); end
 y_cnstr.min = y_min;
 y_cnstr.max = y_max;
 
+if mpc.y_use_k0
+    if ~isempty(y_cnstr.min), y_cnstr.min_0 = y_min(mpc.y_rows_k0); end
+    if ~isempty(y_cnstr.max), y_cnstr.max_0 = y_max(mpc.y_rows_k0); end
+end
+
+if mpc.y_use_ter
+    if ~isempty(y_cnstr.min), y_cnstr.min_ter = y_min(mpc.y_rows_ter); end
+    if ~isempty(y_cnstr.max), y_cnstr.max_ter = y_max(mpc.y_rows_ter); end
+end
+
 if ~isempty(y_cnstr.min)
 
     y_cnstr.min_limit = 1;
-
-    y_cnstr.fi_min_x0 = zeros(mpc.Ny,1);
-
-    % Outputs box constraints
-    y_cnstr.grad_min = -1 * genGradY(mpc.C,mpc.D,mpc.N,mpc.N_ctr_hor,...
-                            mpc.Nx,mpc.Nu,mpc.Ny,mpc.nx,mpc.nu,mpc.ny,mpc.Nv);
-
-    % consider slack variable on the gradient
-    [mpc,y_cnstr] = init_slack_min_condition(mpc,y_cnstr,qv_min, ...
-                    mpc.Ny,mpc.ny);
     
-    % hessian created after slack is considered on the gradient
-    [y_cnstr.hess_min,mi] = genHessIneq(y_cnstr.grad_min);
-    mpc.m = mpc.m+mi;
+    if mpc.y_use_k0
+        mpc.ng_k(1) = mpc.ng_k(1) + mpc.ny_0;
+        mpc.nv_k(1) = mpc.nv_k(1) + mpc.ny_0;
+    end
+    mpc.ng_k(2) = mpc.ng_k(2) + mpc.ny;
+    mpc.nv_k(2) = mpc.nv_k(2) + mpc.ny;
+    if mpc.y_use_ter
+        mpc.ng_k(3) = mpc.ng_k(3) + mpc.ny_ter;
+        mpc.nv_k(3) = mpc.nv_k(3) + mpc.ny_ter;
+    end
+
+    y_cnstr.g_min_index_k = [];
+    y_cnstr.v_min_index_k = [];
+
+    % Initialize Penalty term for new slack variables
+    if isempty(qv_min)
+        % if qv isnt defined, it is not initialized until build_chronos_mpc(),
+        % but we need to make space 
+        if y_cnstr.use_k0, qv_min_0 = zeros(mpc.ny_0,1); end
+        qv_min_k = zeros(mpc.ny,1);
+        if y_cnstr.use_ter, qv_min_ter = zeros(mpc.ny_ter,1); end
+
+    elseif isscalar(qv_min)
+        if y_cnstr.use_k0, qv_min_0 = qv_min*ones(mpc.ny_0,1); end
+        qv_min_k = qv_min*ones(mpc.ny,1);
+        if y_cnstr.use_ter, qv_min_ter = qv_min*ones(mpc.ny_ter,1); end
+
+    else % full vector is passed, pick elements for k=0 and k=N
+        if y_cnstr.use_k0, qv_min_0 = qv_min(mpc.y_rows_k0); end
+        qv_min_k = qv_min;
+        if y_cnstr.use_ter, qv_min_ter = qv_min(mpc.y_rows_ter); end
+    end
+
+    if y_cnstr.use_k0, y_cnstr.qv_min_0 = qv_min_0; end
+    y_cnstr.qv_min = qv_min_k;
+    if y_cnstr.use_ter, y_cnstr.qv_min_ter = qv_min_ter; end
+
 else
     y_cnstr.min_limit = 0;
 end
@@ -76,27 +117,48 @@ end
 if ~isempty(y_cnstr.max)
 
     y_cnstr.max_limit = 1;
-
-    y_cnstr.fi_max_x0 = zeros(mpc.Ny,1);
-
-    % Outputs box constraints
-    y_cnstr.grad_max = genGradY(mpc.C,mpc.D,mpc.N,mpc.N_ctr_hor,...
-                       mpc.Nx,mpc.Nu,mpc.Ny,mpc.nx,mpc.nu,mpc.ny,mpc.Nv);
-
-    % consider slack variable on the gradient
-    [mpc,y_cnstr] = init_slack_max_condition(mpc,y_cnstr,qv_max, ...
-                    mpc.Ny,mpc.ny);
     
-    % hessian created after slack is considered on the gradient
-    [y_cnstr.hess_max,mi] = genHessIneq(y_cnstr.grad_max);
-    mpc.m = mpc.m+mi;
+    if mpc.y_use_k0
+        mpc.ng_k(1) = mpc.ng_k(1) + mpc.ny_0;
+        mpc.nv_k(1) = mpc.nv_k(1) + mpc.ny_0;
+    end
+    mpc.ng_k(2) = mpc.ng_k(2) + mpc.ny;
+    mpc.nv_k(2) = mpc.nv_k(2) + mpc.ny;
+    if mpc.y_use_ter
+        mpc.ng_k(3) = mpc.ng_k(3) + mpc.ny_ter;
+        mpc.nv_k(3) = mpc.nv_k(3) + mpc.ny_ter;
+    end
+
+    y_cnstr.g_max_index_k = [];
+    y_cnstr.v_max_index_k = [];
+
+    % Initialize Penalty term for new slack variables
+    if isempty(qv_max)
+        % if qv isnt defined, it is not initialized until build_chronos_mpc(),
+        % but we need to make space 
+        if y_cnstr.use_k0, qv_max_0 = zeros(mpc.ny_0,1); end
+        qv_max_k = zeros(mpc.ny,1);
+        if y_cnstr.use_ter, qv_max_ter = zeros(mpc.ny_ter,1); end
+
+    elseif isscalar(qv_max)
+        if y_cnstr.use_k0, qv_max_0 = qv_max*ones(mpc.ny_0,1); end
+        qv_max_k = qv_max*ones(mpc.ny,1);
+        if y_cnstr.use_ter, qv_max_ter = qv_max*ones(mpc.ny_ter,1); end
+
+    else % full vector is passed, pick elements for k=0 and k=N
+        if y_cnstr.use_k0, qv_max_0 = qv_max(mpc.y_rows_k0); end
+        qv_max_k = qv_max;
+        if y_cnstr.use_ter, qv_max_ter = qv_max(mpc.y_rows_ter); end
+    end
+
+    if y_cnstr.use_k0, y_cnstr.qv_max_0 = qv_max_0; end
+    y_cnstr.qv_max = qv_max_k;
+    if y_cnstr.use_ter, y_cnstr.qv_max_ter = qv_max_ter; end
+
 else
     y_cnstr.max_limit = 0;
 end
 
 mpc.y_cnstr = y_cnstr;
-
-% adapt gradients due to added slack variables
-mpc = expand_gradients_hessians(mpc);
 
 end

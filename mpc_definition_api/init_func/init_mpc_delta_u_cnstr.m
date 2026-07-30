@@ -30,19 +30,21 @@ if isscalar(du_max), du_max = du_max * ones(mpc.nu, 1); end
 
 du_cnstr.min = du_min;
 du_cnstr.max = du_max;
+du_cnstr.use_k0 = 0;
+du_cnstr.use_ter = 0;
+du_cnstr.rows_k0 = [];
+du_cnstr.rows_ter = [];
+mpc.has_du_cnstr = 1;
+mpc.has_du = 1;
 
 if ~isempty(du_cnstr.min)
 
     du_cnstr.min_limit = 1;
+    
+    mpc.ng_k(1:2) = mpc.ng_k(1:2) + mpc.nu;
 
-    du_cnstr.fi_min_x0 = zeros(mpc.Nu,1);
+    du_cnstr.g_min_index_k = [];
 
-    % Differential Control box constraints
-    du_cnstr.grad_min = -1 * genGradDeltaU(mpc.N_ctr_hor,...
-                             mpc.Nx,mpc.Nu,mpc.nx,mpc.nu,mpc.Nv);
-
-    [du_cnstr.hess_min,mi] = genHessIneq(du_cnstr.grad_min);
-    mpc.m = mpc.m+mi;
 else
     du_cnstr.min_limit = 0;
 end
@@ -50,15 +52,11 @@ end
 if ~isempty(du_cnstr.max)
 
     du_cnstr.max_limit = 1;
+
+    mpc.ng_k(1:2) = mpc.ng_k(1:2) + mpc.nu;
+
+    du_cnstr.g_max_index_k = [];
     
-    du_cnstr.fi_max_x0 = zeros(mpc.Nu,1);
-
-    % Differential Control box constraints
-    du_cnstr.grad_max = genGradDeltaU(mpc.N_ctr_hor,...
-                        mpc.Nx,mpc.Nu,mpc.nx,mpc.nu,mpc.Nv);
-
-    [du_cnstr.hess_max,mi] = genHessIneq(du_cnstr.grad_max);
-    mpc.m = mpc.m+mi;
 else
     du_cnstr.max_limit = 0;
 end
