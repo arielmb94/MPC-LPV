@@ -65,7 +65,7 @@ end
 mpc.ter_ingredients = 1;
 mpc.xN_ref_is_y = xN_ref_is_y;
 
-[K,P] = dlqr(mpc.A,mpc.B,Qx,Ru);
+[K,P] = dlqr(mpc.A(:,:,mpc.N),mpc.B(:,:,mpc.N),Qx,Ru);
 
 mpc.xN_ref = zeros(mpc.nx,1);
 

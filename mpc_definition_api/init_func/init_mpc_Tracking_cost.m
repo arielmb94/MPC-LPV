@@ -21,11 +21,19 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mpc = init_mpc_Tracking_cost(mpc,Qe)
 
-mpc.Qe = Qe;
-
-if mpc.y_use_k0, mpc.Qe_0 = Qe(mpc.y_rows_k0,mpc.y_rows_k0); end
-if mpc.y_use_ter, mpc.Qe_ter = Qe(mpc.y_rows_ter,mpc.y_rows_ter); end
-
 mpc.tracking_cost = 1;
+
+mpc.Qe = zeros(mpc.ny,mpc.ny,mpc.N-1);
+len_Qe = size(Qe,3);
+if len_Qe < mpc.N
+    mpc.Qe = fill_mat(mpc.Qe, Qe, 1);
+    Qe_ter = mpc.Qe(:,:,mpc.N-1);
+else
+    mpc.Qe = Qe(:,:,1:mpc.N-1);
+    Qe_ter = Qe(:,:,mpc.N);
+end
+
+if mpc.y_use_k0, mpc.Qe_0 = Qe(mpc.y_rows_k0,mpc.y_rows_k0,1); end
+if mpc.y_use_ter, mpc.Qe_ter = Qe_ter(mpc.y_rows_ter,mpc.y_rows_ter); end
 
 end

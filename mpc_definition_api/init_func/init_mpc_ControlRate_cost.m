@@ -17,8 +17,15 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mpc = init_mpc_ControlRate_cost(mpc,Rdu)
 
-mpc.Rdu = Rdu;
 mpc.has_du = 1;
 mpc.controlrate_cost = 1;
+
+mpc.Rdu = zeros(mpc.nu,mpc.nu,mpc.N);
+len_Rdu = size(Rdu,3);
+if len_Rdu < mpc.N
+    mpc.Rdu = fill_mat(mpc.Rdu, Rdu, 1);
+else
+    mpc.Rdu = Rdu(:,:,1:mpc.N);
+end
 
 end

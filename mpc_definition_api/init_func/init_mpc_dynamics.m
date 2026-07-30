@@ -38,16 +38,22 @@ arguments
     Bd = []
 end
 
-mpc.A = A;
-mpc.B = B;
 mpc.Bd = Bd;
 
-mpc.nx = size(mpc.A,1);  %number of states
-mpc.nu = size(mpc.B,2);  %number of control inputs
-if any(Bd), mpc.nd = max([size(mpc.Bd,2) mpc.nd]); end  %number of disturbance inputs
-
-if ~isempty(mpc.Bd) && max(any(mpc.Bd))
+%number of states
+mpc.nx = size(A,1);  
+mpc.A = zeros(mpc.nx,mpc.nx,mpc.N);
+mpc.A = fill_mat(mpc.A, A, 1);
+%number of control inputs
+mpc.nu = size(B,2);  
+mpc.B = zeros(mpc.nx,mpc.nu,mpc.N);
+mpc.B = fill_mat(mpc.B, B, 1);
+%number of disturbance inputs
+if any(Bd), mpc.nd = max([size(Bd,2) mpc.nd]); end  
+if ~isempty(Bd) && any(Bd(:))
     mpc.dyn_use_d = 1;
+    mpc.Bd = zeros(mpc.nx,mpc.nd,mpc.N);
+    mpc.Bd = fill_mat(mpc.Bd, Bd, 1);
 end
 
 mpc.Nx = mpc.N*mpc.nx;
@@ -65,7 +71,9 @@ if mpc.nd
 end
 
 % Assume C = I*x
-mpc.C = eye(mpc.nx);
+C = eye(mpc.nx);
+mpc.C = zeros(mpc.nx,mpc.nx,mpc.N-1);
+mpc.C = fill_mat(mpc.C, C, 1);
 mpc.C_ter = eye(mpc.nx);
 
 mpc.ny = mpc.nx;

@@ -38,50 +38,74 @@ arguments
     Dd = []
 end
 
-mpc.C = C;
-mpc.D = D;
-mpc.Dd = Dd;
+%number of measurements
+mpc.ny = max([size(C,1) size(D,1)]);  
 
-mpc.nx = size(mpc.A,1);  %number of states
-mpc.nu = size(mpc.B,2);  %number of control inputs
-if any(Dd), mpc.nd = max([size(mpc.Dd,2) mpc.nd]); end  %number of disturbance inputs
-mpc.ny = max([size(mpc.C,1) size(mpc.D,1)]);  %number of measurements
-
-if mpc.nd
-    mpc.d = zeros(mpc.nd,mpc.N);
-end
-
-if ~isempty(mpc.C) && max(any(mpc.C))
+if ~isempty(C) && any(C(:))
     mpc.y_use_s = 1;
+
+    len_C = size(C,3);
+    if len_C < mpc.N
+        mpc.C = zeros(mpc.ny,mpc.nx,mpc.N-1);
+        mpc.C = fill_mat(mpc.C, C, 1);
+        C_ter = mpc.C(:,:,mpc.N-1);
+    else
+        mpc.C = C(:,:,1:mpc.N-1);
+        C_ter = C(:,:,mpc.N);
+    end
 end
-if ~isempty(mpc.D) && max(any(mpc.D))
+
+if ~isempty(D) && any(D(:))
     mpc.y_use_u = 1;
+
+    len_D = size(D,3);
+    if len_D < mpc.N
+        mpc.D = zeros(mpc.ny,mpc.nu,mpc.N-1);
+        mpc.D = fill_mat(mpc.D, D, 1);
+        D_ter = mpc.D(:,:,mpc.N-1);
+    else
+        mpc.D = D(:,:,1:mpc.N-1);
+        D_ter = D(:,:,mpc.N);
+    end
 end
-if ~isempty(mpc.Dd) && max(any(mpc.Dd))
+
+if ~isempty(Dd) && any(Dd(:))
     mpc.y_use_d = 1;
+    mpc.nd = max([size(Dd,2) mpc.nd]);
+    mpc.d = zeros(mpc.nd,mpc.N);
+
+    len_Dd = size(Dd,3);
+    if len_Dd < mpc.N
+        mpc.Dd = zeros(mpc.ny,mpc.nd,mpc.N-1);
+        mpc.Dd = fill_mat(mpc.Dd, Dd, 1);
+        Dd_ter = mpc.Dd(:,:,mpc.N-1);
+    else
+        mpc.Dd = Dd(:,:,1:mpc.N-1);
+        Dd_ter = Dd(:,:,mpc.N);
+    end
 end
 
 % at k = 0, only rows with D!=0 (with dependence on control action u) are
 % considered
-y_row_0 = find(~all(D==0,2));
+y_row_0 = find(~all(mpc.D(:,:,1)==0,2));
 mpc.ny_0 = length(y_row_0);
 
 if mpc.ny_0
     mpc.y_rows_k0 = y_row_0;
     mpc.y_use_k0 = 1;
 
-    if mpc.y_use_s, mpc.C_0 = C(mpc.y_rows_k0,:); end
-    if mpc.y_use_u, mpc.D_0 = D(mpc.y_rows_k0,:); end
-    if mpc.y_use_d, mpc.Dd_0 = Dd(mpc.y_rows_k0,:); end
+    if mpc.y_use_s, mpc.C_0 = mpc.C(mpc.y_rows_k0,:,1); end
+    if mpc.y_use_u, mpc.D_0 = mpc.D(mpc.y_rows_k0,:,1); end
+    if mpc.y_use_d, mpc.Dd_0 = mpc.Dd(mpc.y_rows_k0,:,1); end
 else
     mpc.y_use_k0 = 0;
 end
 
 % at k = N, only rows strictly dependent on s are considered
-if ~isempty(C)
-    strict_s_rows = any(C~=0,2);
-    if mpc.y_use_u, strict_s_rows = strict_s_rows & all(D==0,2); end
-    if mpc.y_use_d, strict_s_rows = strict_s_rows & all(Dd==0,2); end
+if mpc.y_use_s
+    strict_s_rows = any(C_ter~=0,2);
+    if mpc.y_use_u, strict_s_rows = strict_s_rows & all(D_ter==0,2); end
+    if mpc.y_use_d, strict_s_rows = strict_s_rows & all(Dd_ter==0,2); end
 
     y_row_ter = find(strict_s_rows);
     mpc.ny_ter = length(y_row_ter);
@@ -92,7 +116,12 @@ if mpc.ny_ter
     mpc.y_rows_ter = y_row_ter;
     mpc.y_use_ter = 1;
 
-    mpc.C_ter = C(mpc.y_rows_ter,:);
+    mpc.C_ter = C_ter(mpc.y_rows_ter,:);
+else
+    mpc.y_rows_ter = [];
+    mpc.y_use_ter = 0;
+
+    mpc.C_ter = [];
 end
 
 % init y, reference and error vectors
