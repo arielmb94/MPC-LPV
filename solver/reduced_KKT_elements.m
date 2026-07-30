@@ -10,18 +10,24 @@ mpc.g2_k(:,:) = (mpc.g_k-mpc.slack_epsilon).^2;
 mpc.g2_ter(:) = (mpc.g_ter-mpc.slack_epsilon).^2;
 
 if mpc.nv_k(1)
-    mpc.rv_0(:) = mpc.t*mpc.grad_qv_0-1./(mpc.v_0-mpc.slack_epsilon);
-    mpc.v2_0(:) = (mpc.v_0-mpc.slack_epsilon).^2;
+    mpc.rv_0(:) = mpc.t*(mpc.grad_qv_0/mpc.Qv_fctr).*(mpc.v_0-mpc.slack_epsilon) + ...
+                  mpc.t*mpc.grad_qv_0 - ...
+                  1./(mpc.v_0-mpc.slack_epsilon);
+    mpc.v2_0(:) = 1./(mpc.t*mpc.grad_qv_0/mpc.Qv_fctr + 1./((mpc.v_0-mpc.slack_epsilon).^2));
 end
 
 if mpc.nv_k(2)
-    mpc.rv_k(:,:) = mpc.t*mpc.grad_qv_k-1./(mpc.v_k-mpc.slack_epsilon);
-    mpc.v2_k(:,:) = (mpc.v_k-mpc.slack_epsilon).^2;
+    mpc.rv_k(:,:) = mpc.t*(mpc.grad_qv_k/mpc.Qv_fctr).*(mpc.v_k-mpc.slack_epsilon) + ...
+                    mpc.t*mpc.grad_qv_k - ...
+                    1./(mpc.v_k-mpc.slack_epsilon);
+    mpc.v2_k(:,:) = 1./(mpc.t*mpc.grad_qv_k/mpc.Qv_fctr+1./((mpc.v_k-mpc.slack_epsilon).^2));
 end
 
 if mpc.nv_k(3)
-    mpc.rv_ter(:) = mpc.t*mpc.grad_qv_ter-1./(mpc.v_ter-mpc.slack_epsilon);
-    mpc.v2_ter(:) = (mpc.v_ter-mpc.slack_epsilon).^2;
+    mpc.rv_ter(:) = mpc.t*(mpc.grad_qv_ter/mpc.Qv_fctr).*(mpc.v_ter-mpc.slack_epsilon) + ...
+                    mpc.t*mpc.grad_qv_ter - ...
+                    1./(mpc.v_ter-mpc.slack_epsilon);
+    mpc.v2_ter(:) = 1./(mpc.t*mpc.grad_qv_ter/mpc.Qv_fctr + 1./((mpc.v_ter-mpc.slack_epsilon).^2));
 end
 
 %% ri hat = ri - g^2*rg + v^2*rv

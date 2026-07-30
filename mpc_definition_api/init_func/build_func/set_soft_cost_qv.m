@@ -18,7 +18,7 @@ end
 function cnstr = init_gradSlack(mpc,cnstr)
 
 if ~isempty(mpc.Qe)
-    qv = max(eig(mpc.Qe))*10;
+    qv =max([mpc.qv max(eig(mpc.Qe))]);
 else
     qv = mpc.qv;
 end
