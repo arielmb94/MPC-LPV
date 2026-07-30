@@ -1,6 +1,5 @@
 %% Call the mpc problem initialization script
 stirring_tank_init
-
 %% Define simulation duration and reference parameters
 
 % Duration
@@ -41,15 +40,16 @@ A_lpv = eye(2)+Ts*[-1/theta_f-k*exp(-M/vk) -k*ck*M*exp(-M/vk)/(vk^2);
      k*exp(-M/vk) -1/theta_f];
 B_lpv = Ts*[0; -alpha*(vk-xc)];
 Bd_lpv = Ts*[1/theta_f k*ck*M*exp(-M/vk)/(vk^2); xf/theta_f 0];
+
 % Update mpc problem dynamics
-mpc = update_mpc_sys_dynamics(mpc,A_lpv,B_lpv,Bd_lpv);
+mpc = update_mpc_dynamics(mpc,A_lpv,B_lpv,Bd_lpv);
 
 % Update mpc disturbance vector
 d = [1;vk];
 % Update reference vector
 xref = [ref_c;ref_v];
 % Solve mpc iteration
-[u_prev,x0] = mpc_solve(mpc,x0,x_prev,u_prev,xref,d,[],[],[]);
+[u_prev,iter,mpc] = mpc_solve(mpc,x_prev,u_prev,xref,[],d,[],[]);
 tk = toc;
 
 % Store variables values for plotting and analysis

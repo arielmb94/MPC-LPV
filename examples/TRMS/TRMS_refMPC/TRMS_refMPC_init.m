@@ -22,7 +22,7 @@ N = 5;          % Prediction Horizon
 N_h_ctr = 3;    % Control Horizon
 
 % Create mpc struct
-mpc = init_mpc(N,N_h_ctr);
+mpc = init_mpc(N);
 %% LTI system
 
 % Get LPV model frozen at current state vector
@@ -31,7 +31,9 @@ sys = qLPV_TRMS_refMPC_SS(Wh,Omh,Thth,Wv,Thtv);
 % Initialize system dynamics
 % System discretized with forward Euler discretization:
 % x+ = (I+Ts*A)*x+Ts*B*u+Ts*Bd*d
-mpc = init_mpc_system(mpc,eye(6)+Ts*sys.A,Ts*sys.B,0,sys.C,0,0);
+mpc = init_mpc_dynamics(mpc,eye(6)+Ts*sys.A,Ts*sys.B,0);
+
+mpc = init_mpc_output(mpc,sys.C,0,0);
 
 %% Constraints
 
@@ -75,10 +77,9 @@ Qx = diag([1 1 50 1 1 1000]);   % State Penalty
 Ru = 0.01;                      % Control Penalty
 x_ref_is_y = 0;                 % The terminal reference cannnot be extracted 
                                 % from the mpc tracking reference
-ter_constraint = 0;             % Only terminal cost
 
 % Initialize terminal ingredients using the dLQR method
-[mpc] = init_mpc_ter_ingredients_dlqr(mpc,Qx,Ru,x_ref_is_y,ter_constraint);
+[mpc] = init_mpc_ter_ingredients_dlqr(mpc,Qx,Ru,x_ref_is_y);
 
 %% Costs
 
@@ -88,7 +89,8 @@ mpc = init_mpc_Tracking_cost(mpc,Qe);
 
 % Control inputs variation penalty
 Rdu = diag([1 1 1 1]);
-mpc = init_mpc_DiffControl_cost(mpc,Rdu);
+mpc = init_mpc_ControlRate_cost(mpc,Rdu);
+
 
 %Ru = diag([0.5 1]);
 %mpc = init_mpc_Control_cost(mpc,Ru);
@@ -105,16 +107,17 @@ Cz = [-1 0 0 0 0 0;
       0 0 0 -1 0 0];
 Dz = [0 0 1 0;
       0 0 0 1];
-Ddz = 0;
+Dsuz = [];
+Ddz = [];
 
 % Penalty matrix for the performance cost
 Qz = diag([100 100]);
 
 % Init performance cost
-mpc = init_mpc_Lin_Custom_cost(mpc,Cz,Dz,Ddz,Qz);
+mpc = init_mpc_Lin_Custom_cost(mpc,Cz,Dz,Dsuz,Ddz,Qz);
 
 %% Init conditions for simulation
 
 % use warm start function initialize the optimization vector
 u_prev = [0;0;0;0];
-[mpc,x0] = build_chronos_mpc(mpc,x,u_prev);
+mpc = build_chronos_mpc(mpc,x,u_prev);

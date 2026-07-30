@@ -71,12 +71,12 @@ sys = qLPV_TRMS_refMPC_SS(Wh,Omh,Thth,Wv,Thtv);
 % Update mpc problem structure
 % System discretized with forward Euler discretization:
 % x+ = (I+Ts*A)*x+Ts*B*u+Ts*Bd*d
-mpc = update_mpc_sys_dynamics(mpc,eye(6)+Ts*sys.A,Ts*sys.B,[]);
+mpc = update_mpc_dynamics(mpc,eye(6)+Ts*sys.A,Ts*sys.B,[]);
 
 % Adjust Vertical Angle State
 x_mpc = [Wh;Omh;Thth;Wv;Omv;Thtv-Thtv0];
 % Solve mpc iteration
-[u_prev,x0] = mpc_solve(mpc,x0,x_mpc,u_prev,ref,[],x_ref,[],[]);
+[u_prev,iter,mpc] = mpc_solve(mpc,x_mpc,u_prev,ref,x_ref,[],[],[]);
 ti(i) = toc;
 
 % Assign control actions
