@@ -116,9 +116,9 @@ end
 
     % 4. Propagate Dynamics
     % x_{k+1} = A*x_k + B*u_k + D*d_k
-    x_next = mpc.A * x_k + mpc.B * u_k;
-    if ~isempty(mpc.Bd) && ~isempty(d_in)
-        x_next = x_next + mpc.Bd * d_in(:,k);
+    x_next = mpc.A(:,:,k) * x_k + mpc.B(:,:,k) * u_k;
+    if mpc.dyn_use_d && any(d_in(:))
+        x_next = x_next + mpc.Bd(:,:,k) * d_in(:,k);
     end
 % clamp x: for safety net in case we are dealing with unstable
 % system

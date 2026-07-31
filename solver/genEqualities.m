@@ -384,8 +384,8 @@ for k = 1:N-1
             mpc.y_cnstr.v_min_index_k = [mpc.y_cnstr.v_min_index_k vi_index_k];
             v_rows_k = [v_rows_k; row'];
 
-            C_mat = -mpc.C;
-            D_mat = -mpc.D;
+            C_mat = -mpc.C(:,:,k);
+            D_mat = -mpc.D(:,:,k);
             b_val = -mpc.y_cnstr.min;
 
             [Ai, bi] = appendGeneralizedConstraint(Ai, bi, row,...
@@ -409,8 +409,8 @@ for k = 1:N-1
             mpc.y_cnstr.v_max_index_k = [mpc.y_cnstr.v_max_index_k vi_index_k];
             v_rows_k = [v_rows_k; row'];
 
-            C_mat = mpc.C;
-            D_mat = mpc.D;
+            C_mat = mpc.C(:,:,k);
+            D_mat = mpc.D(:,:,k);
             b_val = mpc.y_cnstr.max;
 
             [Ai, bi] = appendGeneralizedConstraint(Ai, bi, row,...
@@ -437,9 +437,9 @@ for k = 1:N-1
             mpc.h_cnstr.v_min_index_k = [mpc.h_cnstr.v_min_index_k vi_index_k];
             v_rows_k = [v_rows_k; row'];
 
-            C_mat = -mpc.Ch;
-            Dsu_mat = -mpc.Dsuh;
-            D_mat = -mpc.Dh;
+            C_mat = -mpc.Ch(:,:,k);
+            Dsu_mat = -mpc.Dsuh(:,:,k);
+            D_mat = -mpc.Dh(:,:,k);
             b_val = -mpc.h_cnstr.min;
 
             [Ai, bi] = appendGeneralizedConstraint(Ai, bi, row,...
@@ -463,9 +463,9 @@ for k = 1:N-1
             mpc.h_cnstr.v_max_index_k = [mpc.h_cnstr.v_max_index_k vi_index_k];
             v_rows_k = [v_rows_k; row'];
 
-            C_mat = mpc.Ch;
-            Dsu_mat = mpc.Dsuh;
-            D_mat = mpc.Dh;
+            C_mat = mpc.Ch(:,:,k);
+            Dsu_mat = mpc.Dsuh(:,:,k);
+            D_mat = mpc.Dh(:,:,k);
             b_val = mpc.h_cnstr.max;
 
             [Ai, bi] = appendGeneralizedConstraint(Ai, bi, row,...
@@ -623,9 +623,13 @@ mpc.bi_ter = bi_ter;
 %% dynamics
 
 if mpc.has_du
-    mpc.A_kkt = [mpc.A zeros(nx,nu);
-                 zeros(nu,nx) zeros(nu)];
-    mpc.B_kkt = [mpc.B;eye(nu)];
+    mpc.A_kkt = zeros(mpc.nse,mpc.nse,mpc.N);
+    mpc.A_kkt(mpc.s_col,mpc.s_col,1:mpc.N) = mpc.A;
+
+    mpc.B_kkt = zeros(mpc.nse,mpc.nu,mpc.N);
+    mpc.B_kkt(mpc.s_col,:,1:mpc.N) = mpc.B;
+    mpc.B_kkt(mpc.su_col,:,1:mpc.N) = eye(mpc.nu);
+
 else
     mpc.A_kkt = mpc.A;
     mpc.B_kkt = mpc.B;

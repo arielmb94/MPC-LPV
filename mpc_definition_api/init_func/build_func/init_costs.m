@@ -48,35 +48,51 @@ end
 
 function mpc = genCustomCost(mpc)
 
-index_k = [];
 s_index = mpc.s_col;
 su_index = mpc.su_col;
 u_index = mpc.u_col;
 
-grad_z = [];
+% compute gradient of z
+for k = 1:mpc.N-1
+    if mpc.z_use_s && mpc.z_use_su && mpc.z_use_u
+        mpc.grad_z(:,:,k) = [mpc.Cz(:,:,k)'; mpc.Dsuz(:,:,k)'; mpc.Dz(:,:,k)'];
+        index_k = [s_index su_index u_index];
 
-if mpc.z_use_s
-    index_k = [index_k s_index];
-    grad_z =  [grad_z;mpc.Cz'];
-end
-if mpc.z_use_su
-    index_k = [index_k su_index];
-    grad_z =  [grad_z;mpc.Dsuz'];
-end
-if mpc.z_use_u
-    index_k = [index_k u_index];
-    grad_z =  [grad_z;mpc.Dz'];
-end
+    elseif mpc.z_use_s && mpc.z_use_su
+        mpc.grad_z(:,:,k) = [mpc.Cz(:,:,k)'; mpc.Dsuz(:,:,k)'];
+        index_k = [s_index su_index];
 
-mpc.grad_z = grad_z;
+    elseif mpc.z_use_s && mpc.z_use_u
+        mpc.grad_z(:,:,k) = [mpc.Cz(:,:,k)'; mpc.Dz(:,:,k)'];
+        index_k = [s_index u_index];
+
+    elseif mpc.z_use_su && mpc.z_use_u
+        mpc.grad_z(:,:,k) = [mpc.Dsuz(:,:,k)'; mpc.Dz(:,:,k)'];
+        index_k = [su_index u_index];
+
+    elseif mpc.z_use_s
+        mpc.grad_z(:,:,k) = mpc.Cz(:,:,k)';
+        index_k = s_index;
+
+    elseif mpc.z_use_su
+        mpc.grad_z(:,:,k) = mpc.Dsuz(:,:,k)';
+        index_k = su_index;
+
+    elseif mpc.z_use_u
+        mpc.grad_z(:,:,k) = mpc.Dz(:,:,k)';
+        index_k = u_index;
+    end
+end
+mpc.custom_cost_index_k = index_k;
+
 if mpc.z_use_k0
     mpc.grad_z_0 = mpc.Dz_0';
 end
 if mpc.z_use_ter
     mpc.grad_z_ter = mpc.Cz_ter';
 end
-mpc.custom_cost_index_k = index_k;
 
+% gradient/Hessian of quadratic cost on z
 if mpc.quad_custom_cost
 
     % k = 0
@@ -91,12 +107,12 @@ if mpc.quad_custom_cost
 
     for k = 1:mpc.N-1
 
-        gradz_Qz = grad_z*mpc.Qz;
-        H_CustomCost = gradz_Qz*grad_z';
+        gradz_Qz = mpc.grad_z(:,:,k)*mpc.Qz(:,:,k);
+        H_CustomCost = gradz_Qz*mpc.grad_z(:,:,k)';
 
         mpc.gradz_Qz_k(:,:,k) = gradz_Qz;
-        mpc.H_f0_k(index_k,index_k,k) = mpc.H_f0_k(index_k,index_k,k) + ...
-            + H_CustomCost;
+        mpc.H_f0_k(index_k,index_k,k) = mpc.H_f0_k(index_k,index_k,k)...
+                                        + H_CustomCost;
         mpc.H_CustomCost_k(:,:,k) = H_CustomCost;
     end
 
@@ -111,6 +127,7 @@ if mpc.quad_custom_cost
     end
 end
 
+% gradient of linear cost on z
 if mpc.lin_custom_cost
 
     % k = 0
@@ -119,7 +136,7 @@ if mpc.lin_custom_cost
     end
 
     for k = 1:mpc.N-1
-        mpc.gradz_qz_k(:,k) = grad_z*mpc.qz;
+        mpc.gradz_qz_k(:,k) = mpc.grad_z(:,:,k)*mpc.qz;
     end
 
     if mpc.z_use_ter
@@ -131,23 +148,8 @@ end
 
 function mpc = genTrackingCost(mpc)
 
-index_k = [];
 s_index = mpc.s_col;
 u_index = mpc.u_col;
-
-grad_err = [];
-
-if mpc.y_use_s
-    index_k = [index_k s_index];
-    grad_err =  [grad_err;-mpc.C'];
-end
-if mpc.y_use_u
-    index_k = [index_k u_index];
-    grad_err =  [grad_err;-mpc.D'];
-end
-
-mpc.tracking_cost_index_k = index_k;
-mpc.grad_err = grad_err;
 
 if mpc.y_use_k0
     grad_err_0 = -mpc.D_0';
@@ -162,14 +164,29 @@ end
 
 for k = 1:mpc.N-1
 
-    gradErr_Qe = grad_err*mpc.Qe;
+    % gradient of err = ref-y
+    if mpc.y_use_s && mpc.y_use_u
+        grad_err = [-mpc.C(:,:,k)'; -mpc.D(:,:,k)'];
+        index_k = [s_index u_index];
+    elseif mpc.y_use_s
+        grad_err = -mpc.C(:,:,k)';
+        index_k = s_index;
+    elseif mpc.y_use_u
+        grad_err = -mpc.D(:,:,k)';
+        index_k = u_index;
+    end
+
+    % gradient/hessian of error cost
+    gradErr_Qe = grad_err*mpc.Qe(:,:,k);
     H_ErrCost = gradErr_Qe*grad_err';
     
+    mpc.grad_err(:,:,k) = grad_err;
     mpc.gradErr_Qe_k(:,:,k) = gradErr_Qe;
     mpc.H_f0_k(index_k,index_k,k) = mpc.H_f0_k(index_k,index_k,k) + ...
                                     + H_ErrCost;
     mpc.H_ErrCost_k(:,:,k) = H_ErrCost;
 end
+mpc.tracking_cost_index_k = index_k;
 
 if mpc.y_use_ter
     grad_err_ter = -mpc.C_ter';
@@ -189,13 +206,13 @@ function mpc = genControlCost(mpc)
 
 if mpc.quad_control_cost
 
-    mpc.H_f0_0 = mpc.H_f0_0 + mpc.Ru;
+    mpc.H_f0_0 = mpc.H_f0_0 + mpc.Ru(:,:,1);
 
     for k = 1:mpc.N-1
         u_index = mpc.u_col;
 
         mpc.H_f0_k(u_index,u_index,k) = mpc.H_f0_k(u_index,u_index,k) + ...
-                                            + mpc.Ru;
+                                            + mpc.Ru(:,:,k+1);
     end
 end
 
@@ -210,11 +227,14 @@ index_k = [su_index u_index];
 mpc.du_index_k = index_k;
 
 % k = 0
-mpc.H_f0_0 = mpc.H_f0_0 + mpc.Rdu;
+mpc.H_f0_0 = mpc.H_f0_0 + mpc.Rdu(:,:,1);
 
 for k = 1:mpc.N-1
-    gradRateCtrl_Rdu = [-mpc.Rdu;mpc.Rdu];
-    H_RateCtrl = [mpc.Rdu -mpc.Rdu;-mpc.Rdu mpc.Rdu];
+
+    Rdu_k = mpc.Rdu(:,:,k+1);
+    
+    gradRateCtrl_Rdu = [-Rdu_k;Rdu_k];
+    H_RateCtrl = [Rdu_k -Rdu_k;-Rdu_k Rdu_k];
 
     mpc.gradRateCtrl_Rdu_k(:,:,k) = gradRateCtrl_Rdu;
     mpc.H_f0_k(index_k,index_k,k) = mpc.H_f0_k(index_k,index_k,k) + ...
