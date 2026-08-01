@@ -19,16 +19,16 @@ end
 mpc.z(:,:)=0;
 for k = 1:mpc.N-1
     if mpc.z_use_s
-        mpc.z(:,k) = mpc.z(:,k) + mpc.Cz*mpc.s(:,k);
+        mpc.z(:,k) = mpc.z(:,k) + mpc.Cz(:,:,k)*mpc.s(:,k);
     end
     if mpc.z_use_u
-        mpc.z(:,k) = mpc.z(:,k) + mpc.Dz*mpc.u(:,k+1);
+        mpc.z(:,k) = mpc.z(:,k) + mpc.Dz(:,:,k)*mpc.u(:,k+1);
     end
     if mpc.z_use_su
-        mpc.z(:,k) = mpc.z(:,k) + mpc.Dsuz*mpc.su(:,k);
+        mpc.z(:,k) = mpc.z(:,k) + mpc.Dsuz(:,:,k)*mpc.su(:,k);
     end
     if mpc.z_use_d
-        mpc.z(:,k) = mpc.z(:,k) + mpc.Ddz*mpc.dz(:,k+1);
+        mpc.z(:,k) = mpc.z(:,k) + mpc.Ddz(:,:,k)*mpc.dz(:,k+1);
     end
 end
 

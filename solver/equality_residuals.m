@@ -1,11 +1,11 @@
 function mpc = equality_residuals(mpc)
 
 % k = 0
-mpc.rp_0(mpc.s_col) = mpc.B*mpc.u(:,1)-mpc.s(:,1)-mpc.beq_0;
+mpc.rp_0(mpc.s_col) = mpc.B(:,:,1)*mpc.u(:,1)-mpc.s(:,1)-mpc.beq_0;
 
 for k = 1:mpc.N-1
     % [A B -I][s u s+]'-beq
-    mpc.rp_k(mpc.s_col,k) = mpc.A*mpc.s(:,k)+mpc.B*mpc.u(:,k+1)-mpc.s(:,k+1)...
+    mpc.rp_k(mpc.s_col,k) = mpc.A(:,:,k+1)*mpc.s(:,k)+mpc.B(:,:,k+1)*mpc.u(:,k+1)-mpc.s(:,k+1)...
                             -mpc.beq_k(:,k);
 end
 

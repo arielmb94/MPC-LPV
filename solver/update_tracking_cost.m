@@ -9,8 +9,8 @@ if mpc.y_use_k0
 end
 
 for k = 1:mpc.N-1
-    mpc.gradErr_Qe_k(:,:,k) = mpc.grad_err*mpc.Qe;
-    mpc.H_ErrCost_k(:,:,k) = mpc.gradErr_Qe_k(:,:,k)*mpc.grad_err';
+    mpc.gradErr_Qe_k(:,:,k) = mpc.grad_err(:,:,k)*mpc.Qe(:,:,k);
+    mpc.H_ErrCost_k(:,:,k) = mpc.gradErr_Qe_k(:,:,k)*mpc.grad_err(:,:,k)';
 end
 
 if mpc.y_use_ter

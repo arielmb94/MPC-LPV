@@ -13,10 +13,10 @@ if mpc.tracking_cost && mpc.y_use_k0
     mpc.H_f0_0 = mpc.H_f0_0 + mpc.H_ErrCost_0;
 end
 if mpc.quad_control_cost
-    mpc.H_f0_0 = mpc.H_f0_0 + mpc.Ru;
+    mpc.H_f0_0 = mpc.H_f0_0 + mpc.Ru(:,:,1);
 end
 if mpc.controlrate_cost
-    mpc.H_f0_0 = mpc.H_f0_0 + mpc.Rdu;
+    mpc.H_f0_0 = mpc.H_f0_0 + mpc.Rdu(:,:,1);
 end
 if mpc.quad_custom_cost && mpc.z_use_k0
     mpc.H_f0_0 = mpc.H_f0_0 + mpc.H_CustomCost_0;
@@ -30,7 +30,7 @@ if mpc.tracking_cost
 end
 
 if mpc.quad_control_cost
-    mpc.H_f0_k(mpc.u_col, mpc.u_col, :) = mpc.H_f0_k(mpc.u_col, mpc.u_col, :) + mpc.Ru;
+    mpc.H_f0_k(mpc.u_col, mpc.u_col, :) = mpc.H_f0_k(mpc.u_col, mpc.u_col, :) + mpc.Ru(:,:,2:mpc.N);
 end
 
 if mpc.controlrate_cost

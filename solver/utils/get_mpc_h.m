@@ -19,16 +19,16 @@ mpc.h(:,:)=0;
 for k = 1:mpc.N-1
 
     if mpc.h_cnstr.use_s
-        mpc.h(:,k) = mpc.h(:,k) + mpc.Ch*mpc.s(:,k);
+        mpc.h(:,k) = mpc.h(:,k) + mpc.Ch(:,:,k)*mpc.s(:,k);
     end
     if mpc.h_cnstr.use_u
-        mpc.h(:,k) = mpc.h(:,k) + mpc.Dh*mpc.u(:,k+1);
+        mpc.h(:,k) = mpc.h(:,k) + mpc.Dh(:,:,k)*mpc.u(:,k+1);
     end
     if mpc.h_cnstr.use_su
-        mpc.h(:,k) = mpc.h(:,k) + mpc.Dsuh*mpc.su(:,k);
+        mpc.h(:,k) = mpc.h(:,k) + mpc.Dsuh(:,:,k)*mpc.su(:,k);
     end
     if mpc.h_cnstr.use_d
-        mpc.h(:,k) = mpc.h(:,k) + mpc.Ddh*mpc.dh(:,k+1);
+        mpc.h(:,k) = mpc.h(:,k) + mpc.Ddh(:,:,k)*mpc.dh(:,k+1);
     end
 end
 

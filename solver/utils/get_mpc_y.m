@@ -16,13 +16,13 @@ end
 mpc.y(:,:)=0;
 for k = 1:mpc.N-1
     if mpc.y_use_s
-        mpc.y(:,k) = mpc.y(:,k) + mpc.C*mpc.s(:,k);
+        mpc.y(:,k) = mpc.y(:,k) + mpc.C(:,:,k)*mpc.s(:,k);
     end
     if mpc.y_use_u
-        mpc.y(:,k) = mpc.y(:,k) + mpc.D*mpc.u(:,k+1);
+        mpc.y(:,k) = mpc.y(:,k) + mpc.D(:,:,k)*mpc.u(:,k+1);
     end
     if mpc.y_use_d
-        mpc.y(:,k) = mpc.y(:,k) + mpc.Dd*mpc.d(:,k+1);
+        mpc.y(:,k) = mpc.y(:,k) + mpc.Dd(:,:,k)*mpc.d(:,k+1);
     end
 end
 mpc.err(:,:) = mpc.r-mpc.y;

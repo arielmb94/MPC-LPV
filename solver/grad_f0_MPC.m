@@ -7,14 +7,14 @@ mpc.grad_f0_ter(:) = 0;
 
 % k=0
 if mpc.quad_control_cost
-    mpc.grad_f0_0(:) = mpc.grad_f0_0 + mpc.Ru*mpc.u(:,1);
+    mpc.grad_f0_0(:) = mpc.grad_f0_0 + mpc.Ru(:,:,1)*mpc.u(:,1);
 end
 if mpc.lin_control_cost
-    mpc.grad_f0_0(:) = mpc.grad_f0_0 + mpc.ru;
+    mpc.grad_f0_0(:) = mpc.grad_f0_0 + mpc.ru(:,1);
 end
 
 if mpc.controlrate_cost
-    mpc.grad_f0_0(:) = mpc.grad_f0_0 + mpc.Rdu*mpc.du(:,1);
+    mpc.grad_f0_0(:) = mpc.grad_f0_0 + mpc.Rdu(:,:,1)*mpc.du(:,1);
 end
 
 if mpc.tracking_cost && mpc.y_use_k0
@@ -37,11 +37,11 @@ for k = 1:mpc.N-1
 
     if mpc.quad_control_cost
         index = mpc.u_col;
-        mpc.grad_f0_k(index,k) = mpc.grad_f0_k(index,k) + mpc.Ru*mpc.u(:,k+1);
+        mpc.grad_f0_k(index,k) = mpc.grad_f0_k(index,k) + mpc.Ru(:,:,k+1)*mpc.u(:,k+1);
     end
     if mpc.lin_control_cost
         index = mpc.u_col;
-        mpc.grad_f0_k(index,k) = mpc.grad_f0_k(index,k) + mpc.ru;
+        mpc.grad_f0_k(index,k) = mpc.grad_f0_k(index,k) + mpc.ru(:,k+1);
     end
 
     if mpc.controlrate_cost

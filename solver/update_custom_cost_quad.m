@@ -9,8 +9,8 @@ if mpc.z_use_k0
 end
 
 for k = 1:mpc.N-1
-    mpc.gradz_Qz_k(:,:,k) = mpc.grad_z*mpc.Qz;
-    mpc.H_CustomCost_k(:,:,k) = mpc.gradz_Qz_k(:,:,k)*mpc.grad_z';
+    mpc.gradz_Qz_k(:,:,k) = mpc.grad_z(:,:,k)*mpc.Qz(:,:,k);
+    mpc.H_CustomCost_k(:,:,k) = mpc.gradz_Qz_k(:,:,k)*mpc.grad_z(:,:,k)';
 end
 
 if mpc.z_use_ter

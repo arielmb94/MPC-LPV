@@ -1,13 +1,13 @@
 function mpc = update_mpc_beq(mpc,s_prev,u_prev)
 %% dynamcis
 % k = 0
-mpc.beq_0(:) = -mpc.A*s_prev;
+mpc.beq_0(:) = -mpc.A(:,:,1)*s_prev;
 
 if mpc.dyn_use_d
-    mpc.beq_0(:) = mpc.beq_0(:) - mpc.Bd*mpc.d(:,1);
+    mpc.beq_0(:) = mpc.beq_0(:) - mpc.Bd(:,:,1)*mpc.d(:,1);
 
     for k = 1:mpc.N-1
-        mpc.beq_k(:,k) = - mpc.Bd*mpc.d(:,k+1);
+        mpc.beq_k(:,k) = - mpc.Bd(:,:,k+1)*mpc.d(:,k+1);
     end
 end
 
@@ -74,13 +74,13 @@ for k = 1:mpc.N-1
         if mpc.h_cnstr.min_limit && mpc.h_cnstr.use_d
             row = mpc.h_cnstr.min_ineqRow_k;
             %Ineq [-C -Dsu -D I -I]*[s su u g v]' = -h_min+Dd*d
-            mpc.bi_k(row,k) = -mpc.h_cnstr.min + mpc.Ddh*mpc.dh(:,k+1);
+            mpc.bi_k(row,k) = -mpc.h_cnstr.min + mpc.Ddh(:,:,k)*mpc.dh(:,k+1);
         end
 
         if mpc.h_cnstr.max_limit && mpc.h_cnstr.use_d
             row = mpc.h_cnstr.max_ineqRow_k;
             %Ineq [C Dsu D I -I]*[s su u g v]' = h_max-Dd*d
-            mpc.bi_k(row,k) = mpc.h_cnstr.max - mpc.Ddh*mpc.dh(:,k+1);
+            mpc.bi_k(row,k) = mpc.h_cnstr.max - mpc.Ddh(:,:,k)*mpc.dh(:,k+1);
         end
     end
 
@@ -89,16 +89,15 @@ for k = 1:mpc.N-1
         if mpc.y_cnstr.min_limit && mpc.y_use_d
             row = mpc.y_cnstr.min_ineqRow_k;
             %Ineq [-C -D I -I]*[s u g v]' = -y_min+Dd*d
-            mpc.bi_k(row,k) = -mpc.y_cnstr.min + mpc.Dd*mpc.d(:,k+1);
+            mpc.bi_k(row,k) = -mpc.y_cnstr.min + mpc.Dd(:,:,k)*mpc.d(:,k+1);
         end
 
         if mpc.y_cnstr.max_limit && mpc.y_use_d
             row = mpc.y_cnstr.max_ineqRow_k;
             %Ineq [C D I -I]*[s u g v]' = y_max-Dd*d
-            mpc.bi_k(row,k) = mpc.y_cnstr.max - mpc.Dd*mpc.d(:,k+1);
+            mpc.bi_k(row,k) = mpc.y_cnstr.max - mpc.Dd(:,:,k)*mpc.d(:,k+1);
         end
     end
-
 end
 
 end

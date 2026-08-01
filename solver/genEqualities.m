@@ -623,16 +623,19 @@ mpc.bi_ter = bi_ter;
 %% dynamics
 
 if mpc.has_du
-    mpc.A_kkt = zeros(mpc.nse,mpc.nse,mpc.N);
-    mpc.A_kkt(mpc.s_col,mpc.s_col,1:mpc.N) = mpc.A;
+    mpc.A_kkt = zeros(mpc.nse,mpc.nse,mpc.N-1);
+    mpc.A_kkt(mpc.s_col,mpc.s_col,:) = mpc.A(:,:,2:mpc.N);;
 
-    mpc.B_kkt = zeros(mpc.nse,mpc.nu,mpc.N);
-    mpc.B_kkt(mpc.s_col,:,1:mpc.N) = mpc.B;
-    mpc.B_kkt(mpc.su_col,:,1:mpc.N) = eye(mpc.nu);
+    mpc.B_kkt_0 = [mpc.B(:,:,1);eye(mpc.nu)];
+    mpc.B_kkt = zeros(mpc.nse,mpc.nu,mpc.N-1);
+    mpc.B_kkt(mpc.s_col,:,:) = mpc.B(:,:,2:mpc.N);;
+    mpc.B_kkt(mpc.su_col,:,:) = eye(mpc.nu);
 
 else
-    mpc.A_kkt = mpc.A;
-    mpc.B_kkt = mpc.B;
+    mpc.A_kkt = mpc.A(:,:,2:mpc.N);
+
+    mpc.B_kkt_0 = mpc.B(:,:,1);
+    mpc.B_kkt = mpc.B(:,:,2:mpc.N);
 end
 
 end

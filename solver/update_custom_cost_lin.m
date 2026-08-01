@@ -7,7 +7,7 @@ if mpc.z_use_k0
 end
 
 for k = 1:mpc.N-1
-    mpc.gradz_qz_k(:,k) = mpc.grad_z*mpc.qz;
+    mpc.gradz_qz_k(:,k) = mpc.grad_z(:,:,k)*mpc.qz(:,k);
 end
 
 if mpc.z_use_ter
