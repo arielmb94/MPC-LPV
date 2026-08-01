@@ -48,15 +48,32 @@ function mpc = update_mpc_Custom_cost(mpc,Qz,qz)
 
 if ~isempty(Qz)
     mpc.update_customcost_quad = 1;
-    mpc.Qz(:,:) = Qz;
-    if mpc.z_use_k0, mpc.Qz_0(:,:) = Qz(mpc.z_rows_k0,mpc.z_rows_k0); end
-    if mpc.z_use_ter, mpc.Qz_ter(:,:) = Qz(mpc.z_rows_ter,mpc.z_rows_ter); end
+
+    len_Q = size(Qz,3);
+    if len_Q < mpc.N
+        mpc.Qz(:,:,:) = fill_mat(mpc.Qz, Qz, 1);
+        if mpc.z_use_ter, mpc.Qz_ter(:,:) = mpc.Qz(mpc.z_rows_ter,mpc.z_rows_ter,mpc.N-1); end
+    else
+        mpc.Qz(:,:,:) = Qz(:,:,1:mpc.N-1);
+        if mpc.z_use_ter, mpc.Qz_ter(:,:) = Qz(mpc.z_rows_ter,mpc.z_rows_ter,mpc.N); end
+    end
+
+    if mpc.z_use_k0, mpc.Qz_0(:,:) = mpc.Qz(mpc.z_rows_k0,mpc.z_rows_k0,1); end
 end
+
 if ~isempty(qz)
     mpc.update_customcost_lin = 1;
-    mpc.qz(:) = qz;
-    if mpc.z_use_k0, mpc.qz_0(:) = qz(mpc.z_rows_k0); end
-    if mpc.z_use_ter, mpc.qz_ter(:) = qz(mpc.z_rows_ter); end
+
+    len_q = size(qz,3);
+    if len_q < mpc.N
+        mpc.qz(:,:) = fill_vec(mpc.qz, qz, 1);
+        if mpc.z_use_ter, mpc.qz_ter(:) = mpc.qz(mpc.z_rows_ter,mpc.N-1); end
+    else
+        mpc.qz(:,:) = qz(:,1:mpc.N-1);
+        if mpc.z_use_ter, mpc.qz_ter(:) = qz(mpc.z_rows_ter,mpc.N); end
+    end
+
+    if mpc.z_use_k0, mpc.qz_0(:) = mpc.qz(mpc.z_rows_k0,1); end
 end
     
 end

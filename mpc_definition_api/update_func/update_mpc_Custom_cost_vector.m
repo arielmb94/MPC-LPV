@@ -48,48 +48,78 @@ update_grad = 0;
 
 if ~isempty(Cz)
     update_grad = 1;
-    mpc.Cz(:,:) = Cz;
-    if mpc.z_use_k0, mpc.Cz_0(:,:) = Cz(mpc.z_rows_k0,:); end
+
+    len_Cz = size(Cz,3);
+    if len_Cz < mpc.N
+        mpc.Cz(:,:,:) = fill_mat(mpc.Cz, Cz, 1);
+        if mpc.z_use_ter, mpc.Cz_ter(:,:) = mpc.Cz(mpc.z_rows_ter,:,mpc.N-1); end
+    else
+        mpc.Cz(:,:,:) = Cz(:,:,1:mpc.N-1);
+        if mpc.z_use_ter, mpc.Cz_ter(:,:) = Cz(mpc.z_rows_ter,:,mpc.N); end
+    end
+    if mpc.z_use_k0, mpc.Cz_0(:,:) = mpc.Cz(mpc.z_rows_k0,:,1); end
+
     if mpc.z_use_ter
-        mpc.Cz_ter(:,:) = Cz(mpc.z_rows_ter,:); 
         mpc.grad_z_ter(:,:) = mpc.Cz_ter';
     end
 end
 
 if ~isempty(Dz)
     update_grad = 1;
-    mpc.Dz(:,:) = Dz;
-    % if there is D it means there is k0
-    mpc.Dz_0(:,:) = Dz(mpc.z_rows_k0,:); 
+
+    len_Dz = size(Dz,3);
+    if len_Dz < mpc.N-1
+        mpc.Dz(:,:,:) = fill_mat(mpc.Dz, Dz, 1);
+    else
+        mpc.Dz(:,:,:) = Dz(:,:,1:mpc.N-1);
+    end
+    % if there is Dz it means there is k0
+    mpc.Dz_0(:,:) = mpc.Dz(mpc.z_rows_k0,:,1);
+
     mpc.grad_z_0(:,:) = mpc.Dz_0';
 end
 
 if ~isempty(Dsuz)
     update_grad = 1;
-    mpc.Dsuz(:,:) = Dsuz;
-    if mpc.z_use_k0, mpc.Dsuz_0(:,:) = Dsuz(mpc.z_rows_k0,:); end
+    
+    len_Dsuz = size(Dsuz,3);
+    if len_Dsuz < mpc.N-1
+        mpc.Dsuz(:,:,:) = fill_mat(mpc.Dsuz, Dsuz, 1);
+    else
+        mpc.Dsuz(:,:,:) = Dsuz(:,:,1:mpc.N-1);
+    end
+    if mpc.z_use_k0, mpc.Dsuz_0(:,:) = mpc.Dsuz(mpc.z_rows_k0,:,1); end
 end
 
 if ~isempty(Ddz)   
-    mpc.Ddz(:,:) = Ddz;
-    if mpc.z_use_k0, mpc.Ddz_0(:,:) = Ddz(mpc.z_rows_k0,:); end
+
+    len_Ddz = size(Ddz,3);
+    if len_Ddz < mpc.N-1
+        mpc.Ddz(:,:,:) = fill_mat(mpc.Ddz, Ddz, 1);
+    else
+        mpc.Ddz(:,:,:) = Ddz(:,:,1:mpc.N-1);
+    end
+    if mpc.z_use_k0, mpc.Ddz_0(:,:) = mpc.Ddz(mpc.z_rows_k0,:,1); end
 end
 
 if update_grad
-    if mpc.z_use_s && mpc.z_use_su && mpc.z_use_u
-        mpc.grad_z(:,:) = [mpc.Cz'; mpc.Dsuz'; mpc.Dz'];
-    elseif mpc.z_use_s && mpc.z_use_su
-        mpc.grad_z(:,:) = [mpc.Cz'; mpc.Dsuz'];
-    elseif mpc.z_use_s && mpc.z_use_u
-        mpc.grad_z(:,:) = [mpc.Cz'; mpc.Dz'];
-    elseif mpc.z_use_su && mpc.z_use_u
-        mpc.grad_z(:,:) = [mpc.Dsuz'; mpc.Dz'];
-    elseif mpc.z_use_s
-        mpc.grad_z(:,:) = mpc.Cz';
-    elseif mpc.z_use_su
-        mpc.grad_z(:,:) = mpc.Dsuz';
-    elseif mpc.z_use_u
-        mpc.grad_z(:,:) = mpc.Dz';
+
+    for k = 1:mpc.N-1
+        if mpc.z_use_s && mpc.z_use_su && mpc.z_use_u
+            mpc.grad_z(:,:,k) = [mpc.Cz(:,:,k)'; mpc.Dsuz(:,:,k)'; mpc.Dz(:,:,k)'];
+        elseif mpc.z_use_s && mpc.z_use_su
+            mpc.grad_z(:,:,k) = [mpc.Cz(:,:,k)'; mpc.Dsuz(:,:,k)'];
+        elseif mpc.z_use_s && mpc.z_use_u
+            mpc.grad_z(:,:,k) = [mpc.Cz(:,:,k)'; mpc.Dz(:,:,k)'];
+        elseif mpc.z_use_su && mpc.z_use_u
+            mpc.grad_z(:,:,k) = [mpc.Dsuz(:,:,k)'; mpc.Dz(:,:,k)'];
+        elseif mpc.z_use_s
+            mpc.grad_z(:,:,k) = mpc.Cz(:,:,k)';
+        elseif mpc.z_use_su
+            mpc.grad_z(:,:,k) = mpc.Dsuz(:,:,k)';
+        elseif mpc.z_use_u
+            mpc.grad_z(:,:,k) = mpc.Dz(:,:,k)';
+        end
     end
 end
 

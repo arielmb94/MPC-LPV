@@ -47,17 +47,25 @@ update_grad = 0;
 
 if ~isempty(C)
     update_grad = 1;
-    mpc.C(:,:) = C;
-    if mpc.y_use_k0, mpc.C_0(:,:) = C(mpc.y_rows_k0,:); end
+
+    len_C = size(C,3);
+    if len_C < mpc.N
+        mpc.C(:,:,:) = fill_mat(mpc.C, C, 1);
+        if mpc.y_use_ter, mpc.C_ter(:,:) = mpc.C(mpc.y_rows_ter,:,mpc.N-1); end
+    else
+        mpc.C(:,:,:) = C(:,:,1:mpc.N-1);
+        if mpc.y_use_ter, mpc.C_ter(:,:) = C(mpc.y_rows_ter,:,mpc.N); end
+    end
+    if mpc.y_use_k0, mpc.C_0(:,:) = mpc.C(mpc.y_rows_k0,:,1); end
+
     if mpc.y_use_ter
-        mpc.C_ter(:,:) = C(mpc.y_rows_ter,:); 
         mpc.grad_err_ter(:,:) = -mpc.C_ter';
     end
 
     if mpc.has_y_cnstr
         if mpc.y_cnstr.min_limit
             for k = 1:mpc.N-1
-                mpc.Ai_k(mpc.y_cnstr.min_ineqRow_k,mpc.s_col,k) = -mpc.C;
+                mpc.Ai_k(mpc.y_cnstr.min_ineqRow_k,mpc.s_col,k) = -mpc.C(:,:,k);
             end
             if mpc.y_cnstr.use_ter
                 mpc.Ai_ter(mpc.y_cnstr.min_ineqRow_ter,mpc.s_col) = -mpc.C_ter;
@@ -65,7 +73,7 @@ if ~isempty(C)
         end
         if mpc.y_cnstr.max_limit
             for k = 1:mpc.N-1
-                mpc.Ai_k(mpc.y_cnstr.max_ineqRow_k,mpc.s_col,k) = mpc.C;
+                mpc.Ai_k(mpc.y_cnstr.max_ineqRow_k,mpc.s_col,k) = mpc.C(:,:,k);
             end
             if mpc.y_cnstr.use_ter
                 mpc.Ai_ter(mpc.y_cnstr.max_ineqRow_ter,mpc.s_col) = mpc.C_ter;
@@ -77,40 +85,55 @@ end
 
 if ~isempty(D)
     update_grad = 1;
-    mpc.D(:,:) = D;
+
+    len_D = size(D,3);
+    if len_D < mpc.N-1
+        mpc.D(:,:,:) = fill_mat(mpc.D, D, 1);
+    else
+        mpc.D(:,:,:) = D(:,:,1:mpc.N-1);
+    end
     % if there is D it means there is k0
-    mpc.D_0(:,:) = D(mpc.y_rows_k0,:); 
+    mpc.D_0(:,:) = mpc.D(mpc.y_rows_k0,:,1);
+
     mpc.grad_err_0(:,:) = -mpc.D_0';
 
     if mpc.has_y_cnstr
         if mpc.y_cnstr.min_limit
             mpc.Ai_0(mpc.y_cnstr.min_ineqRow_0,:) = -mpc.D_0;
             for k = 1:mpc.N-1
-                mpc.Ai_k(mpc.y_cnstr.min_ineqRow_k,mpc.u_col,k) = -mpc.D;
+                mpc.Ai_k(mpc.y_cnstr.min_ineqRow_k,mpc.u_col,k) = -mpc.D(:,:,k);
             end
         end
         if mpc.y_cnstr.max_limit
             mpc.Ai_0(mpc.y_cnstr.max_ineqRow_0,:) = mpc.D_0;
             for k = 1:mpc.N-1
-                mpc.Ai_k(mpc.y_cnstr.max_ineqRow_k,mpc.u_col,k) = mpc.D;
+                mpc.Ai_k(mpc.y_cnstr.max_ineqRow_k,mpc.u_col,k) = mpc.D(:,:,k);
             end
         end
     end
-
 end
 
 if ~isempty(Dd)   
-    mpc.Dd(:,:) = Dd;
-    if mpc.y_use_k0, mpc.Dd_0(:,:) = Dd(mpc.y_rows_k0,:); end
+
+    len_Dd = size(Dd,3);
+    if len_Dd < mpc.N-1
+        mpc.Dd(:,:,:) = fill_mat(mpc.Dd, Dd, 1);
+    else
+        mpc.Dd(:,:,:) = Dd(:,:,1:mpc.N-1);
+    end
+
+    if mpc.y_use_k0, mpc.Dd_0(:,:) = mpc.Dd(mpc.y_rows_k0,:,1); end
 end
 
 if update_grad
-    if mpc.y_use_s && mpc.y_use_u
-        mpc.grad_err(:,:) = [-mpc.C'; -mpc.D'];
-    elseif mpc.y_use_s
-        mpc.grad_err(:,:) = -mpc.C';
-    elseif mpc.y_use_u
-        mpc.grad_err(:,:) = -mpc.D';
+    for k = 1:mpc.N-1
+        if mpc.y_use_s && mpc.y_use_u
+            mpc.grad_err(:,:,k) = [-mpc.C(:,:,k)'; -mpc.D(:,:,k)'];
+        elseif mpc.y_use_s
+            mpc.grad_err(:,:,k) = -mpc.C(:,:,k)';
+        elseif mpc.y_use_u
+            mpc.grad_err(:,:,k) = -mpc.D(:,:,k)';
+        end
     end
 end
 

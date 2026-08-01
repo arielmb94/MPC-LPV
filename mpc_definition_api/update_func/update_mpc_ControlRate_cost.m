@@ -18,11 +18,19 @@
 function mpc = update_mpc_ControlRate_cost(mpc,Rdu)
 
 mpc.recompute_cost_hess = 1;
-mpc.Rdu(:,:) = Rdu;
+
+len_Rdu = size(Rdu,3);
+if len_Rdu < mpc.N
+    mpc.Rdu(:,:,:) = fill_mat(mpc.Rdu, Rdu, 1);
+else
+    mpc.Rdu(:,:,:) = Rdu(:,:,1:mpc.N);
+end
 
 for k = 1:mpc.N-1
-    mpc.gradRateCtrl_Rdu_k(:,:,k) = [-Rdu;Rdu];
-    mpc.H_RateCtrl_k(:,:,k) = [Rdu -Rdu;-Rdu Rdu];
+    ku = k+1;
+    mpc.gradRateCtrl_Rdu_k(:,:,k) = [-mpc.Rdu(:,:,ku);mpc.Rdu(:,:,ku)];
+    mpc.H_RateCtrl_k(:,:,k) = [mpc.Rdu(:,:,ku) -mpc.Rdu(:,:,ku);
+                               -mpc.Rdu(:,:,ku) mpc.Rdu(:,:,ku)];
 end
 
 end

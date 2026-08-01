@@ -60,6 +60,8 @@ end
     end 
 
     x0 = rollstates(mpc,s_prev,u_prev,x_ref,mpc.d);
+    mpc = get_mpc_variables(mpc,x0,s_prev,u_prev);
+
 
     x0(mpc.g_index) = 1/mpc.t;
     x0(mpc.v_index) = 1/mpc.t;

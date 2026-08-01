@@ -1,7 +1,7 @@
 %% Call the mpc problem initialization script
 
 two_tank_init
-
+mpc.max_iter = 3;
 %% Define simulation duration and reference parameters
 
 % Duration
@@ -19,6 +19,9 @@ r(time>2.5) = 0.25;
 % is better to low-pass step references
 tau = 0.1;      % time constant for reference filter
 xf = h2;        % initial value for reference filter state
+
+n = mpc.N;
+A_lpv = zeros(2,2,n);
 
 %% Run Simulation
 
@@ -38,13 +41,21 @@ xf = xf + Ts*(-xf/tau+r(k)/tau);
 x_ref = [xf;xf];
 
 tic;
+
+for j = 1:n
 % Update LPV model
 % System discretized with forward Euler discretization:
 % x+ = (I+Ts*A)*x+Ts*B*u+Ts*Bd*d
-A_lpv = eye(2)+Ts*[-sqrt(2*g)*sqrt(h1)/(Ab*h1) 0;
-     sqrt(2*g)*sqrt(h1)/(Ab*h1) -sqrt(2*g)*sqrt(h2)/(Ab*h2)];
+
+h1_j = mpc.s(1,j);
+h2_j = mpc.s(2,j);
+
+A_lpv(:,:,j) = eye(2)+Ts*[-sqrt(2*g)*sqrt(h1_j)/(Ab*h1_j) 0;
+     sqrt(2*g)*sqrt(h1_j)/(Ab*h1_j) -sqrt(2*g)*sqrt(h2_j)/(Ab*h2_j)];
 % Update mpc problem dynamics
-mpc = update_mpc_dynamics(mpc,A_lpv,mpc.B,[]);
+end
+
+mpc = update_mpc_dynamics(mpc,A_lpv,[],[]);
 
 % Solve mpc iteration
 [u_prev,iter,mpc] = mpc_solve(mpc,x_prev,u_prev,xf,x_ref,[],[],[]);
