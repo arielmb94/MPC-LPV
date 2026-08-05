@@ -18,12 +18,12 @@ if mpc.has_du_cnstr
     if mpc.du_cnstr.min_limit
         row = mpc.du_cnstr.min_ineqRow_0;
         %Ineq [-I I]*[u0 g0]'=-du_min-u_prev
-        mpc.bi_0(row) = -mpc.du_cnstr.min-u_prev;
+        mpc.bi_0(row) = -mpc.du_cnstr.min(:,1)-u_prev;
     end
     if mpc.du_cnstr.max_limit
         row = mpc.du_cnstr.max_ineqRow_0;
         %Ineq [I I]*[u0 g0]'=du_max+u_prev
-        mpc.bi_0(row) = mpc.du_cnstr.max+u_prev;
+        mpc.bi_0(row) = mpc.du_cnstr.max(:,1)+u_prev;
     end
 end
 
@@ -74,13 +74,13 @@ for k = 1:mpc.N-1
         if mpc.h_cnstr.min_limit && mpc.h_cnstr.use_d
             row = mpc.h_cnstr.min_ineqRow_k;
             %Ineq [-C -Dsu -D I -I]*[s su u g v]' = -h_min+Dd*d
-            mpc.bi_k(row,k) = -mpc.h_cnstr.min + mpc.Ddh(:,:,k)*mpc.dh(:,k+1);
+            mpc.bi_k(row,k) = -mpc.h_cnstr.min(:,k) + mpc.Ddh(:,:,k)*mpc.dh(:,k+1);
         end
 
         if mpc.h_cnstr.max_limit && mpc.h_cnstr.use_d
             row = mpc.h_cnstr.max_ineqRow_k;
             %Ineq [C Dsu D I -I]*[s su u g v]' = h_max-Dd*d
-            mpc.bi_k(row,k) = mpc.h_cnstr.max - mpc.Ddh(:,:,k)*mpc.dh(:,k+1);
+            mpc.bi_k(row,k) = mpc.h_cnstr.max(:,k) - mpc.Ddh(:,:,k)*mpc.dh(:,k+1);
         end
     end
 
@@ -89,13 +89,13 @@ for k = 1:mpc.N-1
         if mpc.y_cnstr.min_limit && mpc.y_use_d
             row = mpc.y_cnstr.min_ineqRow_k;
             %Ineq [-C -D I -I]*[s u g v]' = -y_min+Dd*d
-            mpc.bi_k(row,k) = -mpc.y_cnstr.min + mpc.Dd(:,:,k)*mpc.d(:,k+1);
+            mpc.bi_k(row,k) = -mpc.y_cnstr.min(:,k) + mpc.Dd(:,:,k)*mpc.d(:,k+1);
         end
 
         if mpc.y_cnstr.max_limit && mpc.y_use_d
             row = mpc.y_cnstr.max_ineqRow_k;
             %Ineq [C D I -I]*[s u g v]' = y_max-Dd*d
-            mpc.bi_k(row,k) = mpc.y_cnstr.max - mpc.Dd(:,:,k)*mpc.d(:,k+1);
+            mpc.bi_k(row,k) = mpc.y_cnstr.max(:,k) - mpc.Dd(:,:,k)*mpc.d(:,k+1);
         end
     end
 end

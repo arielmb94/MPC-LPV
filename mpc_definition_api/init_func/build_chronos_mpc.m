@@ -62,7 +62,6 @@ end
     x0 = rollstates(mpc,s_prev,u_prev,x_ref,mpc.d);
     mpc = get_mpc_variables(mpc,x0,s_prev,u_prev);
 
-
     x0(mpc.g_index) = 1/mpc.t;
     x0(mpc.v_index) = 1/mpc.t;
     mpc.x0 = x0;
@@ -92,12 +91,12 @@ for k = 1 : mpc.N
 if mpc.has_du_cnstr
     % Check minimum rate limit
     if mpc.du_cnstr.min_limit
-        du_min_strict = mpc.du_cnstr.min + mpc.slack_epsilon;
+        du_min_strict = mpc.du_cnstr.min(:,k) + mpc.slack_epsilon;
         u_k = max(u_k_prev + du_min_strict, u_k);
     end
     % Check maximum rate limit
     if mpc.du_cnstr.max_limit
-        du_max_strict = mpc.du_cnstr.max - mpc.slack_epsilon;
+        du_max_strict = mpc.du_cnstr.max(:,k) - mpc.slack_epsilon;
         u_k = min(u_k_prev + du_max_strict, u_k);
     end
 end
@@ -106,12 +105,12 @@ end
 if mpc.has_u_cnstr
     % Check minimum absolute limit
     if mpc.u_cnstr.min_limit
-        u_min_strict = mpc.u_cnstr.min + mpc.slack_epsilon;
+        u_min_strict = mpc.u_cnstr.min(:,k) + mpc.slack_epsilon;
         u_k = max(u_min_strict, u_k);
     end
     % Check maximum absolute limit
     if mpc.u_cnstr.max_limit
-        u_max_strict = mpc.u_cnstr.max - mpc.slack_epsilon;
+        u_max_strict = mpc.u_cnstr.max(:,k) - mpc.slack_epsilon;
         u_k = min(u_max_strict, u_k);
     end
 end
@@ -127,13 +126,13 @@ end
 if mpc.has_s_cnstr
     % Check minimum state limits
     if mpc.s_cnstr.min_limit
-        s_min_strict = mpc.s_cnstr.min + mpc.slack_epsilon;
+        s_min_strict = mpc.s_cnstr.min(:,k) + mpc.slack_epsilon;
             x_next = max(s_min_strict, x_next);
     end
 
     % Check maximum state limits
     if mpc.s_cnstr.max_limit
-        s_max_strict = mpc.s_cnstr.max - mpc.slack_epsilon;
+        s_max_strict = mpc.s_cnstr.max(:,k) - mpc.slack_epsilon;
             x_next = min(s_max_strict, x_next);
 
     end

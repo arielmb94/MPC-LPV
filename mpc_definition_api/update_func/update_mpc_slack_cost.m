@@ -38,38 +38,80 @@
 %       across all slacks active on the soft constraint.
 %       - Passing an [ni x 1] vector you can modify individually the penalty
 %       weight for each constraint element.
-function mpc = update_mpc_slack_cost(mpc,cnstr,qv_min,qv_max)
+function mpc = update_mpc_slack_cost(mpc, cnstr, qv_min, qv_max)
+% Note: The struct fields cnstr.qv_min and cnstr.qv_max are intentionally 
+% NOT updated here to maintain a clean single-output API (returning only mpc). 
+% The underlying solver only requires the updated global mpc.grad_qv vectors.
 
 if ~isempty(qv_min)
-    if isscalar(qv_min) 
-        if cnstr.use_k0, mpc.grad_qv_0(cnstr.min_row_v_0) = qv_min; end
-        for k = 1:mpc.N-1
-            mpc.grad_qv_k(cnstr.min_row_v_k,k) = qv_min;
+    if isscalar(qv_min)
+
+        if cnstr.use_k0
+            mpc.grad_qv_0(cnstr.min_row_v_0) = qv_min; 
         end
-        if cnstr.use_ter, mpc.grad_qv_ter(cnstr.min_ineqRow_ter) = qv_min; end
+        
+        mpc.grad_qv_k(cnstr.min_row_v_k, :) = qv_min;
+        
+        if cnstr.use_ter
+            mpc.grad_qv_ter(cnstr.min_ineqRow_ter) = qv_min; 
+        end
     else
-        if cnstr.use_k0, mpc.grad_qv_0(cnstr.min_row_v_0) = qv_min(cnstr.rows_k0); end
-        for k = 1:mpc.N-1
-            mpc.grad_qv_k(cnstr.min_row_v_k,k) = qv_min;
+        % Initial stage (k = 0)
+        if cnstr.use_k0
+            mpc.grad_qv_0(cnstr.min_row_v_0) = qv_min(cnstr.rows_k0, 1); 
         end
-        if cnstr.use_ter, mpc.grad_qv_ter(cnstr.min_ineqRow_ter) = qv_min(cnstr.rows_ter); end
+        
+        % Intermediate stages (k = 1 ... N-1)
+        if size(qv_min, 2) < mpc.N
+            mpc.grad_qv_k(cnstr.min_row_v_k, :) = fill_vec(mpc.grad_qv_k(cnstr.min_row_v_k, :), qv_min, 1);
+        else
+            mpc.grad_qv_k(cnstr.min_row_v_k, :) = qv_min(:, 1:mpc.N-1);
+        end
+        
+        % Terminal stage (k = N)
+        if cnstr.use_ter
+            if size(qv_min, 2) < mpc.N
+                mpc.grad_qv_ter(cnstr.min_ineqRow_ter) = qv_min(cnstr.rows_ter, end);
+            else
+                mpc.grad_qv_ter(cnstr.min_ineqRow_ter) = qv_min(cnstr.rows_ter, mpc.N);
+            end
+        end
     end
 end
 
 if ~isempty(qv_max)
-    if isscalar(qv_max) 
-        if cnstr.use_k0, mpc.grad_qv_0(cnstr.max_row_v_0) = qv_max; end
-        for k = 1:mpc.N-1
-            mpc.grad_qv_k(cnstr.max_row_v_k,k) = qv_max;
+    if isscalar(qv_max)
+        % Fully vectorized scalar assignment
+        if cnstr.use_k0
+            mpc.grad_qv_0(cnstr.max_row_v_0) = qv_max; 
         end
-        if cnstr.use_ter, mpc.grad_qv_ter(cnstr.max_ineqRow_ter) = qv_max; end
+        
+        mpc.grad_qv_k(cnstr.max_row_v_k, :) = qv_max;
+        
+        if cnstr.use_ter
+            mpc.grad_qv_ter(cnstr.max_ineqRow_ter) = qv_max; 
+        end
     else
-        if cnstr.use_k0, mpc.grad_qv_0(cnstr.max_row_v_0) = qv_max(cnstr.rows_k0); end
-        for k = 1:mpc.N-1
-            mpc.grad_qv_k(cnstr.max_row_v_k,k) = qv_max;
+        % Initial stage (k = 0)
+        if cnstr.use_k0
+            mpc.grad_qv_0(cnstr.max_row_v_0) = qv_max(cnstr.rows_k0, 1); 
         end
-        if cnstr.use_ter, mpc.grad_qv_ter(cnstr.max_ineqRow_ter) = qv_max(cnstr.rows_ter); end
+        
+        % Intermediate stages (k = 1 ... N-1)
+        if size(qv_max, 2) < mpc.N
+            mpc.grad_qv_k(cnstr.max_row_v_k, :) = fill_vec(mpc.grad_qv_k(cnstr.max_row_v_k, :), qv_max, 1);
+        else
+            mpc.grad_qv_k(cnstr.max_row_v_k, :) = qv_max(:, 1:mpc.N-1);
+        end
+        
+        % Terminal stage (k = N)
+        if cnstr.use_ter
+            if size(qv_max, 2) < mpc.N
+                mpc.grad_qv_ter(cnstr.max_ineqRow_ter) = qv_max(cnstr.rows_ter, end);
+            else
+                mpc.grad_qv_ter(cnstr.max_ineqRow_ter) = qv_max(cnstr.rows_ter, mpc.N);
+            end
+        end
     end
 end
-
 end

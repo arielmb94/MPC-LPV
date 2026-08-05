@@ -29,15 +29,15 @@ end
 
 if cnstr.min_limit
     if cnstr.use_k0
-        if ~any(cnstr.qv_min_0)
+        if ~any(cnstr.qv_min_0(:))
             cnstr.qv_min_0(:) = qv;
         end
     end
-    if ~any(cnstr.qv_min)
-        cnstr.qv_min(:) = qv;
+    if ~any(cnstr.qv_min(:))
+        cnstr.qv_min(:,:) = qv;
     end
     if cnstr.use_ter
-        if ~any(cnstr.qv_min_ter)
+        if ~any(cnstr.qv_min_ter(:))
             cnstr.qv_min_ter(:) = qv;
         end
     end
@@ -45,15 +45,15 @@ end
 
 if cnstr.max_limit
     if cnstr.use_k0
-        if ~any(cnstr.qv_max_0)
+        if ~any(cnstr.qv_max_0(:))
             cnstr.qv_max_0(:) = qv;
         end
     end
-    if ~any(cnstr.qv_max)
-        cnstr.qv_max(:) = qv;
+    if ~any(cnstr.qv_max(:))
+        cnstr.qv_max(:,:) = qv;
     end
     if cnstr.use_ter
-        if ~any(cnstr.qv_max_ter)
+        if ~any(cnstr.qv_max_ter(:))
             cnstr.qv_max_ter(:) = qv;
         end
     end

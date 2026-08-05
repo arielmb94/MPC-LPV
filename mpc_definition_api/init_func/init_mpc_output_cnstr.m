@@ -51,25 +51,17 @@ y_cnstr.use_k0 = mpc.y_use_k0;
 y_cnstr.use_ter = mpc.y_use_ter;
 y_cnstr.rows_k0 = mpc.y_rows_k0;
 y_cnstr.rows_ter = mpc.y_rows_ter;
+y_cnstr.use_s = mpc.y_use_s;
+y_cnstr.use_u = mpc.y_use_u;
+y_cnstr.use_d = mpc.y_use_d;
 
 % Expand scalars to full local vectors if needed
 if isscalar(y_min), y_min = y_min * ones(mpc.ny, 1); end
 if isscalar(y_max), y_max = y_max * ones(mpc.ny, 1); end
+if isscalar(qv_min), qv_min = qv_min * ones(mpc.ny, 1); end
+if isscalar(qv_max), qv_max = qv_max * ones(mpc.ny, 1); end
 
-y_cnstr.min = y_min;
-y_cnstr.max = y_max;
-
-if mpc.y_use_k0
-    if ~isempty(y_cnstr.min), y_cnstr.min_0 = y_min(mpc.y_rows_k0); end
-    if ~isempty(y_cnstr.max), y_cnstr.max_0 = y_max(mpc.y_rows_k0); end
-end
-
-if mpc.y_use_ter
-    if ~isempty(y_cnstr.min), y_cnstr.min_ter = y_min(mpc.y_rows_ter); end
-    if ~isempty(y_cnstr.max), y_cnstr.max_ter = y_max(mpc.y_rows_ter); end
-end
-
-if ~isempty(y_cnstr.min)
+if ~isempty(y_min)
 
     y_cnstr.min_limit = 1;
     
@@ -87,34 +79,25 @@ if ~isempty(y_cnstr.min)
     y_cnstr.g_min_index_k = [];
     y_cnstr.v_min_index_k = [];
 
-    % Initialize Penalty term for new slack variables
-    if isempty(qv_min)
-        % if qv isnt defined, it is not initialized until build_chronos_mpc(),
-        % but we need to make space 
-        if y_cnstr.use_k0, qv_min_0 = zeros(mpc.ny_0,1); end
-        qv_min_k = zeros(mpc.ny,1);
-        if y_cnstr.use_ter, qv_min_ter = zeros(mpc.ny_ter,1); end
+    y_full = zeros(mpc.ny, mpc.N);
+    y_full = fill_vec(y_full, y_min, 1);
+    y_cnstr.min = y_full(:,1:mpc.N-1);
+    if mpc.y_use_k0, y_cnstr.min_0 = y_full(mpc.y_rows_k0,1); end
+    if mpc.y_use_ter, y_cnstr.min_ter = y_full(mpc.y_rows_ter,mpc.N); end
 
-    elseif isscalar(qv_min)
-        if y_cnstr.use_k0, qv_min_0 = qv_min*ones(mpc.ny_0,1); end
-        qv_min_k = qv_min*ones(mpc.ny,1);
-        if y_cnstr.use_ter, qv_min_ter = qv_min*ones(mpc.ny_ter,1); end
-
-    else % full vector is passed, pick elements for k=0 and k=N
-        if y_cnstr.use_k0, qv_min_0 = qv_min(mpc.y_rows_k0); end
-        qv_min_k = qv_min;
-        if y_cnstr.use_ter, qv_min_ter = qv_min(mpc.y_rows_ter); end
+    qv_min_full = zeros(mpc.ny, mpc.N);
+    if ~isempty(qv_min)
+        qv_min_full = fill_vec(qv_min_full, qv_min, 1);
     end
-
-    if y_cnstr.use_k0, y_cnstr.qv_min_0 = qv_min_0; end
-    y_cnstr.qv_min = qv_min_k;
-    if y_cnstr.use_ter, y_cnstr.qv_min_ter = qv_min_ter; end
+    y_cnstr.qv_min = qv_min_full(:,1:mpc.N-1);
+    if mpc.y_use_k0, y_cnstr.qv_min_0 = qv_min_full(mpc.y_rows_k0,1); end
+    if mpc.y_use_ter, y_cnstr.qv_min_ter = qv_min_full(mpc.y_rows_ter,mpc.N); end
 
 else
     y_cnstr.min_limit = 0;
 end
 
-if ~isempty(y_cnstr.max)
+if ~isempty(y_max)
 
     y_cnstr.max_limit = 1;
     
@@ -132,28 +115,19 @@ if ~isempty(y_cnstr.max)
     y_cnstr.g_max_index_k = [];
     y_cnstr.v_max_index_k = [];
 
-    % Initialize Penalty term for new slack variables
-    if isempty(qv_max)
-        % if qv isnt defined, it is not initialized until build_chronos_mpc(),
-        % but we need to make space 
-        if y_cnstr.use_k0, qv_max_0 = zeros(mpc.ny_0,1); end
-        qv_max_k = zeros(mpc.ny,1);
-        if y_cnstr.use_ter, qv_max_ter = zeros(mpc.ny_ter,1); end
+    y_full = zeros(mpc.ny, mpc.N);
+    y_full = fill_vec(y_full, y_max, 1);
+    y_cnstr.max = y_full(:,1:mpc.N-1);
+    if mpc.y_use_k0, y_cnstr.max_0 = y_full(mpc.y_rows_k0,1); end
+    if mpc.y_use_ter, y_cnstr.max_ter = y_full(mpc.y_rows_ter,mpc.N); end
 
-    elseif isscalar(qv_max)
-        if y_cnstr.use_k0, qv_max_0 = qv_max*ones(mpc.ny_0,1); end
-        qv_max_k = qv_max*ones(mpc.ny,1);
-        if y_cnstr.use_ter, qv_max_ter = qv_max*ones(mpc.ny_ter,1); end
-
-    else % full vector is passed, pick elements for k=0 and k=N
-        if y_cnstr.use_k0, qv_max_0 = qv_max(mpc.y_rows_k0); end
-        qv_max_k = qv_max;
-        if y_cnstr.use_ter, qv_max_ter = qv_max(mpc.y_rows_ter); end
+    qv_max_full = zeros(mpc.ny, mpc.N);
+    if ~isempty(qv_max)
+        qv_max_full = fill_vec(qv_max_full, qv_max, 1);
     end
-
-    if y_cnstr.use_k0, y_cnstr.qv_max_0 = qv_max_0; end
-    y_cnstr.qv_max = qv_max_k;
-    if y_cnstr.use_ter, y_cnstr.qv_max_ter = qv_max_ter; end
+    y_cnstr.qv_max = qv_max_full(:,1:mpc.N-1);
+    if mpc.y_use_k0, y_cnstr.qv_max_0 = qv_max_full(mpc.y_rows_k0,1); end
+    if mpc.y_use_ter, y_cnstr.qv_max_ter = qv_max_full(mpc.y_rows_ter,mpc.N); end
 
 else
     y_cnstr.max_limit = 0;

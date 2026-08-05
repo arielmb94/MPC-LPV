@@ -64,7 +64,7 @@ if mpc.has_u_cnstr
         mpc.u_cnstr.g_min_index_k = gi_index_k;
         mpc.u_cnstr.min_ineqRow_0 = row;
 
-        b_val = -mpc.u_cnstr.min;
+        b_val = -mpc.u_cnstr.min(:,1);
 
         [Ai_0, bi_0] = appendGeneralizedConstraint(Ai_0, bi_0, row,...  
                                                  [], [], u_col, ...
@@ -80,7 +80,7 @@ if mpc.has_u_cnstr
         mpc.u_cnstr.g_max_index_k = gi_index_k;
         mpc.u_cnstr.max_ineqRow_0 = row;
 
-        b_val = mpc.u_cnstr.max;
+        b_val = mpc.u_cnstr.max(:,1);
 
         [Ai_0, bi_0] = appendGeneralizedConstraint(Ai_0, bi_0, row,...  
                                                  [], [], u_col, ...
@@ -99,7 +99,7 @@ if mpc.has_du_cnstr
         mpc.du_cnstr.g_min_index_k = gi_index_k;
         mpc.du_cnstr.min_ineqRow_0 = row;
 
-        b_val = -mpc.du_cnstr.min;
+        b_val = -mpc.du_cnstr.min(:,1);
 
         [Ai_0, bi_0] = appendGeneralizedConstraint(Ai_0, bi_0, row,...  
                                                  [], [], u_col, ...
@@ -115,7 +115,7 @@ if mpc.has_du_cnstr
         mpc.du_cnstr.g_max_index_k = gi_index_k;
         mpc.du_cnstr.max_ineqRow_0 = row;
 
-        b_val = mpc.du_cnstr.max;
+        b_val = mpc.du_cnstr.max(:,1);
 
         [Ai_0, bi_0] = appendGeneralizedConstraint(Ai_0, bi_0, row,...  
                                                  [], [], u_col, ...
@@ -261,7 +261,7 @@ for k = 1:N-1
             mpc.s_cnstr.v_min_index_k = [mpc.s_cnstr.v_min_index_k vi_index_k];
             v_rows_k = [v_rows_k; row'];
 
-            b_val = -mpc.s_cnstr.min;
+            b_val = -mpc.s_cnstr.min(:,k);
 
             [Ai, bi] = appendGeneralizedConstraint(Ai, bi, row,...  
                                                    s_col, [], [], ...
@@ -284,7 +284,7 @@ for k = 1:N-1
             mpc.s_cnstr.v_max_index_k = [mpc.s_cnstr.v_max_index_k vi_index_k];
             v_rows_k = [v_rows_k; row'];
 
-            b_val = mpc.s_cnstr.max;
+            b_val = mpc.s_cnstr.max(:,k);
 
             [Ai, bi] = appendGeneralizedConstraint(Ai, bi, row,...  
                                                    s_col, [], [], ...
@@ -304,7 +304,7 @@ for k = 1:N-1
             gi_index_k = mpc.g_index_k(row,k);
             mpc.u_cnstr.g_min_index_k = [mpc.u_cnstr.g_min_index_k gi_index_k];
 
-            b_val = -mpc.u_cnstr.min;
+            b_val = -mpc.u_cnstr.min(:,k+1);
 
             [Ai, bi] = appendGeneralizedConstraint(Ai, bi, row,...
                 [], [], u_col, ...
@@ -321,7 +321,7 @@ for k = 1:N-1
             gi_index_k = mpc.g_index_k(row,k);
             mpc.u_cnstr.g_max_index_k = [mpc.u_cnstr.g_max_index_k gi_index_k];
 
-            b_val = mpc.u_cnstr.max;
+            b_val = mpc.u_cnstr.max(:,k+1);
 
             [Ai, bi] = appendGeneralizedConstraint(Ai, bi, row,...
                 [], [], u_col, ...
@@ -341,7 +341,7 @@ for k = 1:N-1
             gi_index_k = mpc.g_index_k(row,k);
             mpc.du_cnstr.g_min_index_k = [mpc.du_cnstr.g_min_index_k gi_index_k];
 
-            b_val = -mpc.du_cnstr.min;
+            b_val = -mpc.du_cnstr.min(:,k+1);
 
             [Ai, bi] = appendGeneralizedConstraint(Ai, bi, row,...
                 [], su_col, u_col, ...
@@ -358,7 +358,7 @@ for k = 1:N-1
             gi_index_k = mpc.g_index_k(row,k);
             mpc.du_cnstr.g_max_index_k = [mpc.du_cnstr.g_max_index_k gi_index_k];
 
-            b_val = mpc.du_cnstr.max;
+            b_val = mpc.du_cnstr.max(:,k+1);
 
             [Ai, bi] = appendGeneralizedConstraint(Ai, bi, row,...
                 [], su_col, u_col, ...
@@ -384,9 +384,12 @@ for k = 1:N-1
             mpc.y_cnstr.v_min_index_k = [mpc.y_cnstr.v_min_index_k vi_index_k];
             v_rows_k = [v_rows_k; row'];
 
-            C_mat = -mpc.C(:,:,k);
-            D_mat = -mpc.D(:,:,k);
-            b_val = -mpc.y_cnstr.min;
+            C_mat = [];
+            D_mat = [];
+
+            if mpc.y_cnstr.use_s, C_mat = -mpc.C(:,:,k); end
+            if mpc.y_cnstr.use_u, D_mat = -mpc.D(:,:,k); end
+            b_val = -mpc.y_cnstr.min(:,k);
 
             [Ai, bi] = appendGeneralizedConstraint(Ai, bi, row,...
                                                     s_col, [], u_col, ...
@@ -409,9 +412,12 @@ for k = 1:N-1
             mpc.y_cnstr.v_max_index_k = [mpc.y_cnstr.v_max_index_k vi_index_k];
             v_rows_k = [v_rows_k; row'];
 
-            C_mat = mpc.C(:,:,k);
-            D_mat = mpc.D(:,:,k);
-            b_val = mpc.y_cnstr.max;
+            C_mat = [];
+            D_mat = [];
+
+            if mpc.y_cnstr.use_s, C_mat = mpc.C(:,:,k); end
+            if mpc.y_cnstr.use_u, D_mat = mpc.D(:,:,k); end
+            b_val = mpc.y_cnstr.max(:,k);
 
             [Ai, bi] = appendGeneralizedConstraint(Ai, bi, row,...
                                                     s_col, [], u_col, ...
@@ -437,10 +443,14 @@ for k = 1:N-1
             mpc.h_cnstr.v_min_index_k = [mpc.h_cnstr.v_min_index_k vi_index_k];
             v_rows_k = [v_rows_k; row'];
 
-            C_mat = -mpc.Ch(:,:,k);
-            Dsu_mat = -mpc.Dsuh(:,:,k);
-            D_mat = -mpc.Dh(:,:,k);
-            b_val = -mpc.h_cnstr.min;
+            C_mat = [];
+            Dsu_mat = [];
+            D_mat = [];
+            
+            if mpc.h_cnstr.use_s, C_mat = -mpc.Ch(:,:,k); end
+            if mpc.h_cnstr.use_su, Dsu_mat = -mpc.Dsuh(:,:,k); end
+            if mpc.h_cnstr.use_u, D_mat = -mpc.Dh(:,:,k); end
+            b_val = -mpc.h_cnstr.min(:,k);
 
             [Ai, bi] = appendGeneralizedConstraint(Ai, bi, row,...
                                                     s_col, su_col, u_col, ...
@@ -463,10 +473,14 @@ for k = 1:N-1
             mpc.h_cnstr.v_max_index_k = [mpc.h_cnstr.v_max_index_k vi_index_k];
             v_rows_k = [v_rows_k; row'];
 
-            C_mat = mpc.Ch(:,:,k);
-            Dsu_mat = mpc.Dsuh(:,:,k);
-            D_mat = mpc.Dh(:,:,k);
-            b_val = mpc.h_cnstr.max;
+            C_mat = [];
+            Dsu_mat = [];
+            D_mat = [];
+            
+            if mpc.h_cnstr.use_s, C_mat = mpc.Ch(:,:,k); end
+            if mpc.h_cnstr.use_su, Dsu_mat = mpc.Dsuh(:,:,k); end
+            if mpc.h_cnstr.use_u, D_mat = mpc.Dh(:,:,k); end
+            b_val = mpc.h_cnstr.max(:,k);
 
             [Ai, bi] = appendGeneralizedConstraint(Ai, bi, row,...
                                                     s_col, su_col, u_col, ...
@@ -500,7 +514,7 @@ if mpc.has_s_cnstr
         vi_index_k = mpc.v_index_ter(row);
         mpc.s_cnstr.v_min_index_k = [mpc.s_cnstr.v_min_index_k vi_index_k];
 
-        b_val = -mpc.s_cnstr.min;
+        b_val = -mpc.s_cnstr.min(:,mpc.N);
 
         [Ai_ter, bi_ter] = appendGeneralizedConstraint(Ai_ter, bi_ter, row,...
                                                         s_col, [], [], ...
@@ -519,7 +533,7 @@ if mpc.has_s_cnstr
         vi_index_k = mpc.v_index_ter(row);
         mpc.s_cnstr.v_min_index_k = [mpc.s_cnstr.v_min_index_k vi_index_k];
 
-        b_val = mpc.s_cnstr.max;
+        b_val = mpc.s_cnstr.max(:,mpc.N);
 
         [Ai_ter, bi_ter] = appendGeneralizedConstraint(Ai_ter, bi_ter, row,...
                                                         s_col, [], [], ...
@@ -624,11 +638,11 @@ mpc.bi_ter = bi_ter;
 
 if mpc.has_du
     mpc.A_kkt = zeros(mpc.nse,mpc.nse,mpc.N-1);
-    mpc.A_kkt(mpc.s_col,mpc.s_col,:) = mpc.A(:,:,2:mpc.N);;
+    mpc.A_kkt(mpc.s_col,mpc.s_col,:) = mpc.A(:,:,2:mpc.N);
 
     mpc.B_kkt_0 = [mpc.B(:,:,1);eye(mpc.nu)];
     mpc.B_kkt = zeros(mpc.nse,mpc.nu,mpc.N-1);
-    mpc.B_kkt(mpc.s_col,:,:) = mpc.B(:,:,2:mpc.N);;
+    mpc.B_kkt(mpc.s_col,:,:) = mpc.B(:,:,2:mpc.N);
     mpc.B_kkt(mpc.su_col,:,:) = eye(mpc.nu);
 
 else

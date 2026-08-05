@@ -25,6 +25,8 @@ arguments
     u_max = [];
 end
 
+mpc.has_u_cnstr = 1;
+
 % INPUT DIMENSION VALIDATION 
 validate_column_vector(u_min, mpc.nu, 'u_min');
 validate_column_vector(u_max, mpc.nu, 'u_max');
@@ -33,15 +35,12 @@ validate_column_vector(u_max, mpc.nu, 'u_max');
 if isscalar(u_min), u_min = u_min * ones(mpc.nu, 1); end
 if isscalar(u_max), u_max = u_max * ones(mpc.nu, 1); end
 
-mpc.has_u_cnstr = 1;
-u_cnstr.min = u_min;
-u_cnstr.max = u_max;
 u_cnstr.use_k0 = 0;
 u_cnstr.use_ter = 0;
 u_cnstr.rows_k0 = [];
 u_cnstr.rows_ter = [];
 
-if ~isempty(u_cnstr.min)
+if ~isempty(u_min)
 
     u_cnstr.min_limit = 1;
 
@@ -49,18 +48,23 @@ if ~isempty(u_cnstr.min)
 
     u_cnstr.g_min_index_k = [];
 
+    u_cnstr.min = zeros(mpc.nu,mpc.N);
+    u_cnstr.min = fill_vec(u_cnstr.min, u_min, 1);
+
 else
     u_cnstr.min_limit = 0;
 end
 
-if ~isempty(u_cnstr.max)
+if ~isempty(u_max)
 
     u_cnstr.max_limit = 1;
 
     mpc.ng_k(1:2) = mpc.ng_k(1:2) + mpc.nu;
     
     u_cnstr.g_max_index_k = [];
-    
+
+    u_cnstr.max = zeros(mpc.nu,mpc.N);
+    u_cnstr.max = fill_vec(u_cnstr.max, u_max, 1);
 else
     u_cnstr.max_limit = 0;
 end

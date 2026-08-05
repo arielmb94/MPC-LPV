@@ -39,6 +39,8 @@ arguments
     qv_max = []
 end
 
+mpc.has_s_cnstr = 1;
+
 % INPUT DIMENSION VALIDATION 
 validate_column_vector(x_min, mpc.nx, 'x_min');
 validate_column_vector(x_max, mpc.nx, 'x_max');
@@ -48,17 +50,15 @@ validate_column_vector(qv_max, mpc.nx, 'qv_max');
 % Expand scalars to full local vectors if needed
 if isscalar(x_min), x_min = x_min * ones(mpc.nx, 1); end
 if isscalar(x_max), x_max = x_max * ones(mpc.nx, 1); end
+if isscalar(qv_min), qv_min = qv_min * ones(mpc.nx, 1); end
+if isscalar(qv_max), qv_max = qv_max * ones(mpc.nx, 1); end
 
-s_cnstr.min = x_min;
-s_cnstr.max = x_max;
 s_cnstr.use_k0 = 0;
-s_cnstr.use_ter = 0;
+s_cnstr.use_ter = 1;
 s_cnstr.rows_k0 = [];
-s_cnstr.rows_ter = [];
+s_cnstr.rows_ter = 1:mpc.nx;
 
-mpc.has_s_cnstr = 1;
-
-if ~isempty(s_cnstr.min)
+if ~isempty(x_min)
 
     s_cnstr.min_limit = 1;
    
@@ -68,44 +68,44 @@ if ~isempty(s_cnstr.min)
     s_cnstr.g_min_index_k = [];
     s_cnstr.v_min_index_k = [];
 
+    s_cnstr.min = zeros(mpc.nx,mpc.N);
+    s_cnstr.min = fill_vec(s_cnstr.min, x_min, 1);
+    
     % Initialize Penalty term for new slack variables
-    if isempty(qv_min)
-        % if qv isnt defined, it is not initialized until build_chronos_mpc(),
-        % but we need to make space
-        qv_min = zeros(mpc.nx,1);
-    elseif length(qv_min) == 1
-        qv_min = qv_min*ones(mpc.nx,1);
+    % Allocate and fill time-varying slack penalties
+    s_cnstr.qv_min = zeros(mpc.nx, mpc.N-1);
+    s_cnstr.qv_min_ter = zeros(mpc.nx, 1);
+    if ~isempty(qv_min)
+        s_cnstr.qv_min = fill_vec(s_cnstr.qv_min, qv_min, 1);
+        s_cnstr.qv_min_ter = qv_min(:,end);
     end
-
-    s_cnstr.qv_min = qv_min;
-
 else
     s_cnstr.min_limit = 0;
 end
 
-if ~isempty(s_cnstr.max)
+if ~isempty(x_max)
 
     s_cnstr.max_limit = 1;
-
+   
     mpc.ng_k(2:3) = mpc.ng_k(2:3) + mpc.nx;
     mpc.nv_k(2:3) = mpc.nv_k(2:3) + mpc.nx;
 
     s_cnstr.g_max_index_k = [];
     s_cnstr.v_max_index_k = [];
 
+    s_cnstr.max = zeros(mpc.nx,mpc.N);
+    s_cnstr.max = fill_vec(s_cnstr.max, x_max, 1);
+    
     % Initialize Penalty term for new slack variables
-    if isempty(qv_max)
-        % if qv isnt defined, it is not initialized until build_chronos_mpc(),
-        % but we need to make space
-        qv_max = zeros(mpc.nx,1);
-    elseif length(qv_max) == 1
-        qv_max = qv_max*ones(mpc.nx,1);
+    % Allocate and fill time-varying slack penalties
+    s_cnstr.qv_max = zeros(mpc.nx, mpc.N-1);
+    s_cnstr.qv_max_ter = zeros(mpc.nx, 1);
+    if ~isempty(qv_max)
+        s_cnstr.qv_max = fill_vec(s_cnstr.qv_max, qv_max, 1);
+        s_cnstr.qv_max_ter = qv_max(:,end);
     end
-
-    s_cnstr.qv_max = qv_max;
-
 else
-    s_cnstr.max_limit = 0; 
+    s_cnstr.max_limit = 0;
 end
 
 mpc.s_cnstr = s_cnstr;

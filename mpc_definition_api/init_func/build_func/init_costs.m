@@ -279,33 +279,33 @@ for k = 1:mpc.N-1
     if mpc.has_s_cnstr
         if mpc.s_cnstr.min_limit
             row = mpc.s_cnstr.min_row_v_k;
-            grad_qv_k(row,k) = mpc.s_cnstr.qv_min;
+            grad_qv_k(row,k) = mpc.s_cnstr.qv_min(:,k);
         end
         if mpc.s_cnstr.max_limit
             row = mpc.s_cnstr.max_row_v_k;
-            grad_qv_k(row,k) = mpc.s_cnstr.qv_max;
+            grad_qv_k(row,k) = mpc.s_cnstr.qv_max(:,k);
         end
     end
 
     if mpc.has_y_cnstr
         if mpc.y_cnstr.min_limit
             row = mpc.y_cnstr.min_row_v_k;
-            grad_qv_k(row,k) = mpc.y_cnstr.qv_min;
+            grad_qv_k(row,k) = mpc.y_cnstr.qv_min(:,k);
         end
         if mpc.y_cnstr.max_limit
             row = mpc.y_cnstr.max_row_v_k;
-            grad_qv_k(row,k) = mpc.y_cnstr.qv_max;
+            grad_qv_k(row,k) = mpc.y_cnstr.qv_max(:,k);
         end
     end
 
     if mpc.has_h_cnstr
         if mpc.h_cnstr.min_limit
             row = mpc.h_cnstr.min_row_v_k;
-            grad_qv_k(row,k) = mpc.h_cnstr.qv_min;
+            grad_qv_k(row,k) = mpc.h_cnstr.qv_min(:,k);
         end
         if mpc.h_cnstr.max_limit
             row = mpc.h_cnstr.max_row_v_k;
-            grad_qv_k(row,k) = mpc.h_cnstr.qv_max;
+            grad_qv_k(row,k) = mpc.h_cnstr.qv_max(:,k);
         end
     end
     
@@ -319,11 +319,11 @@ if mpc.ng_k(3)
 if mpc.has_s_cnstr
     if mpc.s_cnstr.min_limit
         row = mpc.s_cnstr.min_ineqRow_ter;
-        grad_qv_ter(row) = mpc.s_cnstr.qv_min;
+        grad_qv_ter(row) = mpc.s_cnstr.qv_min_ter;
     end
     if mpc.s_cnstr.max_limit
         row = mpc.s_cnstr.max_ineqRow_ter;
-        grad_qv_ter(row) = mpc.s_cnstr.qv_max;
+        grad_qv_ter(row) = mpc.s_cnstr.qv_max_ter;
     end
 end
 
