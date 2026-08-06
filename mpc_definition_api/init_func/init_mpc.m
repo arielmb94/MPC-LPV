@@ -102,13 +102,7 @@ mpc.nh_ter = 0;
 mpc.Nx = 0;
 mpc.Nu = 0;
 mpc.Nd = 0;
-mpc.Ny = 0;
-mpc.Nz = 0;
-mpc.Nh = 0;
-mpc.Ndz = 0;
-mpc.Ndh = 0;
-mpc.Aeq = [];
-mpc.beq = [];
+
 mpc.dyn_use_d = 0;
 mpc.y_use_s = 0;
 mpc.y_use_u = 0;
@@ -137,7 +131,6 @@ mpc.h = [];
 mpc.dh = [];
 mpc.g = [];
 mpc.v = [];
-mpc.slacks = [];
 mpc.xN_ref = [];
 
 mpc.tracking_cost = 0;
@@ -146,25 +139,6 @@ mpc.lin_control_cost = 0;
 mpc.controlrate_cost = 0;
 mpc.quad_custom_cost = 0;
 mpc.lin_custom_cost = 0;
-
-mpc.hessCost = [];
-mpc.gradErrQe_k = [];
-mpc.hessErrTerm = [];
-mpc.gradDiffCtlrR_k = [];
-mpc.gradDiffCtlrR_0 = [];
-mpc.gradDiffCtlr = [];
-mpc.hessDiffCtrlTerm = [];
-mpc.gradCtlrRu_0 = [];
-mpc.gradCtlrRu_k = [];
-mpc.gradCtlrru_0 = [];
-mpc.gradCtlrru_k = [];
-mpc.hessCtrlTerm = [];
-mpc.gradPerfQz_0 = [];
-mpc.gradPerfQz_k = [];
-mpc.gradPerfqz_0 = [];
-mpc.gradPerfqz_k = [];
-mpc.hessPerfTerm = [];
-mpc.hessTerminalCost = [];
 mpc.tracking_cost_index_k = [];
 mpc.custom_cost_index_k = [];
 
@@ -174,14 +148,12 @@ mpc.update_customcost_lin = 0;
 mpc.recompute_cost_hess = 0;
 
 mpc.s = [];
-mpc.s_all = [];
 mpc.s_ter = [];
 mpc.u = [];
 mpc.du = [];
 mpc.y = [];
 mpc.h = [];
 mpc.z = [];
-mpc.m = 0;
 mpc.nvar = 0;
 mpc.t = 50;
 mpc.Beta = 0.75;
@@ -189,18 +161,11 @@ mpc.min_l = 1e-6;
 mpc.eps = 1e-4;
 mpc.max_iter = 10;
 mpc.ter_ingredients = 0;
-mpc.ter_constraint = 0;
 mpc.xN_ref_is_y = 0;
 mpc.P = [];
 mpc.P2 = [];
 mpc.K = [];
-mpc.t_feas = 500;
-mpc.v0_feas = 10;
-mpc.qfeas = 1e-5;
 mpc.warm_starting = 0;
-mpc.feas_lambda = 100;
-mpc.max_feas_iter = 10;
-mpc.unfeasible = 0;
 
 mpc.has_s_cnstr = 0;
 mpc.has_u_cnstr = 0;
@@ -214,18 +179,14 @@ mpc.u_cnstr = [];
 mpc.du_cnstr = [];
 mpc.y_cnstr = [];
 mpc.h_cnstr = [];
-mpc.fi_ter_x0 = 0;
 
 mpc.ng_k = [0 0 0]; % inequalites per horizon step
 mpc.nv_k = [0 0 0]; % soft inequalites per horizon step
 
-mpc.Nv = 0;
 mpc.qv = 50; % Slack variable penalty
 mpc.Qv_fctr = 10;
-mpc.gradSlackqv = [];
 mpc.v = [];
 mpc.slack_epsilon = 1e-3;
-mpc.slack_ter_epsilon = 1e-4;
 mpc.eps_thknv = 1e-6;
 
 end
