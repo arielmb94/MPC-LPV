@@ -1,45 +1,37 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% UPDATE_MPC_OUTPUT_VECTOR Update the tracking-output model.
 %
-%   mpc = update_mpc_sys_output(mpc,C,D,Dd,Qe,y_min,y_max)
+%   mpc = UPDATE_MPC_OUTPUT_VECTOR(mpc, C, D, Dd) updates selected
+%   coefficients in
 %
-% Allows to update all parameters related to the tracking output signal y 
-% in a single function:
+%       y_k = C_k*s_k + D_k*u_k + Dd_k*d_k.
 %
-%   - Upadate output signal model: y = C * x + D * u + Dd * d
-%   - Upadate weight Qe on the tracking error penalty term: 
-%   (r - y)' * Qe * (r - y)
-%   - Upadate contraint Limits on feedback signal: y_min <= y <= y_max
+%   Use [] to leave a coefficient unchanged. The output must first be
+%   defined with INIT_MPC_DYNAMICS or INIT_MPC_OUTPUT. This updater cannot
+%   change the number of outputs or add a coefficient term that was not
+%   enabled during initialization.
 %
-% Example uses:
+%   C, D, and Dd may be constant matrices or contain L horizon stages in
+%   their third dimension. If L < N, the last supplied stage is reused for
+%   the remaining stages. The input d_k is the same fixed known input used
+%   by the dynamics.
+% 
+% 1Existing tracking costs and output constraints use the
+%   updated output model.
 %
-%   - update only the output feedback signal model: 
-%           mpc = update_mpc_sys_output(mpc,C,D,Dd)
-%   - update only the input feedtrhough matrix of the output signal model: 
-%           mpc = update_mpc_sys_output(mpc,[],D,[])
-%   - update the feedback output signal model and constraint limits: 
-%           mpc = update_mpc_sys_output(mpc,C,D,Dd,[],y_min,y_max)
-%   - update only the weight on the tracking error penalty term: 
-%           mpc = update_mpc_sys_output(mpc,[],[],[],Qe)
+%   Inputs:
+%     mpc     - Built CHRONOS MPC structure.
+%     C       - Optional state coefficient, size ny-by-nx or ny-by-nx-by-L.
+%     D       - Optional control coefficient, size ny-by-nu or
+%               ny-by-nu-by-L.
+%     Dd      - Optional fixed-known-input coefficient, size ny-by-nd or
+%               ny-by-nd-by-L.
 %
-% In:
-%   - mpc: CHRONOS mpc structure
-%   - C (optional): ny x nx matrix, system output matrix
-%   - D (optional): ny x nu matrix, input feedtrhough matrix.
-%   - Dd (optional): ny x nd matrix, disturbance feedtrhough matrix.
-%   - Qe (optional): ny x ny square matrix, weights for the quadratic
-%   penalty on the tracking error
-%   - y_min (optional): ny column vector, lower bound constraint values on 
-%   the tracking signal
-%   - y_max (optional): ny column vector, upper bound constraint values on 
-%   the tracking signal
+%   Output:
+%     mpc     - Updated CHRONOS MPC structure.
 %
-%   All arguments items which do not require to be updated can be passed as
-%   an empty vector [].
+%   Example - update only the state and control coefficients:
 %
-% Out:
-%   - mpc: updated CHRONOS mpc structure
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%       mpc = update_mpc_output_vector(mpc, C, D, []);
 function mpc = update_mpc_output_vector(mpc,C,D,Dd)
 
 mpc.update_tracking = 1;

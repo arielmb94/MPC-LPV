@@ -1,35 +1,49 @@
-% INIT_MPC_OUTPUT_CNSTR Defines output constraints and soft-constraint penalties.
+% INIT_MPC_OUTPUT_CNSTR Add bounds on the predicted output.
 %
-%   mpc = INIT_MPC_OUTPUT_CNSTR(mpc, y_min, y_max) sets strict (hard) lower and 
-%   upper bounds on the output. The solver will strictly enforce these 
-%   limits. This is suitable for absolute physical boundaries, but may cause 
-%   the solver to crash (go infeasible) if a disturbance pushes the system too far.
+%   mpc = INIT_MPC_OUTPUT_CNSTR(mpc, y_min, y_max) constrains the output
+%   signal defined by INIT_MPC_DYNAMICS (default: y = s) or
+%   INIT_MPC_OUTPUT. Use [] for a bound that is not needed. Bounds may be
+%   scalars, ny-by-1 vectors, or time-varying ny-by-L matrices, where L is
+%   the number of supplied horizon stages. A scalar is applied to every
+%   output and stage. If L < N, the last supplied column is reused for the
+%   remaining stages.
 %
-%   mpc = INIT_MPC_OUTPUT_CNSTR(mpc, y_min, y_max, y_min_slack_active, y_max_slack_active, qv_min, qv_max) 
-%   allows you to define specific bounds as "soft" constraints. Soft constraints 
-%   can be safely violated during massive disturbances to keep the solver running, 
-%   while applying a customizable penalty to drive the state back within limits 
-%   as quickly as possible.
+%   Output bounds apply at interior stages k = 1,...,N-1. They also apply at
+%   k = 0 to output rows that depend on u, and at k = N to output rows that
+%   depend exclusively on the state, as determined when the output model is
+%   initialized.
 %
-%   INPUTS:
-%       mpc                - CHRONOS MPC structure
-%       y_min              - [ny x 1] Array of lower output limits (use [] if none).
-%       y_max              - [ny x 1] Array of upper output limits (use [] if none).
-%       qv_min             - (Optional) [ny x 1] or scalar. Penalty weight for violating 
-%                            the y_min soft limits. Higher values mean stricter enforcement.
-%       qv_max             - (Optional) [ny x 1] or scalar. Penalty weight for violating 
-%                            the y_max soft limits. Higher values mean stricter enforcement.
+%   mpc = INIT_MPC_OUTPUT_CNSTR(..., qv_min, qv_max) also sets the linear
+%   penalties for lower- and upper-bound violations. Output constraints are
+%   soft: CHRONOS may violate a bound through a feasibility slack when the
+%   bound cannot be satisfied. Larger qv values make violations more costly.
+%   Penalties use the same scalar, vector, or time-varying horizon layout as
+%   the bounds. Leave a penalty empty to let CHRONOS select its default
+%   during BUILD_CHRONOS_MPC.
 %
-%   OUTPUTS:
-%       mpc                - Updated MPC structure. All necessary background math 
-%                            (constraint gradients, Hessians, and slack variables) 
-%                            are automatically assembled and added to the object.
+%   Call this function after defining the output model and before calling
+%   BUILD_CHRONOS_MPC.
 %
-%   USAGE TIPS:
-%       - If qv_min or qv_max are not passed, the soft constraint penalty 
-%         weight will default to the value stored in mpc.qv
-%       - Passing a scalar to the slack or qv inputs will automatically apply 
-%         that setting across all constrained outputs.
+%   Inputs:
+%     mpc     - CHRONOS MPC structure.
+%     y_min   - Lower bound: scalar, ny-by-1, or ny-by-L. Use [] for no
+%               lower bound.
+%     y_max   - Upper bound: scalar, ny-by-1, or ny-by-L. Use [] for no
+%               upper bound.
+%     qv_min  - Optional lower-bound violation penalty: scalar, ny-by-1,
+%               or time-varying ny-by-L.
+%     qv_max  - Optional upper-bound violation penalty: scalar, ny-by-1,
+%               or time-varying ny-by-L.
+%
+%   Output:
+%     mpc     - Updated CHRONOS MPC structure.
+%
+%   Example - constrain a scalar output with soft bounds:
+%
+%       C = [1, 0];
+%       D = zeros(1, mpc.nu);
+%       mpc = init_mpc_output(mpc, C, D);
+%       mpc = init_mpc_output_cnstr(mpc, -2, 2, 100, 100);
 function mpc = init_mpc_output_cnstr(mpc,y_min,y_max,qv_min,qv_max)
 arguments
     mpc

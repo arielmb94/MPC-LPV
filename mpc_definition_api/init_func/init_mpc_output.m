@@ -1,35 +1,42 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% INIT_MPC_OUTPUT Define the tracking output. INIT_MPC_DYNAMICS installs 
+%   y_k = s_k as the default. Use this function to define a different 
+%   output signal.
 %
-%   mpc = init_mpc_system(mpc,A,B,Bd,C,D,Dd)
+%   mpc = INIT_MPC_OUTPUT(mpc, C, D, Dd) defines
 %
-% Initializes the MPC Discrete-Time dynamical model :
+%       y_k = C_k*s_k + D_k*u_k + Dd_k*d_k.
 %
-%   x+ = A * x + B * u + Bd * d
+%   The output can be used by tracking costs and output constraints. The
+%   input d_k is shared with the dynamics and is supplied as the d_in
+%   argument of MPC_SOLVE. Use [] for D or Dd when that term is not needed.
 %
-% and the measurement model for the MPC tracking signal:
+%   C, D, and Dd may be constant matrices or three-dimensional arrays. For
+%   an array, L is the number of supplied horizon stages. If L < N, the last
+%   stage is reused for later stages. If L >= N, stages 1 through N-1 define
+%   the interior stages and stage N defines the terminal stage.
 %
-%   y = C * x + D * u + Dd * d
+%   All output rows are used at stages k = 1,...,N-1. At k = 0, CHRONOS
+%   keeps only rows with control dependence through D. At k = N, it keeps
+%   only rows that depend on state and not on control or d.
 %
-% x and u are the state and input vectors, d corresponds to a measured or
-% estimated disturbance vector, to be introduced on the appropiate field on
-% mpc_solve() during runtime MPC execution.
+%   Call this function after INIT_MPC_DYNAMICS and before adding tracking
+%   costs or output constraints. 
 %
-% In:
-%   - mpc: CHRONOS mpc structure
-%   - A: nx x nx matrix, system matrix
-%   - B: nx x nu matrix, input matrix
-%   - Bd: nx x nd matrix, disturbance input matrix. If it does not exists,
-%   must be set to 0
-%   - C: ny x nx matrix, system output matrix
-%   - D: ny x nu matrix, output feedtrhough matrix. If it does not exists,
-%   must be set to 0
-%   - Dd: ny x nd matrix, disturbance output feedtrhough matrix. If it does
-%   not exists must be set to 0
+%   Inputs:
+%     mpc     - CHRONOS MPC structure initialized with dynamics.
+%     C       - State coefficient, size ny-by-nx or ny-by-nx-by-L.
+%     D       - Optional control coefficient, size ny-by-nu or
+%               ny-by-nu-by-L. Default: [].
+%     Dd      - Fixed-known-input coefficient, size ny-by-nd or
+%               ny-by-nd-by-L. It uses the same d_k as Bd. Default: [].
 %
-% Out:
-%   - mpc: updated CHRONOS mpc structure
+%   Output:
+%     mpc     - Updated CHRONOS MPC structure.
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Example - track the first state with no feedthrough terms:
+%
+%       C = [1, zeros(1, nx-1)];
+%       mpc = init_mpc_output(mpc, C, [], []);
 function mpc = init_mpc_output(mpc,C,D,Dd)
 arguments
     mpc

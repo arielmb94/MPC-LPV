@@ -136,7 +136,7 @@ if mpc.lin_custom_cost
     end
 
     for k = 1:mpc.N-1
-        mpc.gradz_qz_k(:,k) = mpc.grad_z(:,:,k)*mpc.qz;
+        mpc.gradz_qz_k(:,k) = mpc.grad_z(:,:,k)*mpc.qz(:,k);
     end
 
     if mpc.z_use_ter

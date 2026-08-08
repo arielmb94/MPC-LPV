@@ -1,57 +1,58 @@
-% INIT_MPC_LIN_CUSTOM_CNSTR Defines constraints and soft-penalties on
-% custom user defined signals.
+% INIT_MPC_CUSTOM_CNSTR Add bounds on a user-defined linear signal.
 %
-%   mpc = INIT_MPC_LIN_CUSTOM_CNSTR(mpc, Ch, Dh, Ddh, h_min, h_max) defines a 
-%   custom auxiliary signal 'h' and sets strict (hard) lower and upper bounds 
-%   on it. The custom signal is calculated as:
+%   mpc = INIT_MPC_CUSTOM_CNSTR(mpc, Ch, Dh, Dsuh, Ddh, h_min, h_max)
+%   defines the custom signal
 %
-%       h = Ch * x + Dh * u + Ddh * dh
+%       h_k = Ch_k*s_k + Dh_k*u_k + Dsuh_k*su_k + Ddh_k*dh_k
 %
-%   The solver will strictly enforce h_min <= h <= h_max. This is suitable for 
-%   hard physical limits, but massive disturbances could cause the solver to crash 
-%   (go infeasible) if the limits are impossible to satisfy.
+%   and constrains it to h_min <= h_k <= h_max. Here, su_k is the control
+%   action preceding u_k, and dh_k is a dedicated fixed known input for the
+%   custom constraint. Use [] for a coefficient or bound that is not needed.
+%   Coefficient matrices, bounds, and penalties may vary over the horizon.
+%   L denotes the number of supplied horizon stages; if L < N, the last
+%   supplied stage is reused for the remaining stages.
 %
-%   mpc = INIT_MPC_LIN_CUSTOM_CNSTR(mpc, ..., h_min_slack_active, h_max_slack_active, qv_min, qv_max) 
-%   allows you to define these custom bounds as "soft" constraints. Soft constraints 
-%   can be safely violated during severe disturbances to prevent solver crashes, 
-%   while applying a customizable linear penalty to drive the signal back within 
-%   limits as quickly as actuator power allows. It is highly advisible to
-%   enable soft constraint on the custom signals.
+%   mpc = INIT_MPC_CUSTOM_CNSTR(..., qv_min, qv_max) also sets the linear
+%   penalties for lower- and upper-bound violations. Custom constraints are
+%   soft: CHRONOS may violate a bound through a feasibility slack when the
+%   bound cannot be satisfied. Larger qv values make violations more costly.
+%   Leave a penalty empty to let CHRONOS select its default during
+%   BUILD_CHRONOS_MPC.
 %
-%   INPUTS:
-%       mpc                - CHRONOS MPC structure.
-%       Ch                 - [nh x nx] Matrix mapping states to the custom signal.
-%       Dh                 - [nh x nu] Matrix mapping inputs to the custom signal.
-%       Ddh                - [nh x ndh] Matrix mapping measured disturbances to the custom signal.
-%       h_min              - [nh x 1] Array of lower limits (use [] if none).
-%       h_max              - [nh x 1] Array of upper limits (use [] if none).
-%       qv_min             - (Optional) [nh x 1] or scalar. Penalty weight for violating 
-%                            the h_min soft limits. Higher values mean stricter enforcement.
-%       qv_max             - (Optional) [nh x 1] or scalar. Penalty weight for violating 
-%                            the h_max soft limits. Higher values mean stricter enforcement.
+%   Call this function after defining the MPC model dimensions and before
+%   calling BUILD_CHRONOS_MPC.
 %
-%   OUTPUTS:
-%       mpc                - Updated MPC structure. All necessary background math 
-%                            (matrices, gradients, Hessians, and slack variables) 
-%                            are automatically assembled and added to the object.
+%   Inputs:
+%     mpc     - CHRONOS MPC structure.
+%     Ch      - State coefficient, size nh-by-nx or nh-by-nx-by-L.
+%     Dh      - Control coefficient, size nh-by-nu or nh-by-nu-by-L.
+%     Dsuh    - Previous-control coefficient, size nh-by-nu or nh-by-nu-by-L.
+%     Ddh     - Fixed-known-input coefficient, size nh-by-ndh or
+%               nh-by-ndh-by-L.
+%     h_min   - Lower bound: scalar, nh-by-1, or nh-by-L. Use [] for no
+%               lower bound.
+%     h_max   - Upper bound: scalar, nh-by-1, or nh-by-L. Use [] for no
+%               upper bound.
+%     qv_min  - Optional lower-bound violation penalty: scalar, nh-by-1,
+%               or time-varying nh-by-L.
+%     qv_max  - Optional upper-bound violation penalty: scalar, nh-by-1,
+%               or time-varying nh-by-L.
 %
-%   EXAMPLE USE CASE: Tracking an input reference (u_star)
-%       We want to limit the variation of the control action with respect to a 
-%       dynamic target value, meaning we want to constrain: h = u - u_star.
-%       To achieve this, we set up our custom signal matrices as:
-%           - Ch  = zeros(nu, nx)
-%           - Dh  = eye(nu)
-%           - Ddh = -eye(nu)
-%       This creates the equation: h = 0*x + 1*u - 1*dh.
-%       During runtime, the user passes 'u_star' into the 'dh' disturbance 
-%       vector, and the solver handles the rest!
+%   Output:
+%     mpc     - Updated CHRONOS MPC structure.
 %
-%   USAGE TIPS:
-%       - If qv_min or qv_max are not passed, the soft constraint penalty 
-%         weight will default to the value stored in mpc.qv
-%       - Passing a scalar to the slack or qv inputs will automatically apply 
-%         that setting across all constrained outputs.
-function mpc = init_mpc_lin_custom_cnstr(mpc,Ch,Dh,Dsuh,Ddh,...
+%   Example - constrain the deviation from a runtime control reference:
+%
+%       % h = u - u_ref, with -0.2 <= h <= 0.2
+%       Ch   = zeros(nu, nx);
+%       Dh   = eye(nu);
+%       Dsuh = [];
+%       Ddh  = -eye(nu);
+%       mpc = init_mpc_custom_cnstr(mpc, Ch, Dh, Dsuh, Ddh, ...
+%                                    -0.2, 0.2, 100, 100);
+%
+%   Pass u_ref as the dh_in argument of MPC_SOLVE at runtime.
+function mpc = init_mpc_custom_cnstr(mpc,Ch,Dh,Dsuh,Ddh,...
                                             h_min,h_max, ...
                                             qv_min,qv_max)
 arguments

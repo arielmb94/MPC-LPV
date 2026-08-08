@@ -1,20 +1,28 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% UPDATE_MPC_OUTPUT_CNSTR_LIMITS Update output bounds.
 %
-%   mpc = update_mpc_u_cnstr(mpc,u_min,u_max)
+%   mpc = UPDATE_MPC_OUTPUT_CNSTR_LIMITS(mpc, y_min, y_max) updates
 %
-% Modifies the constraints limits on the control action
+%       y_min_k <= y_k <= y_max_k.
 %
-% In:
-%   - mpc: CHRONOS mpc structure
-%   - u_min (optional): nu column vector, lower bound constraint values on
-%   the control action
-%   - u_max (optional): nu column vector, upper bound constraint values on
-%   the control action
+%   Use [] to leave either bound unchanged. The corresponding lower or
+%   upper bound must first be enabled with INIT_MPC_OUTPUT_CNSTR. Output
+%   constraints remain soft after their limits are updated.
 %
-% Out:
-%   - mpc: updated CHRONOS mpc structure
+%   A bound may be a scalar, an ny-by-1 vector, or a time-varying ny-by-L
+%   matrix, where L is the number of supplied horizon stages. If L < N, the
+%   last supplied column is reused for the remaining stages.
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Inputs:
+%     mpc     - Built CHRONOS MPC structure.
+%     y_min   - Optional updated lower bound: scalar, ny-by-1, or ny-by-L.
+%     y_max   - Optional updated upper bound: scalar, ny-by-1, or ny-by-L.
+%
+%   Output:
+%     mpc     - Updated CHRONOS MPC structure.
+%
+%   Example - update only the upper output bound:
+%
+%       mpc = update_mpc_output_cnstr_limits(mpc, [], y_max);
 function mpc = update_mpc_output_cnstr_limits(mpc, min, max)
 
 if ~isempty(min)

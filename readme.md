@@ -53,7 +53,7 @@ CHRONOS is a Model Predictive Control (MPC) solver tailored for Linear Parameter
 mpc = init_mpc_system(mpc, A, B, Bd, C, D, Dd);
 
 % Control inputs variation constraints
- mpc = init_mpc_delta_u_cnstr(mpc, du_min, u_max);
+ mpc = init_mpc_control_rate_cnstr(mpc, du_min, u_max);
 
 % Tracking error penalty
 mpc = init_mpc_Tracking_cost(mpc, Qe);

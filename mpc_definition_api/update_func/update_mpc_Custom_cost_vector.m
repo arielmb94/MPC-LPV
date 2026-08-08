@@ -1,45 +1,39 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% UPDATE_MPC_CUSTOM_COST_VECTOR Update the custom-cost signal model.
 %
-%   mpc = update_mpc_sys_output(mpc,C,D,Dd,Qe,y_min,y_max)
+%   mpc = UPDATE_MPC_CUSTOM_COST_VECTOR(mpc, Cz, Dz, Dsuz, Ddz) updates
+%   selected coefficients in
 %
-% Allows to update all parameters related to the tracking output signal y 
-% in a single function:
+%       z_k = Cz_k*s_k + Dz_k*u_k + Dsuz_k*su_k + Ddz_k*dz_k.
 %
-%   - Upadate output signal model: y = C * x + D * u + Dd * d
-%   - Upadate weight Qe on the tracking error penalty term: 
-%   (r - y)' * Qe * (r - y)
-%   - Upadate contraint Limits on feedback signal: y_min <= y <= y_max
+%   Use [] to leave a coefficient unchanged. The signal must first be
+%   defined with INIT_MPC_CUSTOM_COST. This updater cannot change the number
+%   of custom costs or add a coefficient term that was not enabled during
+%   initialization.
 %
-% Example uses:
+%   Coefficients may be constant matrices or contain L horizon stages in
+%   their third dimension. If L < N, the last supplied stage is reused for
+%   the remaining stages. Here, su_k is the control action preceding u_k,
+%   and dz_k is the dedicated fixed known input supplied to MPC_SOLVE.
+% 
+%   The existing Qz and qz weights are applied to the updated
+%   signal model.
 %
-%   - update only the output feedback signal model: 
-%           mpc = update_mpc_sys_output(mpc,C,D,Dd)
-%   - update only the input feedtrhough matrix of the output signal model: 
-%           mpc = update_mpc_sys_output(mpc,[],D,[])
-%   - update the feedback output signal model and constraint limits: 
-%           mpc = update_mpc_sys_output(mpc,C,D,Dd,[],y_min,y_max)
-%   - update only the weight on the tracking error penalty term: 
-%           mpc = update_mpc_sys_output(mpc,[],[],[],Qe)
+%   Inputs:
+%     mpc     - Built CHRONOS MPC structure.
+%     Cz      - Optional state coefficient, size nz-by-nx or nz-by-nx-by-L.
+%     Dz      - Optional control coefficient, size nz-by-nu or
+%               nz-by-nu-by-L.
+%     Dsuz    - Optional previous-control coefficient, size nz-by-nu or
+%               nz-by-nu-by-L.
+%     Ddz     - Optional fixed-known-input coefficient, size nz-by-ndz or
+%               nz-by-ndz-by-L.
 %
-% In:
-%   - mpc: CHRONOS mpc structure
-%   - C (optional): ny x nx matrix, system output matrix
-%   - D (optional): ny x nu matrix, input feedtrhough matrix.
-%   - Dd (optional): ny x nd matrix, disturbance feedtrhough matrix.
-%   - Qe (optional): ny x ny square matrix, weights for the quadratic
-%   penalty on the tracking error
-%   - y_min (optional): ny column vector, lower bound constraint values on 
-%   the tracking signal
-%   - y_max (optional): ny column vector, upper bound constraint values on 
-%   the tracking signal
+%   Output:
+%     mpc     - Updated CHRONOS MPC structure.
 %
-%   All arguments items which do not require to be updated can be passed as
-%   an empty vector [].
+%   Example - update only Cz and Dz:
 %
-% Out:
-%   - mpc: updated CHRONOS mpc structure
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%       mpc = update_mpc_Custom_cost_vector(mpc, Cz, Dz, [], []);
 function mpc = update_mpc_Custom_cost_vector(mpc,Cz,Dz,Dsuz,Ddz)
 
 mpc.update_customcost_quad = mpc.quad_custom_cost;

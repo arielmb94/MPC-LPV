@@ -1,47 +1,39 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% UPDATE_MPC_CUSTOM_CNSTR_VECTOR Update the custom-constraint signal model.
 %
-%    mpc = update_mpc_lin_custom_cnstr(mpc,Ch,Dh,Ddh,h_min,h_max)
+%   mpc = UPDATE_MPC_CUSTOM_CNSTR_VECTOR(mpc, Ch, Dh, Dsuh, Ddh) updates
+%   selected coefficients in
 %
-% Updates the parameters for the user-defined custom constraint and
-% re-computes the MPC gradients and Hessians accordingly.
+%       h_k = Ch_k*s_k + Dh_k*u_k + Dsuh_k*su_k + Ddh_k*dh_k.
+%
+%   Use [] to leave a coefficient unchanged. The signal and its bounds must
+%   first be defined with INIT_MPC_CUSTOM_CNSTR. This updater cannot change
+%   the number of custom constraints nor add a coefficient term that was not
+%   enabled during initialization.
+%
+%   Coefficients may be constant matrices or contain L horizon stages in
+%   their third dimension. If L < N, the last supplied stage is reused for
+%   the remaining stages. Here, su_k is the control action preceding u_k,
+%   and dh_k is the dedicated fixed known input supplied to MPC_SOLVE.
 % 
-% The function can be used to update the model of the user-defined signal 
-% h:
+%   Existing custom bounds use the updated signal model. To
+%   change the bounds, use UPDATE_MPC_CUSTOM_CNSTR_LIMITS.
 %
-%   h = Ch * x + Dh * u + Ddh * dh
+%   Inputs:
+%     mpc     - Built CHRONOS MPC structure.
+%     Ch      - Optional state coefficient, size nh-by-nx or nh-by-nx-by-L.
+%     Dh      - Optional control coefficient, size nh-by-nu or
+%               nh-by-nu-by-L.
+%     Dsuh    - Optional previous-control coefficient, size nh-by-nu or
+%               nh-by-nu-by-L.
+%     Ddh     - Optional fixed-known-input coefficient, size nh-by-ndh or
+%               nh-by-ndh-by-L.
 %
-% by updating the matrices Ch, Dh and Ddh.
+%   Output:
+%     mpc     - Updated CHRONOS MPC structure.
 %
-% The function can also be called to update the constraint limits:
+%   Example - update only Ch and Dh:
 %
-%   h_min <= h <= h_max
-%
-% Example uses:
-%
-%   - update only constraint limits: 
-%           mpc = init_mpc_delta_u_cnstr(mpc,[],[],[],h_min,h_max)
-%   - update only user-defined signal h model: 
-%           mpc = init_mpc_delta_u_cnstr(mpc,Ch,Dh,Ddh)
-%   - update only input feedthrough Dh matrix : 
-%           mpc = init_mpc_delta_u_cnstr(mpc,[],Dh,[])
-%
-% In:
-%   - mpc: CHRONOS mpc structure
-%   - Ch (optional): nh x nx matrix, state output matrix
-%   - Dh (optional): nh x nu matrix, input feedtrhough matrix
-%   - Ddh (optional): nh x ndh matrix, disturbance feedtrhough matrix
-%   - h_min (optional): nh column vector, lower bound constraint values
-%   on the user defined signal h
-%   - h_max (optional): nh column vector, upper bound constraint values 
-%   on the user defined signal h
-%
-%   All arguments items which do not require to be updated can be passed as
-%   an empty vector [].
-%
-% Out:
-%   - mpc: updated CHRONOS mpc structure
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%       mpc = update_mpc_custom_cnstr_vector(mpc, Ch, Dh, [], []);
 function mpc = update_mpc_custom_cnstr_vector(mpc,Ch,Dh,Dsuh,Ddh)
 
 if ~isempty(Ch)

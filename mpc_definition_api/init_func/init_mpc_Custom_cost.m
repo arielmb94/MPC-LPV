@@ -1,45 +1,52 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% INIT_MPC_CUSTOM_COST Add a quadratic or linearcost on a user-defined signal.
 %
-%   mpc = init_mpc_Lin_Custom_cost(mpc,Cz,Dz,Ddz,Qz,qz)
+%   mpc = INIT_MPC_CUSTOM_COST(mpc, Cz, Dz, Dsuz, Ddz, Qz, qz) defines
 %
-% Adds quadratic and linear penalties on a custom user defined signal z:
+%       z_k = Cz_k*s_k + Dz_k*u_k + Dsuz_k*su_k + Ddz_k*dz_k
 %
-%   J += z'*Qz*z + qz*z
+%   and adds quadratic and/or linear penalties on z_k:
 %
-% The signal z is defined as:
+%       J_custom += 0.5*z_k'*Qz_k*z_k + qz_k'*z_k
 %
-%   z = Cz * x + Dz * u + Ddz * dz
+%   Use [] for a coefficient or penalty that is not needed. Here, su_k is
+%   the control action preceding u_k, and dz_k is a dedicated fixed known
+%   input supplied through the dz_in argument of MPC_SOLVE.
 %
-% The user must define the signal z by selecting appropiate values for the
-% matrices Cz, Dz, Ddz.
+%   Coefficient and quadratic-weight matrices may be constant or contain L
+%   horizon stages in their third dimension. The linear weight qz may be an
+%   nz-by-1 vector or an nz-by-L matrix. L is the number of supplied horizon
+%   stages; if L < N, the last supplied stage is reused for the remaining
+%   stages.
 %
-% In:
-%   - mpc: CHRONOS mpc structure
-%   - Cz: nz x nx matrix, states output matrix
-%   - Dz: nz x nu matrix, input feedtrhough matrix
-%   - Ddz: nz x ndi matrix, disturbance feedtrhough matrix
-%   - Qz (optional): nz x nz square matrix, weights for the quadratic
-%   penalty term on the user defined signal z
-%   - qz (optional): nz column vector, weights for the linear penalty term
-%   on the user defined signal z. Use the linear penalty term only in the
-%   case that z takes only positive values
+%   Call this function after INIT_MPC_DYNAMICS and before
+%   BUILD_CHRONOS_MPC.
 %
-% Out:
-%   - mpc: updated CHRONOS mpc structure
+%   Inputs:
+%     mpc     - CHRONOS MPC structure.
+%     Cz      - State coefficient, size nz-by-nx or nz-by-nx-by-L.
+%     Dz      - Control coefficient, size nz-by-nu or nz-by-nu-by-L.
+%     Dsuz    - Previous-control coefficient, size nz-by-nu or
+%               nz-by-nu-by-L.
+%     Ddz     - Fixed-known-input coefficient, size nz-by-ndz or
+%               nz-by-ndz-by-L.
+%     Qz      - Optional quadratic weight, size nz-by-nz or nz-by-nz-by-L.
+%     qz      - Optional linear weight, size nz-by-1 or nz-by-L.
 %
-% Example:
-% We want to penalize the variation of the MPC control action with respect 
-% a given value u_star, e.g. we want to minimize z = u - u_star.
-% To achieve this we define z by selecting:
-%   - Cz = [0 0 ... 0]
-%   - Dz = [1]
-%   - Ddz = [-1]
-% which corresponds to z = [0 0 ... 0] * x + [1] * u + [-1] * di
-% The "disturbance" term on z corresponds to u_star, to be introduced on 
-% the appropiate field on mpc_solve() during runtime MPC execution.
+%   Output:
+%     mpc     - Updated CHRONOS MPC structure.
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function mpc = init_mpc_Lin_Custom_cost(mpc,Cz,Dz,Dsuz,Ddz,Qz,qz)
+%   Example - penalize deviation from a runtime control reference:
+%
+%       % z = u - u_ref
+%       Cz   = zeros(nu, nx);
+%       Dz   = eye(nu);
+%       Dsuz = [];
+%       Ddz  = -eye(nu);
+%       Qz   = eye(nu);
+%       mpc = init_mpc_Custom_cost(mpc, Cz, Dz, Dsuz, Ddz, Qz, []);
+%
+%   Pass u_ref as the dz_in argument of MPC_SOLVE at runtime.
+function mpc = init_mpc_Custom_cost(mpc,Cz,Dz,Dsuz,Ddz,Qz,qz)
 arguments
     mpc
     Cz = []

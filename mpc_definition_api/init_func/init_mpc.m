@@ -1,68 +1,29 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% INIT_MPC Create the CHRONOS MPC structure.
 %
-%   mpc = init_mpc(N,N_ctr_hor)
+%   mpc = INIT_MPC(N) creates an empty MPC structure with prediction
+%   horizon N.
 %
-% Initializes CHRONOS mpc structure fields and solver hyperparmeters
+%   mpc = INIT_MPC() uses the default horizon N = 10.
 %
-% In:
-%   - N: MPC prediction horizon
-%   - N_ctr_hor (optional):  prediction horizon for control actions. If not
-%   specified it is set equal to N
+%   Call this function first. Then define the dynamics, optionally replace
+%   the default tracking output, add costs and constraints, and finish with
+%   BUILD_CHRONOS_MPC.
 %
-% Out:
-%   - mpc: initialized CRHONOS mpc structure
+%   Input:
+%     N       - Prediction horizon. Default: 10.
 %
-% Example Use:
+%   Output:
+%     mpc     - New CHRONOS MPC structure, ready for model, cost, and
+%               constraint initialization.
 %
-%   - Same control and prediction horizons:
-%               mpc = init_mpc(N)
-%   - Different control and prediction horizons:  
-%               mpc = init_mpc(N,N_ctr_hor)
+%   Example:
 %
-% Hyperparameters (can be modified manually after initialization of the mpc
-% structure):
-%
-%   - mpc.t: interior-point method tradeoff parameter between cost function
-%   minimization vs constraint satisfaction. Large t values give preference
-%   to minimization of the cost function. Small values for t will make the
-%   solver prefer feasibility and constraint safety.
-%
-%   - mpc.Beta: reduction step for each iteration of the feasibility line
-%   search. Beta must be less than 1 and greater than 0. Values close to 1
-%   ensure a smoother optimization solution between multiple mpc
-%   iterations at the cost of increased line search iterations.
-%
-%   - mpc.min_l: if the line search step fall below min_l the following
-%   iteration of the interior-point method will be cancelled. Allows to
-%   quit the interior-point method quicker when the optimal solution is
-%   close to the constraints limits.
-%
-%   - mpc.eps: interior-point method precision.
-%
-%   - mpc.max_iter: maximum allowed iterations of the interior-point method
-%   solver
-%
-%   - mpc.t_feas: exactly as mpc.t, applied for the step 0 feasibility
-%   solver. The step 0 solver allows to find a feasibile starting point for
-%   the interior-point method when providded the initial guess lies
-%   outside of the feasible region.
-%
-%   - mpc.qfeas: cost term to penalize large deviation on the solution of
-%   the step 0 solver from the provided initial guess
-%
-%   - mpc.v0_feas: initial value for step 0 solver slack variable
-%
-%   - mpc.feas_lambda: multiplier in case step 0 starting slack variable
-%   value is set too low. Must be larger than 1.
-%
-%   - mpc.max_feas_iter: maximum number of step 0 solver iterations 
-%   allowed. If max_feas_iter is violated it is assumed the problem is 
-%   unfeasible. 
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%       mpc = init_mpc(20);
+%       mpc = init_mpc_dynamics(mpc, A, B, []);
+%       mpc = init_mpc_output(mpc, C, [], []);
 function mpc = init_mpc(N)
 arguments
-    N = 2
+    N = 10
 end
 
 mpc.N = N;

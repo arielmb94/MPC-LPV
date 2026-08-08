@@ -48,7 +48,7 @@ u_max = -u_min;
 % Control inputs variation constraints
 du_min = -0.5*ones(mpc.nu,1);
 du_max = 0.5*ones(mpc.nu,1);
-mpc = init_mpc_delta_u_cnstr(mpc,du_min,du_max);
+mpc = init_mpc_control_rate_cnstr(mpc,du_min,du_max);
 
 % Output constraints
 y_min = [];

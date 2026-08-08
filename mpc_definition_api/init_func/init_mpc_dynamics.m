@@ -1,35 +1,43 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% INIT_MPC_DYNAMICS Define the prediction model.
 %
-%   mpc = init_mpc_system(mpc,A,B,Bd,C,D,Dd)
+%   mpc = INIT_MPC_DYNAMICS(mpc, A, B) defines
 %
-% Initializes the MPC Discrete-Time dynamical model :
+%       s_(k+1) = A_k*s_k + B_k*u_k.
 %
-%   x+ = A * x + B * u + Bd * d
+%   mpc = INIT_MPC_DYNAMICS(mpc, A, B, Bd) adds the fixed known input d_k
 %
-% and the measurement model for the MPC tracking signal:
+%       s_(k+1) = A_k*s_k + B_k*u_k + Bd_k*d_k.
+% 
+%   Pass d_k as the d_in argument when building and solving the
+%   MPC. Use [] for Bd when the model has no such input.
 %
-%   y = C * x + D * u + Dd * d
+%   A, B, and Bd may be constant matrices or three-dimensional arrays. For
+%   an array, L is the number of supplied horizon stages. If L < N, the last
+%   stage is reused through the rest of the horizon; if L >= N, the first N
+%   stages are used.
 %
-% x and u are the state and input vectors, d corresponds to a measured or
-% estimated disturbance vector, to be introduced on the appropiate field on
-% mpc_solve() during runtime MPC execution.
+%   INIT_MPC_DYNAMICS automatically sets the tracking output to the full state,
+%   y_k = I*s_k = s_k. If this is the desired output, no separate output
+%   initialization is needed. Call INIT_MPC_OUTPUT after this function only
+%   when a different tracking or constrained output is required.
 %
-% In:
-%   - mpc: CHRONOS mpc structure
-%   - A: nx x nx matrix, system matrix
-%   - B: nx x nu matrix, input matrix
-%   - Bd: nx x nd matrix, disturbance input matrix. If it does not exists,
-%   must be set to 0
-%   - C: ny x nx matrix, system output matrix
-%   - D: ny x nu matrix, output feedtrhough matrix. If it does not exists,
-%   must be set to 0
-%   - Dd: ny x nd matrix, disturbance output feedtrhough matrix. If it does
-%   not exists must be set to 0
+%   Call this function after INIT_MPC and before adding costs or
+%   constraints.
 %
-% Out:
-%   - mpc: updated CHRONOS mpc structure
+%   Inputs:
+%     mpc     - CHRONOS MPC structure created by INIT_MPC.
+%     A       - State matrix, size nx-by-nx or nx-by-nx-by-L.
+%     B       - Control matrix, size nx-by-nu or nx-by-nu-by-L.
+%     Bd      - Optional fixed-known-input matrix, size nx-by-nd or
+%               nx-by-nd-by-L. Default: [].
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Output:
+%     mpc     - Updated CHRONOS MPC structure.
+%
+%   Example - define a time-invariant model without a known input:
+%
+%       mpc = init_mpc(20);
+%       mpc = init_mpc_dynamics(mpc, A, B, []);
 function mpc = init_mpc_dynamics(mpc,A,B,Bd)
 arguments
     mpc

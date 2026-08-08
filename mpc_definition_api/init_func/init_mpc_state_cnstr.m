@@ -1,35 +1,40 @@
-% INIT_MPC_STATE_CNSTR Defines state constraints and soft-constraint penalties.
+% INIT_MPC_STATE_CNSTR Add bounds on the predicted state.
 %
-%   mpc = INIT_MPC_STATE_CNSTR(mpc, x_min, x_max) sets strict (hard) lower and 
-%   upper bounds on the state variables. The solver will strictly enforce these 
-%   limits. This is suitable for absolute physical boundaries, but may cause 
-%   the solver to crash (go infeasible) if a disturbance pushes the system too far.
+%   mpc = INIT_MPC_STATE_CNSTR(mpc, x_min, x_max) constrains the predicted
+%   states to x_min <= s_k <= x_max. Use [] for a bound that is not needed.
+%   Bounds may be scalars, nx-by-1 vectors, or time-varying nx-by-L
+%   matrices, where L is the number of supplied horizon stages. A scalar is
+%   applied to every state and stage. If L < N, the last supplied column is
+%   reused for the remaining stages.
 %
-%   mpc = INIT_MPC_STATE_CNSTR(mpc, x_min, x_max, x_min_slack_active, x_max_slack_active, qv_min, qv_max) 
-%   allows you to define specific bounds as "soft" constraints. Soft constraints 
-%   can be safely violated during massive disturbances to keep the solver running, 
-%   while applying a customizable penalty to drive the state back within limits 
-%   as quickly as possible.
+%   mpc = INIT_MPC_STATE_CNSTR(..., qv_min, qv_max) also sets the linear
+%   penalties for lower- and upper-bound violations. State constraints are
+%   soft: CHRONOS may violate a bound through a feasibility slack when the
+%   bound cannot be satisfied. Larger qv values make violations more costly.
+%   Penalties use the same scalar, vector, or time-varying horizon layout as
+%   the bounds. Leave a penalty empty to let CHRONOS select its default
+%   during BUILD_CHRONOS_MPC.
 %
-%   INPUTS:
-%       mpc                - CHRONOS MPC structure.
-%       x_min              - [nx x 1] Array of lower state limits (use [] if none).
-%       x_max              - [nx x 1] Array of upper state limits (use [] if none).
-%       qv_min             - (Optional) [nx x 1] or scalar. Penalty weight for violating 
-%                            the x_min soft limits. Higher values mean stricter enforcement.
-%       qv_max             - (Optional) [nx x 1] or scalar. Penalty weight for violating 
-%                            the x_max soft limits. Higher values mean stricter enforcement.
+%   Call this function after INIT_MPC_DYNAMICS and before calling 
+%   BUILD_CHRONOS_MPC.
 %
-%   OUTPUTS:
-%       mpc                - Updated MPC structure. All necessary background math 
-%                            (constraint gradients, Hessians, and slack variables) 
-%                            are automatically assembled and added to the object.
+%   Inputs:
+%     mpc     - CHRONOS MPC structure.
+%     x_min   - Lower bound: scalar, nx-by-1, or nx-by-L. Use [] for no
+%               lower bound.
+%     x_max   - Upper bound: scalar, nx-by-1, or nx-by-L. Use [] for no
+%               upper bound.
+%     qv_min  - Optional lower-bound violation penalty: scalar, nx-by-1,
+%               or time-varying nx-by-L.
+%     qv_max  - Optional upper-bound violation penalty: scalar, nx-by-1,
+%               or time-varying nx-by-L.
 %
-%   USAGE TIPS:
-%       - If qv_min or qv_max are not passed, the soft constraint penalty 
-%         weight will default to the value stored in mpc.qv
-%       - Passing a scalar to qv inputs will automatically apply 
-%         that setting across all constrained states.
+%   Output:
+%     mpc     - Updated CHRONOS MPC structure.
+%
+%   Example - apply bounds to a two-state model:
+%
+%       mpc = init_mpc_state_cnstr(mpc, [-5; -2], [5; 2], 100, 100);
 function mpc = init_mpc_state_cnstr(mpc,x_min,x_max,qv_min,qv_max)
 arguments
     mpc
