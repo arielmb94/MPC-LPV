@@ -45,8 +45,48 @@ arguments
     Dd = []
 end
 
+% All-zero optional coefficient matrices mean that the terms are omitted.
+if ~isempty(C) && ~any(C(:))
+    C = [];
+end
+if ~isempty(D) && ~any(D(:))
+    D = [];
+end
+if ~isempty(Dd) && ~any(Dd(:))
+    Dd = [];
+end
+
+% Dd cannot define an output on its own. With no active state or control
+% coefficient, leave the existing output configuration unchanged.
+if isempty(C) && isempty(D)
+    return;
+end
+
+% Resolve and validate all shared dimensions before staging the matrices.
+ny = max([size(C,1) size(D,1)]);
+validate_matrix(C, ny, mpc.nx, 'C');
+validate_matrix(D, ny, mpc.nu, 'D');
+
+nd = mpc.nd;
+if ~isempty(Dd)
+    if nd == 0
+        nd = size(Dd,2);
+    end
+    validate_matrix(Dd, ny, nd, 'Dd');
+end
+
 %number of measurements
-mpc.ny = max([size(C,1) size(D,1)]);  
+mpc.ny = ny;
+
+% An active output initializer replaces the default output installed by the
+% dynamics initializer. Omitted terms must not remain active or stored.
+mpc.C = [];
+mpc.D = [];
+mpc.Dd = [];
+mpc.C_ter = [];
+mpc.y_use_s = 0;
+mpc.y_use_u = 0;
+mpc.y_use_d = 0;
 
 if ~isempty(C) && any(C(:))
     mpc.y_use_s = 1;
@@ -78,7 +118,7 @@ end
 
 if ~isempty(Dd) && any(Dd(:))
     mpc.y_use_d = 1;
-    mpc.nd = max([size(Dd,2) mpc.nd]);
+    mpc.nd = nd;
     mpc.d = zeros(mpc.nd,mpc.N);
 
     len_Dd = size(Dd,3);
@@ -94,7 +134,11 @@ end
 
 % at k = 0, only rows with D!=0 (with dependence on control action u) are
 % considered
-y_row_0 = find(~all(mpc.D(:,:,1)==0,2));
+if mpc.y_use_u
+    y_row_0 = find(~all(mpc.D(:,:,1)==0,2));
+else
+    y_row_0 = [];
+end
 mpc.ny_0 = length(y_row_0);
 
 if mpc.ny_0

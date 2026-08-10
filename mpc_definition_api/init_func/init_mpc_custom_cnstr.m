@@ -67,16 +67,40 @@ arguments
     qv_max = []
 end
 
-% general constraints boolean
-mpc.has_h_cnstr = 1;
+% Empty and all-zero optional coefficients are omitted before dimension
+% inference or validation, independently of their supplied dimensions.
+if ~isempty(Ch) && ~any(Ch(:)), Ch = []; end
+if ~isempty(Dh) && ~any(Dh(:)), Dh = []; end
+if ~isempty(Dsuh) && ~any(Dsuh(:)), Dsuh = []; end
+if ~isempty(Ddh) && ~any(Ddh(:)), Ddh = []; end
+
+% A custom constraint requires an active bound and a decision-dependent
+% primary signal term. Ddh alone cannot define the signal.
+if (isempty(h_min) && isempty(h_max)) || ...
+        (isempty(Ch) && isempty(Dh) && isempty(Dsuh))
+    return;
+end
+
+% A penalty is ignored when its bound is inactive or when the supplied
+% penalty is all zero; build_chronos_mpc will select the default penalty.
+if isempty(h_min) || isempty(qv_min) || ~any(qv_min(:)), qv_min = []; end
+if isempty(h_max) || isempty(qv_max) || ~any(qv_max(:)), qv_max = []; end
 
 %number of general inequalities
-if ~isempty(Ch) && any(Ch(:))
+if ~isempty(Ch)
     mpc.nh = size(Ch,1);  
-elseif ~isempty(Dh) && any(Dh(:))
+elseif ~isempty(Dh)
     mpc.nh = size(Dh,1);
-elseif ~isempty(Dsuh) && any(Dsuh(:))
+else
     mpc.nh = size(Dsuh,1);
+end
+
+validate_matrix(Ch, mpc.nh, mpc.nx, 'Ch');
+validate_matrix(Dh, mpc.nh, mpc.nu, 'Dh');
+validate_matrix(Dsuh, mpc.nh, mpc.nu, 'Dsuh');
+if ~isempty(Ddh)
+    mpc.ndh = size(Ddh,2);
+    validate_matrix(Ddh, mpc.nh, mpc.ndh, 'Ddh');
 end
 
 % INPUT DIMENSION VALIDATION 
@@ -85,12 +109,15 @@ validate_column_vector(h_max, mpc.nh, 'h_max');
 validate_column_vector(qv_min, mpc.nh, 'qv_min');
 validate_column_vector(qv_max, mpc.nh, 'qv_max');
 
+% general constraints boolean
+mpc.has_h_cnstr = 1;
+
 h_cnstr.use_s = 0;
 h_cnstr.use_u = 0;
 h_cnstr.use_su = 0;
 h_cnstr.use_d = 0;
 
-if ~isempty(Ch) && any(Ch(:))
+if ~isempty(Ch)
     h_cnstr.use_s = 1;
 
     len_Ch = size(Ch,3);
@@ -104,7 +131,7 @@ if ~isempty(Ch) && any(Ch(:))
     end
 end
 
-if ~isempty(Dh) && any(Dh(:))
+if ~isempty(Dh)
     h_cnstr.use_u = 1;
 
     len_Dh = size(Dh,3);
@@ -118,7 +145,7 @@ if ~isempty(Dh) && any(Dh(:))
     end
 end
 
-if ~isempty(Dsuh) && any(Dsuh(:))
+if ~isempty(Dsuh)
     h_cnstr.use_su = 1;
     mpc.has_du = 1;
 
@@ -133,10 +160,8 @@ if ~isempty(Dsuh) && any(Dsuh(:))
     end
 end
 
-if ~isempty(Ddh) && any(Ddh(:))
+if ~isempty(Ddh)
     h_cnstr.use_d = 1;
-
-    mpc.ndh = size(Ddh,2);
 
     len_Ddh = size(Ddh,3);
     if len_Ddh < mpc.N

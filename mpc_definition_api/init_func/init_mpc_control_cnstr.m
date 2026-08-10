@@ -31,6 +31,10 @@ arguments
     u_max = [];
 end
 
+if isempty(u_min) && isempty(u_max)
+    return;
+end
+
 mpc.has_u_cnstr = 1;
 
 % INPUT DIMENSION VALIDATION 

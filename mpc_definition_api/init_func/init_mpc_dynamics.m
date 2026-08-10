@@ -46,19 +46,36 @@ arguments
     Bd = []
 end
 
+% An all-zero optional disturbance matrix means that the term is omitted.
+if ~isempty(Bd) && ~any(Bd(:))
+    Bd = [];
+end
+
+% Infer and validate all model dimensions before allocating MPC fields.
+nx = size(A,1);
+validate_matrix(A, nx, nx, 'A');
+
+nu = size(B,2);
+validate_matrix(B, nx, nu, 'B');
+
+if ~isempty(Bd)
+    nd = size(Bd,2);
+    validate_matrix(Bd, nx, nd, 'Bd');
+end
+
 mpc.Bd = Bd;
 
 %number of states
-mpc.nx = size(A,1);  
+mpc.nx = nx;
 mpc.A = zeros(mpc.nx,mpc.nx,mpc.N);
 mpc.A = fill_mat(mpc.A, A, 1);
 %number of control inputs
-mpc.nu = size(B,2);  
+mpc.nu = nu;
 mpc.B = zeros(mpc.nx,mpc.nu,mpc.N);
 mpc.B = fill_mat(mpc.B, B, 1);
 %number of disturbance inputs
-if any(Bd), mpc.nd = max([size(Bd,2) mpc.nd]); end  
-if ~isempty(Bd) && any(Bd(:))
+if ~isempty(Bd)
+    mpc.nd = nd;
     mpc.dyn_use_d = 1;
     mpc.Bd = zeros(mpc.nx,mpc.nd,mpc.N);
     mpc.Bd = fill_mat(mpc.Bd, Bd, 1);

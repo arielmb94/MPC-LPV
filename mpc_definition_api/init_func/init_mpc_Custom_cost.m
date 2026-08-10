@@ -57,16 +57,57 @@ arguments
     qz = [];
 end
 
+% Empty and all-zero optional terms are omitted before dimension inference or
+% validation, independently of their supplied dimensions.
+if ~isempty(Cz) && ~any(Cz(:)), Cz = []; end
+if ~isempty(Dz) && ~any(Dz(:)), Dz = []; end
+if ~isempty(Dsuz) && ~any(Dsuz(:)), Dsuz = []; end
+if ~isempty(Ddz) && ~any(Ddz(:)), Ddz = []; end
+if ~isempty(Qz) && ~any(Qz(:)), Qz = []; end
+if ~isempty(qz) && ~any(qz(:)), qz = []; end
+
+% A custom cost needs both a decision-dependent signal and an active weight.
+if (isempty(Cz) && isempty(Dz) && isempty(Dsuz)) || ...
+        (isempty(Qz) && isempty(qz))
+    return;
+end
+
 %number of custom costs
-if ~isempty(Cz) && any(Cz(:))
+if ~isempty(Cz)
     mpc.nz = size(Cz,1);  
-elseif ~isempty(Dz) && any(Dz(:))
+elseif ~isempty(Dz)
     mpc.nz = size(Dz,1);
-elseif ~isempty(Dsuz) && any(Dsuz(:))
+else
     mpc.nz = size(Dsuz,1);
 end
 
-if ~isempty(Cz) && any(Cz(:))
+validate_matrix(Cz, mpc.nz, mpc.nx, 'Cz');
+validate_matrix(Dz, mpc.nz, mpc.nu, 'Dz');
+validate_matrix(Dsuz, mpc.nz, mpc.nu, 'Dsuz');
+if ~isempty(Ddz)
+    mpc.ndz = size(Ddz,2);
+    validate_matrix(Ddz, mpc.nz, mpc.ndz, 'Ddz');
+end
+
+validate_matrix(Qz, mpc.nz, mpc.nz, 'Qz', true);
+validate_column_vector(qz, mpc.nz, 'qz', true);
+
+if isscalar(Qz)
+    Qz = Qz * eye(mpc.nz);
+elseif size(Qz,1) == 1 && size(Qz,2) == 1
+    Qz_staged = Qz;
+    Qz = zeros(mpc.nz, mpc.nz, size(Qz_staged,3));
+    Qz_eye = eye(mpc.nz);
+    for k = 1:size(Qz_staged,3)
+        Qz(:,:,k) = Qz_staged(1,1,k) * Qz_eye;
+    end
+end
+
+if ~isempty(qz) && size(qz,1) == 1
+    qz = ones(mpc.nz, 1) * qz;
+end
+
+if ~isempty(Cz)
     mpc.z_use_s = 1;
 
     len_Cz = size(Cz,3);
@@ -80,7 +121,7 @@ if ~isempty(Cz) && any(Cz(:))
     end
 end
 
-if ~isempty(Dz) && any(Dz(:))
+if ~isempty(Dz)
     mpc.z_use_u = 1;
 
     len_Dz = size(Dz,3);
@@ -94,7 +135,7 @@ if ~isempty(Dz) && any(Dz(:))
     end
 end
 
-if ~isempty(Dsuz) && any(Dsuz(:))
+if ~isempty(Dsuz)
     mpc.z_use_su = 1;
 
     mpc.has_du = 1;
@@ -110,10 +151,8 @@ if ~isempty(Dsuz) && any(Dsuz(:))
     end
 end
 
-if ~isempty(Ddz) && any(Ddz(:))
+if ~isempty(Ddz)
     mpc.z_use_d = 1;
-
-    mpc.ndz = size(Ddz,2);
 
     len_Ddz = size(Ddz,3);
     if len_Ddz < mpc.N

@@ -28,6 +28,22 @@
 %       mpc = init_mpc_ControlRate_cost(mpc, Rdu);
 function mpc = init_mpc_ControlRate_cost(mpc,Rdu)
 
+if isempty(Rdu) || ~any(Rdu(:))
+    return;
+end
+
+validate_matrix(Rdu, mpc.nu, mpc.nu, 'Rdu', true);
+if isscalar(Rdu)
+    Rdu = Rdu * eye(mpc.nu);
+elseif size(Rdu,1) == 1 && size(Rdu,2) == 1
+    Rdu_staged = Rdu;
+    Rdu = zeros(mpc.nu, mpc.nu, size(Rdu_staged,3));
+    Rdu_eye = eye(mpc.nu);
+    for k = 1:size(Rdu_staged,3)
+        Rdu(:,:,k) = Rdu_staged(1,1,k) * Rdu_eye;
+    end
+end
+
 mpc.has_du = 1;
 mpc.controlrate_cost = 1;
 

@@ -53,6 +53,15 @@ arguments
     qv_max = []
 end
 
+if isempty(y_min) && isempty(y_max)
+    return;
+end
+
+% A penalty is ignored when its bound is inactive or when the supplied
+% penalty is all zero; build_chronos_mpc will select the default penalty.
+if isempty(y_min) || isempty(qv_min) || ~any(qv_min(:)), qv_min = []; end
+if isempty(y_max) || isempty(qv_max) || ~any(qv_max(:)), qv_max = []; end
+
 mpc.has_y_cnstr = 1;
 
 % INPUT DIMENSION VALIDATION 

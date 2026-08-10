@@ -51,6 +51,27 @@ arguments
     xN_ref_is_y = 0
 end
 
+if isempty(Qx) || ~any(Qx(:)) || isempty(Ru) || ~any(Ru(:))
+    return;
+end
+
+validate_matrix(Qx, mpc.nx, mpc.nx, 'Qx', true);
+validate_matrix(Ru, mpc.nu, mpc.nu, 'Ru', true);
+
+if size(Qx,3) > 1
+    error('CHRONOS:DimensionMismatch', ...
+        'Input "Qx" for DLQR must contain one matrix page; supplied %d pages.', ...
+        size(Qx,3));
+end
+if size(Ru,3) > 1
+    error('CHRONOS:DimensionMismatch', ...
+        'Input "Ru" for DLQR must contain one matrix page; supplied %d pages.', ...
+        size(Ru,3));
+end
+
+if isscalar(Qx), Qx = Qx * eye(mpc.nx); end
+if isscalar(Ru), Ru = Ru * eye(mpc.nu); end
+
 mpc.ter_ingredients = 1;
 mpc.xN_ref_is_y = xN_ref_is_y;
 

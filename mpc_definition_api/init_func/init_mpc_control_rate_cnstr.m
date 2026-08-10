@@ -32,6 +32,10 @@ arguments
     du_max = [];
 end
 
+if isempty(du_min) && isempty(du_max)
+    return;
+end
+
 mpc.has_du_cnstr = 1;
 mpc.has_du = 1;
 

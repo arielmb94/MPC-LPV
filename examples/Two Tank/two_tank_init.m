@@ -44,7 +44,7 @@ mpc = init_mpc_state_cnstr(mpc,x_min,x_max);
 % Control input constraints
 u_min = 0*ones(mpc.nu,1);
 u_max = 10*ones(mpc.nu,1);
-mpc = init_mpc_u_cnstr(mpc,u_min,u_max);
+mpc = init_mpc_control_cnstr(mpc,u_min,u_max);
 
 % Control inputs variation constraints
 du_min = -0.1*ones(mpc.nu,1);

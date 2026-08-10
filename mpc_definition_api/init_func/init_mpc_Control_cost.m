@@ -44,6 +44,20 @@ arguments
 end
 
 if any(Ru(:))
+
+    validate_matrix(Ru, mpc.nu, mpc.nu, 'Ru', true);
+
+    if isscalar(Ru)
+        Ru = Ru * eye(mpc.nu);
+    elseif size(Ru,1) == 1 && size(Ru,2) == 1
+        Ru_staged = Ru;
+        Ru = zeros(mpc.nu, mpc.nu, size(Ru_staged,3));
+        Ru_eye = eye(mpc.nu);
+        for k = 1:size(Ru_staged,3)
+            Ru(:,:,k) = Ru_staged(1,1,k) * Ru_eye;
+        end
+    end
+
     mpc.quad_control_cost = 1;
 
     mpc.Ru = zeros(mpc.nu,mpc.nu,mpc.N);
@@ -56,6 +70,13 @@ if any(Ru(:))
 end
 
 if any(ru(:))
+
+    validate_column_vector(ru, mpc.nu, 'ru', true);
+
+    if ~isempty(ru) && size(ru,1) == 1
+        ru = ones(mpc.nu, 1) * ru;
+    end
+
     mpc.lin_control_cost = 1;
 
     mpc.ru = zeros(mpc.nu,mpc.N);

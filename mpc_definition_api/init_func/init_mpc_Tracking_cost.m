@@ -32,6 +32,22 @@
 %       mpc = init_mpc_Tracking_cost(mpc, Qe);
 function mpc = init_mpc_Tracking_cost(mpc,Qe)
 
+if isempty(Qe) || ~any(Qe(:))
+    return;
+end
+
+validate_matrix(Qe, mpc.ny, mpc.ny, 'Qe', true);
+if isscalar(Qe)
+    Qe = Qe * eye(mpc.ny);
+elseif size(Qe,1) == 1 && size(Qe,2) == 1
+    Qe_staged = Qe;
+    Qe = zeros(mpc.ny, mpc.ny, size(Qe_staged,3));
+    Qe_eye = eye(mpc.ny);
+    for k = 1:size(Qe_staged,3)
+        Qe(:,:,k) = Qe_staged(1,1,k) * Qe_eye;
+    end
+end
+
 mpc.tracking_cost = 1;
 
 mpc.Qe = zeros(mpc.ny,mpc.ny,mpc.N-1);
