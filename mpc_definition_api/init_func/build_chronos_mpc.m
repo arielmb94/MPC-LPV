@@ -51,6 +51,9 @@ end
     % init costs
     mpc = init_costs(mpc);
 
+    % preallocate fixed-size Riccati workspace for the online Newton solve
+    mpc = preallocate_riccati(mpc);
+
     % compute primal variables vector
     len_d_in = size(d_in,2);
     if ~isempty(d_in) && len_d_in< mpc.N
@@ -151,4 +154,27 @@ end
     u_k_prev = u_k;
 end
 
+end
+
+function mpc = preallocate_riccati(mpc)
+    
+    n_interior = mpc.N-1;
+    mpc.Q_hat_ric = zeros(mpc.nse,mpc.nse,mpc.N);
+    mpc.R_hat_ric = zeros(mpc.nu,mpc.nu,n_interior);
+    mpc.Y_hat_ric = zeros(mpc.nu,mpc.nse,n_interior);
+    mpc.K_ric = zeros(mpc.nu,mpc.nse,n_interior);
+    mpc.d_ric = zeros(mpc.nu,n_interior);
+    mpc.rs_hat_ric = zeros(mpc.nse,mpc.N);
+    mpc.rp_hat_ric = zeros(mpc.nse,n_interior);
+    mpc.ru_hat_ric = zeros(mpc.nu,n_interior);
+
+    mpc.R_hat_ric_0 = zeros(mpc.nu,mpc.nu);
+    mpc.d_ric_0 = zeros(mpc.nu,1);
+    mpc.rp_hat_ric_0 = zeros(mpc.nse,1);
+    mpc.ru_hat_ric_0 = zeros(mpc.nu,1);
+
+    mpc.QA_ric = zeros(mpc.nse,mpc.nse);
+    mpc.QB_ric = zeros(mpc.nse,mpc.nu);
+    mpc.solve_rhs_ric = zeros(mpc.nu,mpc.nse+1);
+    mpc.solve_result_ric = zeros(mpc.nu,mpc.nse+1);
 end

@@ -48,7 +48,7 @@ mpc = init_mpc_state_cnstr(mpc,x_min,x_max,slack_cost,slack_cost);
 % Control input constraints
 u_min = 0;
 u_max = 1;
-mpc = init_mpc_u_cnstr(mpc,u_min,u_max);
+mpc = init_mpc_control_cnstr(mpc,u_min,u_max);
 
 % Control inputs variation constraints
 du_min = -0.1*ones(mpc.nu,1);
