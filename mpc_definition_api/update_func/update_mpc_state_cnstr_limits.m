@@ -34,8 +34,6 @@ if ~isempty(min)
         mpc.s_cnstr.min(:,:) = min(:,1:mpc.N);
     end
 
-    mpc.bi_k(mpc.s_cnstr.min_ineqRow_k,:) = -mpc.s_cnstr.min(:,1:mpc.N-1);
-    mpc.bi_ter(mpc.s_cnstr.min_ineqRow_ter) = -mpc.s_cnstr.min(:,mpc.N);
 end
 
 if ~isempty(max)
@@ -48,8 +46,6 @@ if ~isempty(max)
         mpc.s_cnstr.max(:,:) = max(:,1:mpc.N);
     end
 
-    mpc.bi_k(mpc.s_cnstr.max_ineqRow_k,:) = mpc.s_cnstr.max(:,1:mpc.N-1);
-    mpc.bi_ter(mpc.s_cnstr.max_ineqRow_ter) = mpc.s_cnstr.max(:,mpc.N);
 end
 
 end

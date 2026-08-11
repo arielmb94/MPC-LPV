@@ -112,8 +112,8 @@ if mpc.recompute_cost_hess
     mpc = update_mpc_f0_hess(mpc);
 end
 
-% update b matrix from equality condition
-mpc = update_mpc_beq(mpc,s_prev,u_prev);
+% update dynamics equality RHS
+mpc = update_mpc_beq(mpc,s_prev);
 
 % Set Newton solver condition at start
 continue_Newton = true;

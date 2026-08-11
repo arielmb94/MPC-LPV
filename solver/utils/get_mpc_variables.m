@@ -13,7 +13,7 @@ end
 
 % tracking outputs
 if mpc.ny || mpc.ny_0 || mpc.ny_ter
-    mpc = get_mpc_y(mpc);
+    mpc = get_mpc_y(mpc,s_prev);
 end
 
 % general constraints
