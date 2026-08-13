@@ -145,7 +145,6 @@ mpc.ng_k = [0 0 0]; % inequalites per horizon step
 mpc.nv_k = [0 0 0]; % soft inequalites per horizon step
 
 mpc.qv = 50; % Slack variable penalty
-mpc.Qv_fctr = 10;
 mpc.v = [];
 mpc.slack_epsilon = 1e-3;
 mpc.eps_thknv = 1e-6;

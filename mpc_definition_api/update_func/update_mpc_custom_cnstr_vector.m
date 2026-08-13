@@ -74,17 +74,22 @@ if ~isempty(Dh)
     else
         mpc.Dh(:,:,:) = Dh(:,:,1:mpc.N-1);
     end
-    % if there is D it means there is k0
-    mpc.Dh_0(:,:) = mpc.Dh(mpc.h_cnstr.rows_k0,:,1); 
+    if mpc.h_cnstr.use_k0
+        mpc.Dh_0(:,:) = mpc.Dh(mpc.h_cnstr.rows_k0,:,1);
+    end
 
     if mpc.h_cnstr.min_limit
-        mpc.Ai_0(mpc.h_cnstr.min_ineqRow_0,:) = -mpc.Dh_0;
+        if mpc.h_cnstr.use_k0
+            mpc.Ai_0(mpc.h_cnstr.min_ineqRow_0,:) = -mpc.Dh_0;
+        end
         for k = 1:mpc.N-1
             mpc.Ai_k(mpc.h_cnstr.min_ineqRow_k,mpc.u_col,k) = -mpc.Dh(:,:,k);
         end 
     end
     if mpc.h_cnstr.max_limit
-        mpc.Ai_0(mpc.h_cnstr.max_ineqRow_0,:) = mpc.Dh_0;
+        if mpc.h_cnstr.use_k0
+            mpc.Ai_0(mpc.h_cnstr.max_ineqRow_0,:) = mpc.Dh_0;
+        end
         for k = 1:mpc.N-1
             mpc.Ai_k(mpc.h_cnstr.max_ineqRow_k,mpc.u_col,k) = mpc.Dh(:,:,k);
         end 

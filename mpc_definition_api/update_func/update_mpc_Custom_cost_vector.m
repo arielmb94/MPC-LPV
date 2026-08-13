@@ -67,10 +67,10 @@ if ~isempty(Dz)
     else
         mpc.Dz(:,:,:) = Dz(:,:,1:mpc.N-1);
     end
-    % if there is Dz it means there is k0
-    mpc.Dz_0(:,:) = mpc.Dz(mpc.z_rows_k0,:,1);
-
-    mpc.grad_z_0(:,:) = mpc.Dz_0';
+    if mpc.z_use_k0
+        mpc.Dz_0(:,:) = mpc.Dz(mpc.z_rows_k0,:,1);
+        mpc.grad_z_0(:,:) = mpc.Dz_0';
+    end
 end
 
 if ~isempty(Dsuz)

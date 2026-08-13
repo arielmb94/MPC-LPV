@@ -34,7 +34,7 @@
 %       mpc = update_mpc_output_vector(mpc, C, D, []);
 function mpc = update_mpc_output_vector(mpc,C,D,Dd)
 
-mpc.update_tracking = 1;
+mpc.update_tracking = mpc.tracking_cost;
 update_grad = 0;
 
 if ~isempty(C)
@@ -50,7 +50,7 @@ if ~isempty(C)
     end
     if mpc.y_use_k0, mpc.C_0(:,:) = mpc.C(mpc.y_rows_k0,:,1); end
 
-    if mpc.y_use_ter
+    if mpc.tracking_cost && mpc.y_use_ter
         mpc.grad_err_ter(:,:) = -mpc.C_ter';
     end
 
@@ -84,20 +84,26 @@ if ~isempty(D)
     else
         mpc.D(:,:,:) = D(:,:,1:mpc.N-1);
     end
-    % if there is D it means there is k0
-    mpc.D_0(:,:) = mpc.D(mpc.y_rows_k0,:,1);
-
-    mpc.grad_err_0(:,:) = -mpc.D_0';
+    if mpc.y_use_k0
+        mpc.D_0(:,:) = mpc.D(mpc.y_rows_k0,:,1);
+        if mpc.tracking_cost
+            mpc.grad_err_0(:,:) = -mpc.D_0';
+        end
+    end
 
     if mpc.has_y_cnstr
         if mpc.y_cnstr.min_limit
-            mpc.Ai_0(mpc.y_cnstr.min_ineqRow_0,:) = -mpc.D_0;
+            if mpc.y_cnstr.use_k0
+                mpc.Ai_0(mpc.y_cnstr.min_ineqRow_0,:) = -mpc.D_0;
+            end
             for k = 1:mpc.N-1
                 mpc.Ai_k(mpc.y_cnstr.min_ineqRow_k,mpc.u_col,k) = -mpc.D(:,:,k);
             end
         end
         if mpc.y_cnstr.max_limit
-            mpc.Ai_0(mpc.y_cnstr.max_ineqRow_0,:) = mpc.D_0;
+            if mpc.y_cnstr.use_k0
+                mpc.Ai_0(mpc.y_cnstr.max_ineqRow_0,:) = mpc.D_0;
+            end
             for k = 1:mpc.N-1
                 mpc.Ai_k(mpc.y_cnstr.max_ineqRow_k,mpc.u_col,k) = mpc.D(:,:,k);
             end
@@ -117,7 +123,7 @@ if ~isempty(Dd)
     if mpc.y_use_k0, mpc.Dd_0(:,:) = mpc.Dd(mpc.y_rows_k0,:,1); end
 end
 
-if update_grad
+if update_grad && mpc.tracking_cost
     for k = 1:mpc.N-1
         if mpc.y_use_s && mpc.y_use_u
             mpc.grad_err(:,:,k) = [-mpc.C(:,:,k)'; -mpc.D(:,:,k)'];

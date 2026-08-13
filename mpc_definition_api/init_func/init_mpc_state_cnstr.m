@@ -91,7 +91,7 @@ if ~isempty(x_min)
     s_cnstr.qv_min_ter = zeros(mpc.nx, 1);
     if ~isempty(qv_min)
         s_cnstr.qv_min = fill_vec(s_cnstr.qv_min, qv_min, 1);
-        s_cnstr.qv_min_ter = qv_min(:,end);
+        s_cnstr.qv_min_ter = qv_min(:,min(size(qv_min,2),mpc.N));
     end
 else
     s_cnstr.min_limit = 0;
@@ -116,7 +116,7 @@ if ~isempty(x_max)
     s_cnstr.qv_max_ter = zeros(mpc.nx, 1);
     if ~isempty(qv_max)
         s_cnstr.qv_max = fill_vec(s_cnstr.qv_max, qv_max, 1);
-        s_cnstr.qv_max_ter = qv_max(:,end);
+        s_cnstr.qv_max_ter = qv_max(:,min(size(qv_max,2),mpc.N));
     end
 else
     s_cnstr.max_limit = 0;
