@@ -151,8 +151,8 @@ while mpc.eps <= lambda2*0.5 && continue_Newton && iter < mpc.max_iter
     l = 1;
     xhat = x0+l*delta_x_prim;
 
-    feas = all(xhat(mpc.g_index)>mpc.slack_epsilon) &&...
-           all(xhat(mpc.v_index)>mpc.slack_epsilon);
+    feas = all(xhat(mpc.g_index)>0) &&...
+           all(xhat(mpc.v_index)>0);
 
     if feas
         x0 = xhat;
@@ -162,8 +162,8 @@ while mpc.eps <= lambda2*0.5 && continue_Newton && iter < mpc.max_iter
 
             xhat = x0+l*delta_x_prim;
 
-            feas = all(xhat(mpc.g_index)>mpc.slack_epsilon) &&...
-                   all(xhat(mpc.v_index)>mpc.slack_epsilon);
+            feas = all(xhat(mpc.g_index)>0) &&...
+                   all(xhat(mpc.v_index)>0);
         end
         x0 = xhat;
         if l<mpc.min_l
