@@ -351,9 +351,9 @@ mpc.v_0 = v_index_0*0;
 mpc.v_k = v_index_k*0;
 mpc.v_ter = v_index_ter*0;
 
-mpc.rv_0 = v_index_0*0;
-mpc.rv_k = v_index_k*0;
-mpc.rv_ter = v_index_ter*0;
+mpc.rv_v2_0 = v_index_0*0;
+mpc.rv_v2_k = v_index_k*0;
+mpc.rv_v2_ter = v_index_ter*0;
 
 mpc.v2_0 = v_index_0*0;
 mpc.v2_k = v_index_k*0;
