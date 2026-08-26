@@ -1,110 +1,95 @@
-function mpc = reduced_KKT_elements(mpc)
+function [ru_0,rse_k,ru_k,rse_ter,R_0,Q_k,R_k,Y_k,Q_ter,...
+          g2_0,g2_k,g2_ter,v2_0,v2_k,v2_ter,...
+          rv_v2_0,rv_v2_k,rv_v2_ter,ri_0,ri_k,ri_ter,...
+          iS_0,iS_k,iS_ter,...
+          iS_ri_hat_0,iS_ri_hat_k,iS_ri_hat_ter] = reduced_KKT_elements(mpc,...
+                        t,N,nu,nx,R_0,Q_k,R_k,Y_k,Q_ter,...
+                        R_f0_0,Q_f0_k,R_f0_k,Y_f0_k,Q_f0_ter,...
+                        ru_0,rse_k,ru_k,rse_ter,...
+                        grad_u_f0_0,grad_se_f0_k,grad_u_f0_k,grad_se_f0_ter,...
+                        u_cnstr,du_cnstr,s_cnstr,s_col,su_col,ng_k,nv_k,...
+                        g_0,g_k,g_ter,v_0,v_k,v_ter,g2_0,g2_k,g2_ter,v2_0,v2_k,v2_ter,...
+                        rv_v2_0,rv_v2_k,rv_v2_ter,ri_0,ri_k,ri_ter,...
+                        grad_qv_0,grad_qv_k,grad_qv_ter,v_rows_0,v_rows_k,...
+                        iS_0,iS_k,iS_ter,iS_ri_hat_0,iS_ri_hat_k,iS_ri_hat_ter)
+
+% f0 terms
+ru_0 = grad_u_f0_0;
+rse_k = grad_se_f0_k;
+ru_k = grad_u_f0_k;
+rse_ter = grad_se_f0_ter;
+
+R_0 = t * R_f0_0;
+Q_k = t * Q_f0_k;
+R_k = t * R_f0_k;
+Y_k = t * Y_f0_k;
+Q_ter = t * Q_f0_ter;
 %% ri_hat = ri - g^2*(-1/g) + v^2*(t*qv-1/v)
 %  ri_hat = ri + g + t*qv*v^2 - v
 
-
-if mpc.ng_k(1)
-    mpc.ri_hat_0 = mpc.ri_0+mpc.g_0;
-    mpc.g2_0 = mpc.g_0.^2;
-    if mpc.nv_k(1)
-        mpc.v2_0 = mpc.v_0.^2;
+if ng_k(1)
+    ri_0 = ri_0+g_0;
+    g2_0 = g_0.^2;
+    if nv_k(1)
+        v2_0 = v_0.^2;
         % v^2*rv = t*qv*v^2 - v
-        mpc.rv_v2_0 = mpc.t*mpc.grad_qv_0.*mpc.v2_0-mpc.v_0;
-        mpc.ri_hat_0 = mpc.ri_hat_0(mpc.v_rows_0) + mpc.rv_v2_0;
+        rv_v2_0 = t*grad_qv_0.*v2_0-v_0;
+        ri_0(v_rows_0) = ri_0(v_rows_0) + rv_v2_0;
     end
 end
 
-if mpc.ng_k(2)
-    mpc.ri_hat_k = mpc.ri_k+mpc.g_k;
-    mpc.g2_k = mpc.g_k.^2;
-    if mpc.nv_k(2)
-        mpc.v2_k = mpc.v_k.^2;
+if ng_k(2)
+    ri_k = ri_k+g_k;
+    g2_k = g_k.^2;
+    if nv_k(2)
+        v2_k = v_k.^2;
         % v^2*rv = t*qv*v^2 - v
-        mpc.rv_v2_k = mpc.t*mpc.grad_qv_k.*mpc.v2_k-mpc.v_k;
-        mpc.ri_hat_k(mpc.v_rows_k,:) = mpc.ri_hat_k(mpc.v_rows_k,:) + mpc.rv_v2_k;
+        rv_v2_k = t*grad_qv_k.*v2_k-v_k;
+        ri_k(v_rows_k,:) = ri_k(v_rows_k,:) + rv_v2_k;
     end
 end
 
-if mpc.ng_k(3)
-    mpc.g2_ter = mpc.g_ter.^2;
-    mpc.v2_ter = mpc.v_ter.^2;
+if ng_k(3)
+    g2_ter = g_ter.^2;
+    v2_ter = v_ter.^2;
     % v^2*rv = t*qv*v^2 - v
-    mpc.rv_v2_ter = mpc.t*mpc.grad_qv_ter.*mpc.v2_ter-mpc.v_ter;
-    mpc.ri_hat_ter = mpc.ri_ter+mpc.g_ter + mpc.rv_v2_ter;
+    rv_v2_ter = t*grad_qv_ter.*v2_ter-v_ter;
+    ri_ter = ri_ter+g_ter + rv_v2_ter;
 end
 
 %% S = g^2 + v^2
 
-if mpc.ng_k(1)
-    mpc.iS_0 = mpc.g2_0;
-    if mpc.nv_k(1), mpc.iS_0(mpc.v_rows_0) = mpc.iS_0(mpc.v_rows_0) + mpc.v2_0; end
-    mpc.iS_0  = 1./mpc.iS_0;
-    mpc.iS_ri_hat_0 = mpc.iS_0.*mpc.ri_hat_0;
+if ng_k(1)
+    iS_0 = g2_0;
+    if nv_k(1), iS_0(v_rows_0) = iS_0(v_rows_0) + v2_0; end
+    iS_0  = 1./iS_0;
+    iS_ri_hat_0 = iS_0.*ri_0;
 end
 
-if mpc.ng_k(2)
-    mpc.iS_k = mpc.g2_k;
-    if mpc.nv_k(2), mpc.iS_k(mpc.v_rows_k,:) = mpc.iS_k(mpc.v_rows_k,:) + mpc.v2_k; end
-    mpc.iS_k  = 1./mpc.iS_k;
-    mpc.iS_ri_hat_k = mpc.iS_k.*mpc.ri_hat_k;
+if ng_k(2)
+    iS_k = g2_k;
+    if nv_k(2), iS_k(v_rows_k,:) = iS_k(v_rows_k,:) + v2_k; end
+    iS_k  = 1./iS_k;
+    iS_ri_hat_k = iS_k.*ri_k;
 end
 
-if mpc.ng_k(3)
-    mpc.iS_ter = mpc.g2_ter;
-    if mpc.nv_k(3), mpc.iS_ter = mpc.iS_ter + mpc.v2_ter; end
-    mpc.iS_ter  = 1./mpc.iS_ter;
-    mpc.iS_ri_hat_ter = mpc.iS_ter.*mpc.ri_hat_ter;
+if ng_k(3)
+    iS_ter = g2_ter;
+    if nv_k(3), iS_ter = iS_ter + v2_ter; end
+    iS_ter  = 1./iS_ter;
+    iS_ri_hat_ter = iS_ter.*ri_ter;
 end
 
-%% rx_hat
-
-% Cache the arrays used by the constraint-major updates.
-if mpc.ng_k(1)
-    iS_0 = mpc.iS_0;
-    iS_ri_hat_0 = mpc.iS_ri_hat_0;
-end
-if mpc.ng_k(2)
-    iS_k = mpc.iS_k;
-    iS_ri_hat_k = mpc.iS_ri_hat_k;
-end
-if mpc.ng_k(3)
-    iS_ter = mpc.iS_ter;
-    iS_ri_hat_ter = mpc.iS_ri_hat_ter;
-end
-s_col = mpc.s_col;
-su_col = mpc.su_col;
-
-% k = 0
-%mpc.iS_ri_hat_0 = iS_0.*ri_hat_0;
-
-ru_hat_0 = mpc.ru_0;
-
-R_0 = mpc.t*mpc.H_f0_0;
-
-% k = 1,...,N-1
-%mpc.iS_ri_hat_k = iS_k.*ri_hat_k;
-
-rse_hat_k = mpc.rse_k;
-ru_hat_k = mpc.ru_k;
-
-R_k = mpc.t*mpc.H_f0_k(mpc.u_col,mpc.u_col,:);
-Q_k = mpc.t*mpc.H_f0_k(mpc.se_col,mpc.se_col,:);
-Y_k = mpc.t*mpc.H_f0_k(mpc.u_col,mpc.se_col,:);
-
-% k = N
-%mpc.iS_ri_hat_ter = iS_ter.*ri_hat_ter;
-
-rse_hat_ter = mpc.rse_ter;
-Q_ter = mpc.t*mpc.H_f0_ter;
+%% rx_hat = t*grad_x + Ai*S^-1*ri_hat
 
 if mpc.has_u_cnstr
-    if mpc.u_cnstr.min_limit && mpc.u_cnstr.max_limit
+    if u_cnstr.min_limit && u_cnstr.max_limit
 
-        row_min = mpc.u_cnstr.min_ineqRow_0;
-        row_max = mpc.u_cnstr.max_ineqRow_0;
+        row_min = u_cnstr.min_ineqRow_0;
+        row_max = u_cnstr.max_ineqRow_0;
 
         % k = 0
-        for i = 1:mpc.nu
+        for i = 1:nu
             row_min_i = row_min(i);
             row_max_i = row_max(i);
 
@@ -113,18 +98,18 @@ if mpc.has_u_cnstr
             iS_ri_hat_min_i = iS_ri_hat_0(row_min_i);
             iS_ri_hat_max_i = iS_ri_hat_0(row_max_i);
 
-            ru_hat_0(i) = ru_hat_0(i) + ...
+            ru_0(i) = ru_0(i) + ...
                 iS_ri_hat_max_i - iS_ri_hat_min_i;
             R_0(i,i) = R_0(i,i) + iS_min_i + iS_max_i;
 
         end
 
         % k = 1,...,N-1
-        row_min = mpc.u_cnstr.min_ineqRow_k;
-        row_max = mpc.u_cnstr.max_ineqRow_k;
+        row_min = u_cnstr.min_ineqRow_k;
+        row_max = u_cnstr.max_ineqRow_k;
 
-        for k = 1:mpc.N-1
-            for i = 1:mpc.nu
+        for k = 1:N-1
+            for i = 1:nu
                 row_min_i = row_min(i);
                 row_max_i = row_max(i);
 
@@ -133,34 +118,34 @@ if mpc.has_u_cnstr
                 iS_ri_hat_min_i = iS_ri_hat_k(row_min_i,k);
                 iS_ri_hat_max_i = iS_ri_hat_k(row_max_i,k);
 
-                ru_hat_k(i,k) = ru_hat_k(i,k) + ...
+                ru_k(i,k) = ru_k(i,k) + ...
                     iS_ri_hat_max_i - iS_ri_hat_min_i;
                 R_k(i,i,k) = R_k(i,i,k) + iS_min_i + iS_max_i;
 
             end
         end
-    elseif mpc.u_cnstr.min_limit
+    elseif u_cnstr.min_limit
         
         % k = 0
-        row = mpc.u_cnstr.min_ineqRow_0;
+        row = u_cnstr.min_ineqRow_0;
 
-        for i = 1:mpc.nu
+        for i = 1:nu
             row_i = row(i);
 
             iS_i = iS_0(row_i);
             iS_ri_hat_i = iS_ri_hat_0(row_i);
 
             % A_i = -I <-- u
-            ru_hat_0(i) = ru_hat_0(i) - iS_ri_hat_i;
+            ru_0(i) = ru_0(i) - iS_ri_hat_i;
             R_0(i,i) =  R_0(i,i) + iS_i;
 
         end
 
         % k = 1,...,N-1
-        row = mpc.u_cnstr.min_ineqRow_k;
+        row = u_cnstr.min_ineqRow_k;
 
-        for k = 1:mpc.N-1
-            for i = 1:mpc.nu
+        for k = 1:N-1
+            for i = 1:nu
 
                 row_i = row(i);
 
@@ -168,34 +153,34 @@ if mpc.has_u_cnstr
                 iS_ri_hat_i = iS_ri_hat_k(row_i,k);
 
                 % A_i = -I <-- u
-                ru_hat_k(i,k) = ru_hat_k(i,k) - iS_ri_hat_i;
+                ru_k(i,k) = ru_k(i,k) - iS_ri_hat_i;
 
                 R_k(i,i,k) =  R_k(i,i,k) + iS_i;
 
             end
         end
-    elseif mpc.u_cnstr.max_limit
+    elseif u_cnstr.max_limit
         
         % k = 0
-        row = mpc.u_cnstr.max_ineqRow_0;
+        row = u_cnstr.max_ineqRow_0;
 
-        for i = 1:mpc.nu
+        for i = 1:nu
             row_i = row(i);
 
             iS_i = iS_0(row_i);
             iS_ri_hat_i = iS_ri_hat_0(row_i);
 
             % A_i = I <-- u
-            ru_hat_0(i) = ru_hat_0(i) + iS_ri_hat_i;
+            ru_0(i) = ru_0(i) + iS_ri_hat_i;
             R_0(i,i) =  R_0(i,i) + iS_i;
 
         end
 
         % k = 1,...,N-1
-        row = mpc.u_cnstr.max_ineqRow_k;
+        row = u_cnstr.max_ineqRow_k;
 
-        for k = 1:mpc.N-1
-            for i = 1:mpc.nu
+        for k = 1:N-1
+            for i = 1:nu
 
                 row_i = row(i);
 
@@ -203,7 +188,7 @@ if mpc.has_u_cnstr
                 iS_ri_hat_i = iS_ri_hat_k(row_i,k);
 
                 % A_i = I <-- u
-                ru_hat_k(i,k) = ru_hat_k(i,k) + iS_ri_hat_i;
+                ru_k(i,k) = ru_k(i,k) + iS_ri_hat_i;
 
                 R_k(i,i,k) =  R_k(i,i,k) + iS_i;
 
@@ -213,13 +198,13 @@ if mpc.has_u_cnstr
 end
 
 if mpc.has_du_cnstr
-    if mpc.du_cnstr.min_limit && mpc.du_cnstr.max_limit
+    if du_cnstr.min_limit && du_cnstr.max_limit
 
-        row_min = mpc.du_cnstr.min_ineqRow_0;
-        row_max = mpc.du_cnstr.max_ineqRow_0;
+        row_min = du_cnstr.min_ineqRow_0;
+        row_max = du_cnstr.max_ineqRow_0;
 
         % k = 0
-        for i = 1:mpc.nu
+        for i = 1:nu
             row_min_i = row_min(i);
             row_max_i = row_max(i);
 
@@ -228,18 +213,18 @@ if mpc.has_du_cnstr
             iS_ri_hat_min_i = iS_ri_hat_0(row_min_i);
             iS_ri_hat_max_i = iS_ri_hat_0(row_max_i);
 
-            ru_hat_0(i) = ru_hat_0(i) + ...
+            ru_0(i) = ru_0(i) + ...
                 iS_ri_hat_max_i - iS_ri_hat_min_i;
             R_0(i,i) = R_0(i,i) + iS_min_i + iS_max_i;
 
         end
 
         % k = 1,...,N-1
-        row_min = mpc.du_cnstr.min_ineqRow_k;
-        row_max = mpc.du_cnstr.max_ineqRow_k;
+        row_min = du_cnstr.min_ineqRow_k;
+        row_max = du_cnstr.max_ineqRow_k;
 
-        for k = 1:mpc.N-1
-            for i = 1:mpc.nu
+        for k = 1:N-1
+            for i = 1:nu
                 su_i = su_col(i);
                 row_min_i = row_min(i);
                 row_max_i = row_max(i);
@@ -252,9 +237,9 @@ if mpc.has_du_cnstr
                 iS_ri_hat_delta_i = iS_ri_hat_max_i - iS_ri_hat_min_i;
                 iS_sum_i = iS_min_i + iS_max_i;
 
-                rse_hat_k(su_i,k) = rse_hat_k(su_i,k) - ...
+                rse_k(su_i,k) = rse_k(su_i,k) - ...
                     iS_ri_hat_delta_i;
-                ru_hat_k(i,k) = ru_hat_k(i,k) + iS_ri_hat_delta_i;
+                ru_k(i,k) = ru_k(i,k) + iS_ri_hat_delta_i;
 
                 Q_k(su_i,su_i,k) = Q_k(su_i,su_i,k) + iS_sum_i;
                 R_k(i,i,k) = R_k(i,i,k) + iS_sum_i;
@@ -262,28 +247,28 @@ if mpc.has_du_cnstr
 
             end
         end
-    elseif mpc.du_cnstr.min_limit
+    elseif du_cnstr.min_limit
         
         % k = 0
-        row = mpc.du_cnstr.min_ineqRow_0;
+        row = du_cnstr.min_ineqRow_0;
 
-        for i = 1:mpc.nu
+        for i = 1:nu
             row_i = row(i);
 
             iS_i = iS_0(row_i);
             iS_ri_hat_i = iS_ri_hat_0(row_i);
 
             % A_i = -I <-- u
-            ru_hat_0(i) = ru_hat_0(i) - iS_ri_hat_i;
+            ru_0(i) = ru_0(i) - iS_ri_hat_i;
             R_0(i,i) =  R_0(i,i) + iS_i;
 
         end
 
         % k = 1,...,N-1
-        row = mpc.du_cnstr.min_ineqRow_k;
+        row = du_cnstr.min_ineqRow_k;
 
-        for k = 1:mpc.N-1
-            for i = 1:mpc.nu
+        for k = 1:N-1
+            for i = 1:nu
 
                 su_i = su_col(i);
                 row_i = row(i);
@@ -292,8 +277,8 @@ if mpc.has_du_cnstr
                 iS_ri_hat_i = iS_ri_hat_k(row_i,k);
 
                 % A_i = [I -I] <-- [su u]^T
-                rse_hat_k(su_i,k) = rse_hat_k(su_i,k) + iS_ri_hat_i;
-                ru_hat_k(i,k) = ru_hat_k(i,k) - iS_ri_hat_i;
+                rse_k(su_i,k) = rse_k(su_i,k) + iS_ri_hat_i;
+                ru_k(i,k) = ru_k(i,k) - iS_ri_hat_i;
 
                 Q_k(su_i,su_i,k) = Q_k(su_i,su_i,k) + iS_i;
                 R_k(i,i,k) =  R_k(i,i,k) + iS_i;
@@ -301,28 +286,28 @@ if mpc.has_du_cnstr
 
             end
         end
-    elseif mpc.du_cnstr.max_limit
+    elseif du_cnstr.max_limit
         
         % k = 0
-        row = mpc.du_cnstr.max_ineqRow_0;
+        row = du_cnstr.max_ineqRow_0;
 
-        for i = 1:mpc.nu
+        for i = 1:nu
             row_i = row(i);
 
             iS_i = iS_0(row_i);
             iS_ri_hat_i = iS_ri_hat_0(row_i);
 
             % A_i = I <-- u
-            ru_hat_0(i) = ru_hat_0(i) + iS_ri_hat_i;
+            ru_0(i) = ru_0(i) + iS_ri_hat_i;
             R_0(i,i) =  R_0(i,i) + iS_i;
 
         end
 
         % k = 1,...,N-1
-        row = mpc.du_cnstr.max_ineqRow_k;
+        row = du_cnstr.max_ineqRow_k;
 
-        for k = 1:mpc.N-1
-            for i = 1:mpc.nu
+        for k = 1:N-1
+            for i = 1:nu
 
                 su_i = su_col(i);
                 row_i = row(i);
@@ -331,8 +316,8 @@ if mpc.has_du_cnstr
                 iS_ri_hat_i = iS_ri_hat_k(row_i,k);
 
                 % A_i = [-I I] <-- [su u]^T
-                rse_hat_k(su_i,k) = rse_hat_k(su_i,k) - iS_ri_hat_i;
-                ru_hat_k(i,k) = ru_hat_k(i,k) + iS_ri_hat_i;
+                rse_k(su_i,k) = rse_k(su_i,k) - iS_ri_hat_i;
+                ru_k(i,k) = ru_k(i,k) + iS_ri_hat_i;
 
                 Q_k(su_i,su_i,k) = Q_k(su_i,su_i,k) + iS_i;
                 R_k(i,i,k) =  R_k(i,i,k) + iS_i;
@@ -344,14 +329,14 @@ if mpc.has_du_cnstr
 end
 
 if mpc.has_s_cnstr
-    if mpc.s_cnstr.min_limit && mpc.s_cnstr.max_limit
+    if s_cnstr.min_limit && s_cnstr.max_limit
 
-        row_min = mpc.s_cnstr.min_ineqRow_k;
-        row_max = mpc.s_cnstr.max_ineqRow_k;
+        row_min = s_cnstr.min_ineqRow_k;
+        row_max = s_cnstr.max_ineqRow_k;
 
         % k = 1,...,N-1
-        for k = 1:mpc.N-1
-            for i = 1:mpc.nx
+        for k = 1:N-1
+            for i = 1:nx
                 s_i = s_col(i);
                 row_min_i = row_min(i);
                 row_max_i = row_max(i);
@@ -361,7 +346,7 @@ if mpc.has_s_cnstr
                 iS_ri_hat_min_i = iS_ri_hat_k(row_min_i,k);
                 iS_ri_hat_max_i = iS_ri_hat_k(row_max_i,k);
 
-                rse_hat_k(s_i,k) = rse_hat_k(s_i,k) + ...
+                rse_k(s_i,k) = rse_k(s_i,k) + ...
                     iS_ri_hat_max_i - iS_ri_hat_min_i;
                 Q_k(s_i,s_i,k) = Q_k(s_i,s_i,k) + ...
                     iS_min_i + iS_max_i;
@@ -370,10 +355,10 @@ if mpc.has_s_cnstr
         end
 
         % k = N
-        row_min = mpc.s_cnstr.min_ineqRow_ter;
-        row_max = mpc.s_cnstr.max_ineqRow_ter;
+        row_min = s_cnstr.min_ineqRow_ter;
+        row_max = s_cnstr.max_ineqRow_ter;
 
-        for i = 1:mpc.nx
+        for i = 1:nx
             row_min_i = row_min(i);
             row_max_i = row_max(i);
 
@@ -382,18 +367,18 @@ if mpc.has_s_cnstr
             iS_ri_hat_min_i = iS_ri_hat_ter(row_min_i);
             iS_ri_hat_max_i = iS_ri_hat_ter(row_max_i);
 
-            rse_hat_ter(i) = rse_hat_ter(i) + ...
+            rse_ter(i) = rse_ter(i) + ...
                 iS_ri_hat_max_i - iS_ri_hat_min_i;
             Q_ter(i,i) = Q_ter(i,i) + iS_min_i + iS_max_i;
 
         end
-    elseif mpc.s_cnstr.min_limit
+    elseif s_cnstr.min_limit
 
         % k = 1,...,N-1
-        row = mpc.s_cnstr.min_ineqRow_k;
+        row = s_cnstr.min_ineqRow_k;
 
-        for k = 1:mpc.N-1
-            for i = 1:mpc.nx
+        for k = 1:N-1
+            for i = 1:nx
 
                 s_i = s_col(i);
                 row_i = row(i);
@@ -402,7 +387,7 @@ if mpc.has_s_cnstr
                 iS_ri_hat_i = iS_ri_hat_k(row_i,k);
 
                 % A_i = -I <-- s
-                rse_hat_k(s_i,k) = rse_hat_k(s_i,k) - iS_ri_hat_i;
+                rse_k(s_i,k) = rse_k(s_i,k) - iS_ri_hat_i;
 
                 Q_k(s_i,s_i,k) = Q_k(s_i,s_i,k) + iS_i;
 
@@ -410,26 +395,26 @@ if mpc.has_s_cnstr
         end
 
         % k = N
-        row = mpc.s_cnstr.min_ineqRow_ter;
+        row = s_cnstr.min_ineqRow_ter;
 
-        for i = 1:mpc.nx
+        for i = 1:nx
             row_i = row(i);
 
             iS_i = iS_ter(row_i);
             iS_ri_hat_i = iS_ri_hat_ter(row_i);
 
             % A_i = -I <-- s
-            rse_hat_ter(i) = rse_hat_ter(i) - iS_ri_hat_i;
+            rse_ter(i) = rse_ter(i) - iS_ri_hat_i;
             Q_ter(i,i) =  Q_ter(i,i) + iS_i;
 
         end
-    elseif mpc.s_cnstr.max_limit
+    elseif s_cnstr.max_limit
 
         % k = 1,...,N-1
-        row = mpc.s_cnstr.max_ineqRow_k;
+        row = s_cnstr.max_ineqRow_k;
 
-        for k = 1:mpc.N-1
-            for i = 1:mpc.nx
+        for k = 1:N-1
+            for i = 1:nx
 
                 s_i = s_col(i);
                 row_i = row(i);
@@ -438,7 +423,7 @@ if mpc.has_s_cnstr
                 iS_ri_hat_i = iS_ri_hat_k(row_i,k);
 
                 % A_i = I <-- s
-                rse_hat_k(s_i,k) = rse_hat_k(s_i,k) + iS_ri_hat_i;
+                rse_k(s_i,k) = rse_k(s_i,k) + iS_ri_hat_i;
 
                 Q_k(s_i,s_i,k) = Q_k(s_i,s_i,k) + iS_i;
 
@@ -446,16 +431,16 @@ if mpc.has_s_cnstr
         end
 
         % k = N
-        row = mpc.s_cnstr.max_ineqRow_ter;
+        row = s_cnstr.max_ineqRow_ter;
 
-        for i = 1:mpc.nx
+        for i = 1:nx
             row_i = row(i);
 
             iS_i = iS_ter(row_i);
             iS_ri_hat_i = iS_ri_hat_ter(row_i);
 
             % A_i = I <-- s
-            rse_hat_ter(i) = rse_hat_ter(i) + iS_ri_hat_i;
+            rse_ter(i) = rse_ter(i) + iS_ri_hat_i;
             Q_ter(i,i) =  Q_ter(i,i) + iS_i;
 
         end
@@ -463,69 +448,60 @@ if mpc.has_s_cnstr
 end
 
 
-mpc.ru_hat_0 = ru_hat_0;
-mpc.R_0 = R_0;
-mpc.rse_hat_k = rse_hat_k;
-mpc.ru_hat_k = ru_hat_k;
-mpc.R_k = R_k;
-mpc.Q_k = Q_k;
-mpc.Y_k = Y_k;
-mpc.rse_hat_ter = rse_hat_ter;
-mpc.Q_ter = Q_ter;
-% if mpc.has_y_cnstr && mpc.y_use_k0
-%     if mpc.y_cnstr.min_limit
-%         row = mpc.y_cnstr.min_ineqRow_0;
-%         mpc.ru_hat_0 = mpc.ru_hat_0 - mpc.D_0'*mpc.iS_ri_hat_0(row);
+% if has_y_cnstr && y_use_k0
+%     if y_cnstr.min_limit
+%         row = y_cnstr.min_ineqRow_0;
+%         ru_hat_0 = ru_hat_0 - D_0'*iS_ri_hat_0(row);
 %     end
-%     if mpc.y_cnstr.max_limit
-%         row = mpc.y_cnstr.max_ineqRow_0;
-%         mpc.ru_hat_0 = mpc.ru_hat_0 + mpc.D_0'*mpc.iS_ri_hat_0(row);
+%     if y_cnstr.max_limit
+%         row = y_cnstr.max_ineqRow_0;
+%         ru_hat_0 = ru_hat_0 + D_0'*iS_ri_hat_0(row);
 %     end
 % end
 % 
-% if mpc.has_h_cnstr 
-%     if mpc.h_cnstr.min_limit && mpc.h_cnstr.use_k0
-%         row = mpc.h_cnstr.min_ineqRow_0;
-%         mpc.ru_hat_0 = mpc.ru_hat_0 - mpc.Dh_0'*mpc.iS_ri_hat_0(row);
+% if has_h_cnstr
+%     if h_cnstr.min_limit && h_cnstr.use_k0
+%         row = h_cnstr.min_ineqRow_0;
+%         ru_hat_0 = ru_hat_0 - Dh_0'*iS_ri_hat_0(row);
 %     end
-%     if mpc.h_cnstr.max_limit && mpc.h_cnstr.use_k0
-%         row = mpc.h_cnstr.max_ineqRow_0;
-%         mpc.ru_hat_0 = mpc.ru_hat_0 + mpc.Dh_0'*mpc.iS_ri_hat_0(row);
+%     if h_cnstr.max_limit && h_cnstr.use_k0
+%         row = h_cnstr.max_ineqRow_0;
+%         ru_hat_0 = ru_hat_0 + Dh_0'*iS_ri_hat_0(row);
 %     end
 % end
 
 
 
 % 
-% for k = 1:mpc.N-1
+% for k = 1:N-1
 % 
-%     mpc.rse_hat_k(:,k) = mpc.rse_k(:,k) + mpc.Ai_k(:,mpc.se_col,k)'*mpc.iS_ri_hat_k(:,k);
-%     mpc.ru_hat_k(:,k) = mpc.ru_k(:,k) + mpc.Ai_k(:,mpc.u_col,k)'*mpc.iS_ri_hat_k(:,k);
+%     rse_hat_k(:,k) = rse_k(:,k) + Ai_k(:,se_col,k)'*iS_ri_hat_k(:,k);
+%     ru_hat_k(:,k) = ru_k(:,k) + Ai_k(:,u_col,k)'*iS_ri_hat_k(:,k);
 % end
 
-%mpc.rse_hat_ter = mpc.rse_ter + mpc.Ai_ter'*mpc.iS_ri_hat_ter;
+%rse_hat_ter = rse_ter + Ai_ter'*iS_ri_hat_ter;
 
 %% H = Hess(f0) + Ai'*(S^-1)*Ai
 
-% mpc.iS_Ai_0 = mpc.iS_0.*mpc.Ai_0;
-% %mpc.R_0(:,:) = mpc.t*mpc.H_f0_0 + mpc.Ai_0'*mpc.iS_Ai_0;
+% iS_Ai_0 = iS_0.*Ai_0;
+% %R_0(:,:) = t*H_f0_0 + Ai_0'*iS_Ai_0;
 % 
-% for k = 1:mpc.N-1
+% for k = 1:N-1
 % 
-%     mpc.iS_Ai_k(:,:,k) = mpc.iS_k(:,k).*mpc.Ai_k(:,:,k);
+%     iS_Ai_k(:,:,k) = iS_k(:,k).*Ai_k(:,:,k);
 % 
-% %     mpc.H_k(:,:,k) = mpc.t*mpc.H_f0_k(:,:,k) + ...
-% %                         mpc.Ai_k(:,:,k)'*mpc.iS_Ai_k(:,:,k);
+% %     H_k(:,:,k) = t*H_f0_k(:,:,k) + ...
+% %                         Ai_k(:,:,k)'*iS_Ai_k(:,:,k);
 % % 
-% %     mpc.Q_k(:,:,k) = mpc.H_k(mpc.se_col,mpc.se_col,k);
-% %     mpc.R_k(:,:,k) = mpc.H_k(mpc.u_col,mpc.u_col,k);
-% %     mpc.Y_k(:,:,k) = mpc.H_k(mpc.u_col,mpc.se_col,k);
+% %     Q_k(:,:,k) = H_k(se_col,se_col,k);
+% %     R_k(:,:,k) = H_k(u_col,u_col,k);
+% %     Y_k(:,:,k) = H_k(u_col,se_col,k);
 % end
 % 
-% %mpc.Q_ter(:,:) = mpc.t*mpc.H_f0_ter;
-% if mpc.ng_k(3)
-%     mpc.iS_Ai_ter = mpc.iS_ter.*mpc.Ai_ter; 
-%     %mpc.Q_ter(:,:) = mpc.Q_ter(:,:) + mpc.Ai_ter'*mpc.iS_Ai_ter;
+% %Q_ter(:,:) = t*H_f0_ter;
+% if ng_k(3)
+%     iS_Ai_ter = iS_ter.*Ai_ter;
+%     %Q_ter(:,:) = Q_ter(:,:) + Ai_ter'*iS_Ai_ter;
 % end
 
 end

@@ -35,14 +35,13 @@ mpc.ri_hat_0 = zeros(mpc.ng_k(1),1);
 mpc.ri_hat_k = zeros(mpc.ng_k(2),mpc.N-1);
 mpc.ri_hat_ter = zeros(mpc.ng_k(3),1);
 
-mpc.S_0 = zeros(mpc.ng_k(1),1);
-mpc.S_k = zeros(mpc.ng_k(2),mpc.N-1);
-mpc.S_ter = zeros(mpc.ng_k(3),1);
-
 mpc.iS_0 = zeros(mpc.ng_k(1),1);
 mpc.iS_k = zeros(mpc.ng_k(2),mpc.N-1);
 mpc.iS_ter = zeros(mpc.ng_k(3),1);
 
+mpc.iS_ri_hat_0 = zeros(mpc.ng_k(1),1);
+mpc.iS_ri_hat_k = zeros(mpc.ng_k(2),mpc.N-1);
+mpc.iS_ri_hat_ter = zeros(mpc.ng_k(3),1);
 
 %% k = 0
 v_rows_0 = [];

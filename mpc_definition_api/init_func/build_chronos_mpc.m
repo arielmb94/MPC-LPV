@@ -63,10 +63,11 @@ end
     end 
 
     x0 = rollstates(mpc,s_prev,u_prev,x_ref,mpc.d);
-    mpc = get_mpc_variables(mpc,x0,s_prev,u_prev);
+    
 
     x0(mpc.g_index) = 1/mpc.t;
     x0(mpc.v_index) = 1/mpc.t;
+    mpc = get_mpc_variables(mpc,x0,s_prev,u_prev);
     mpc.x0 = x0;
     
 end
@@ -159,19 +160,19 @@ end
 function mpc = preallocate_riccati(mpc)
     
     n_interior = mpc.N-1;
-    mpc.Q_hat_ric = zeros(mpc.nse,mpc.nse,mpc.N);
-    mpc.R_hat_ric = zeros(mpc.nu,mpc.nu,n_interior);
-    mpc.Y_hat_ric = zeros(mpc.nu,mpc.nse,n_interior);
+    mpc.Q_hat = zeros(mpc.nse,mpc.nse,mpc.N);
+    mpc.R_hat = zeros(mpc.nu,mpc.nu,n_interior);
+    mpc.Y_hat = zeros(mpc.nu,mpc.nse,n_interior);
     mpc.K_ric = zeros(mpc.nu,mpc.nse,n_interior);
     mpc.d_ric = zeros(mpc.nu,n_interior);
-    mpc.rs_hat_ric = zeros(mpc.nse,mpc.N);
-    mpc.rp_hat_ric = zeros(mpc.nse,n_interior);
-    mpc.ru_hat_ric = zeros(mpc.nu,n_interior);
+    mpc.rs_hat = zeros(mpc.nse,mpc.N);
+    mpc.rp_hat = zeros(mpc.nse,n_interior);
+    mpc.ru_hat = zeros(mpc.nu,n_interior);
 
-    mpc.R_hat_ric_0 = zeros(mpc.nu,mpc.nu);
+    mpc.R_hat_0 = zeros(mpc.nu,mpc.nu);
     mpc.d_ric_0 = zeros(mpc.nu,1);
-    mpc.rp_hat_ric_0 = zeros(mpc.nse,1);
-    mpc.ru_hat_ric_0 = zeros(mpc.nu,1);
+    mpc.rp_hat_0 = zeros(mpc.nse,1);
+    mpc.ru_hat_0 = zeros(mpc.nu,1);
 
     mpc.QA_ric = zeros(mpc.nse,mpc.nse);
     mpc.QB_ric = zeros(mpc.nse,mpc.nu);
