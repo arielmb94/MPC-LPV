@@ -11,7 +11,9 @@ function [ru_0,rse_k,ru_k,rse_ter,R_0,Q_k,R_k,Y_k,Q_ter,...
                         g_0,g_k,g_ter,v_0,v_k,v_ter,g2_0,g2_k,g2_ter,v2_0,v2_k,v2_ter,...
                         rv_v2_0,rv_v2_k,rv_v2_ter,ri_0,ri_k,ri_ter,...
                         grad_qv_0,grad_qv_k,grad_qv_ter,v_rows_0,v_rows_k,...
-                        iS_0,iS_k,iS_ter,iS_ri_hat_0,iS_ri_hat_k,iS_ri_hat_ter)
+                        iS_0,iS_k,iS_ter,iS_ri_hat_0,iS_ri_hat_k,iS_ri_hat_ter,...
+                        y_cnstr,D_0,C,D,C_ter,...
+                        h_cnstr,Dh_0,Ch,Dsuh,Dh,Ch_ter)
 
 % f0 terms
 ru_0 = grad_u_f0_0;
@@ -80,7 +82,7 @@ if ng_k(3)
     iS_ri_hat_ter = iS_ter.*ri_ter;
 end
 
-%% rx_hat = t*grad_x + Ai*S^-1*ri_hat
+%% rx_hat = t*grad_x + Ai'*S^-1*ri_hat
 
 if mpc.has_u_cnstr
     if u_cnstr.min_limit && u_cnstr.max_limit
@@ -447,61 +449,423 @@ if mpc.has_s_cnstr
     end
 end
 
+if mpc.has_y_cnstr
 
-% if has_y_cnstr && y_use_k0
-%     if y_cnstr.min_limit
-%         row = y_cnstr.min_ineqRow_0;
-%         ru_hat_0 = ru_hat_0 - D_0'*iS_ri_hat_0(row);
-%     end
-%     if y_cnstr.max_limit
-%         row = y_cnstr.max_ineqRow_0;
-%         ru_hat_0 = ru_hat_0 + D_0'*iS_ri_hat_0(row);
-%     end
-% end
-% 
-% if has_h_cnstr
-%     if h_cnstr.min_limit && h_cnstr.use_k0
-%         row = h_cnstr.min_ineqRow_0;
-%         ru_hat_0 = ru_hat_0 - Dh_0'*iS_ri_hat_0(row);
-%     end
-%     if h_cnstr.max_limit && h_cnstr.use_k0
-%         row = h_cnstr.max_ineqRow_0;
-%         ru_hat_0 = ru_hat_0 + Dh_0'*iS_ri_hat_0(row);
-%     end
-% end
+    if y_cnstr.min_limit && y_cnstr.max_limit
+        if y_cnstr.use_k0
+            row_min = y_cnstr.min_ineqRow_0;
+            row_max = y_cnstr.max_ineqRow_0;
 
+            iS_ri_hat_y0 = iS_ri_hat_0(row_max) - iS_ri_hat_0(row_min);
 
+            iS_y0 = iS_0(row_min) + iS_0(row_max);
 
-% 
-% for k = 1:N-1
-% 
-%     rse_hat_k(:,k) = rse_k(:,k) + Ai_k(:,se_col,k)'*iS_ri_hat_k(:,k);
-%     ru_hat_k(:,k) = ru_k(:,k) + Ai_k(:,u_col,k)'*iS_ri_hat_k(:,k);
-% end
+            ru_0 = ru_0 + D_0' * iS_ri_hat_y0;
+            R_0  = R_0  + D_0' * (iS_y0 .* D_0);
+        end
 
-%rse_hat_ter = rse_ter + Ai_ter'*iS_ri_hat_ter;
+        % k = 1,...,N-1
+        row_min = y_cnstr.min_ineqRow_k;
+        row_max = y_cnstr.max_ineqRow_k;
+        for k = 1:N-1
 
-%% H = Hess(f0) + Ai'*(S^-1)*Ai
+            iS_ri_hat_yk = iS_ri_hat_k(row_max,k)-iS_ri_hat_k(row_min,k);
 
-% iS_Ai_0 = iS_0.*Ai_0;
-% %R_0(:,:) = t*H_f0_0 + Ai_0'*iS_Ai_0;
-% 
-% for k = 1:N-1
-% 
-%     iS_Ai_k(:,:,k) = iS_k(:,k).*Ai_k(:,:,k);
-% 
-% %     H_k(:,:,k) = t*H_f0_k(:,:,k) + ...
-% %                         Ai_k(:,:,k)'*iS_Ai_k(:,:,k);
-% % 
-% %     Q_k(:,:,k) = H_k(se_col,se_col,k);
-% %     R_k(:,:,k) = H_k(u_col,u_col,k);
-% %     Y_k(:,:,k) = H_k(u_col,se_col,k);
-% end
-% 
-% %Q_ter(:,:) = t*H_f0_ter;
-% if ng_k(3)
-%     iS_Ai_ter = iS_ter.*Ai_ter;
-%     %Q_ter(:,:) = Q_ter(:,:) + Ai_ter'*iS_Ai_ter;
-% end
+            iS_yk = iS_k(row_min,k) + iS_k(row_max,k);
+
+            if y_cnstr.use_s && y_cnstr.use_u
+
+                rse_k(s_col,k) = rse_k(s_col,k) + C(:,:,k)' * iS_ri_hat_yk;
+                ru_k(:,k) = ru_k(:,k) + D(:,:,k)' * iS_ri_hat_yk;
+
+                iS_C_k = iS_yk .* C(:,:,k);
+
+                Q_k(s_col,s_col,k)  = Q_k(s_col,s_col,k)  + C(:,:,k)' * iS_C_k;
+                R_k(:,:,k)  = R_k(:,:,k)  + D(:,:,k)' * (iS_yk .* D(:,:,k));
+                Y_k(:,s_col,k)  = Y_k(:,s_col,k)  + D(:,:,k)' * iS_C_k;
+            elseif y_cnstr.use_s
+
+                rse_k(s_col,k) = rse_k(s_col,k) + C(:,:,k)' * iS_ri_hat_yk;
+
+                Q_k(s_col,s_col,k)  = Q_k(s_col,s_col,k)  + C(:,:,k)' * (iS_yk .* C(:,:,k));
+            elseif y_cnstr.use_u
+
+                ru_k(:,k) = ru_k(:,k) + D(:,:,k)' * iS_ri_hat_yk;
+
+                R_k(:,:,k)  = R_k(:,:,k)  + D(:,:,k)' * (iS_yk .* D(:,:,k));
+            end
+        end
+
+        % k = N
+        if y_cnstr.use_ter
+            row_min = y_cnstr.min_ineqRow_ter;
+            row_max = y_cnstr.max_ineqRow_ter;
+
+            iS_ri_hat_yter = iS_ri_hat_ter(row_max) - iS_ri_hat_ter(row_min);
+
+            iS_yter = iS_ter(row_min) + iS_ter(row_max);
+
+            rse_ter(s_col) = rse_ter(s_col) + C_ter' * iS_ri_hat_yter;
+            Q_ter(s_col,s_col)  = Q_ter(s_col,s_col) + C_ter' * (iS_yter .* C_ter);
+        end
+
+    elseif y_cnstr.min_limit
+
+        if y_cnstr.use_k0
+            row_min = y_cnstr.min_ineqRow_0;
+
+            ru_0 = ru_0 - D_0' * iS_ri_hat_0(row_min);
+            R_0  = R_0  + D_0' * (iS_0(row_min) .* D_0);
+        end
+
+        % k = 1,...,N-1
+        row_min = y_cnstr.min_ineqRow_k;
+        for k = 1:N-1
+
+            if y_cnstr.use_s && y_cnstr.use_u
+
+                rse_k(s_col,k) = rse_k(s_col,k) - C(:,:,k)' * iS_ri_hat_k(row_min,k);
+                ru_k(:,k) = ru_k(:,k) - D(:,:,k)' * iS_ri_hat_k(row_min,k);
+
+                iS_C_k = iS_k(row_min,k) .* C(:,:,k);
+
+                Q_k(s_col,s_col,k)  = Q_k(s_col,s_col,k) + C(:,:,k)' * iS_C_k;
+                R_k(:,:,k)  = R_k(:,:,k) + D(:,:,k)' * (iS_k(row_min,k) .* D(:,:,k));
+                Y_k(:,s_col,k)  = Y_k(:,s_col,k) + D(:,:,k)' * iS_C_k;
+            elseif y_cnstr.use_s
+
+                rse_k(s_col,k) = rse_k(s_col,k) - C(:,:,k)' * iS_ri_hat_k(row_min,k);
+
+                Q_k(s_col,s_col,k)  = Q_k(s_col,s_col,k) + C(:,:,k)' * (iS_k(row_min,k) .* C(:,:,k));
+            elseif y_cnstr.use_u
+
+                ru_k(:,k) = ru_k(:,k) - D(:,:,k)' * iS_ri_hat_k(row_min,k);
+
+                R_k(:,:,k) = R_k(:,:,k) + D(:,:,k)' * (iS_k(row_min,k) .* D(:,:,k));
+            end
+        end
+
+        % k = N
+        if y_cnstr.use_ter
+            row_min = y_cnstr.min_ineqRow_ter;
+
+            rse_ter(s_col) = rse_ter(s_col) - C_ter' * iS_ri_hat_ter(row_min);
+            Q_ter(s_col,s_col)  = Q_ter(s_col,s_col) + C_ter' * (iS_ter(row_min) .* C_ter);
+        end
+
+    elseif y_cnstr.max_limit
+
+        if y_cnstr.use_k0
+            row_max = y_cnstr.max_ineqRow_0;
+
+            ru_0 = ru_0 + D_0' * iS_ri_hat_0(row_max);
+            R_0  = R_0  + D_0' * (iS_0(row_max) .* D_0);
+        end
+
+        % k = 1,...,N-1
+        row_max = y_cnstr.max_ineqRow_k;
+        for k = 1:N-1
+
+            if y_cnstr.use_s && y_cnstr.use_u
+
+                rse_k(s_col,k) = rse_k(s_col,k) + C(:,:,k)' * iS_ri_hat_k(row_max,k);
+                ru_k(:,k) = ru_k(:,k) + D(:,:,k)' * iS_ri_hat_k(row_max,k);
+
+                iS_C_k = iS_k(row_max,k) .* C(:,:,k);
+
+                Q_k(s_col,s_col,k)  = Q_k(s_col,s_col,k) + C(:,:,k)' * iS_C_k;
+                R_k(:,:,k)  = R_k(:,:,k) + D(:,:,k)' * (iS_k(row_max,k) .* D(:,:,k));
+                Y_k(:,s_col,k)  = Y_k(:,s_col,k) + D(:,:,k)' * iS_C_k;
+            elseif y_cnstr.use_s
+
+                rse_k(s_col,k) = rse_k(s_col,k) + C(:,:,k)' * iS_ri_hat_k(row_max,k);
+
+                Q_k(s_col,s_col,k)  = Q_k(s_col,s_col,k) + C(:,:,k)' * (iS_k(row_max,k) .* C(:,:,k));
+            elseif y_cnstr.use_u
+
+                ru_k(:,k) = ru_k(:,k) + D(:,:,k)' * iS_ri_hat_k(row_max,k);
+
+                R_k(:,:,k) = R_k(:,:,k) + D(:,:,k)' * (iS_k(row_max,k) .* D(:,:,k));
+            end
+        end
+
+        % k = N
+        if y_cnstr.use_ter
+            row_max = y_cnstr.max_ineqRow_ter;
+
+            rse_ter(s_col) = rse_ter(s_col) + C_ter' * iS_ri_hat_ter(row_max);
+            Q_ter(s_col,s_col)  = Q_ter(s_col,s_col) + C_ter' * (iS_ter(row_max) .* C_ter);
+        end
+
+    end
+end
+
+if mpc.has_h_cnstr
+
+    if h_cnstr.min_limit && h_cnstr.max_limit
+        if h_cnstr.use_k0
+            row_min = h_cnstr.min_ineqRow_0;
+            row_max = h_cnstr.max_ineqRow_0;
+
+            iS_ri_hat_h0 = iS_ri_hat_0(row_max) - iS_ri_hat_0(row_min);
+            iS_h0 = iS_0(row_min) + iS_0(row_max);
+
+            ru_0 = ru_0 + Dh_0' * iS_ri_hat_h0;
+            R_0 = R_0 + Dh_0' * (iS_h0 .* Dh_0);
+        end
+
+        % k = 1,...,N-1
+        row_min = h_cnstr.min_ineqRow_k;
+        row_max = h_cnstr.max_ineqRow_k;
+        for k = 1:N-1
+
+            iS_ri_hat_hk = iS_ri_hat_k(row_max,k) - iS_ri_hat_k(row_min,k);
+            iS_hk = iS_k(row_min,k) + iS_k(row_max,k);
+
+            if h_cnstr.use_s && h_cnstr.use_su && h_cnstr.use_u
+
+                rse_k(s_col,k) = rse_k(s_col,k) + Ch(:,:,k)' * iS_ri_hat_hk;
+                rse_k(su_col,k) = rse_k(su_col,k) + Dsuh(:,:,k)' * iS_ri_hat_hk;
+                ru_k(:,k) = ru_k(:,k) + Dh(:,:,k)' * iS_ri_hat_hk;
+
+                iS_Ch_k = iS_hk .* Ch(:,:,k);
+                iS_Dsuh_k = iS_hk .* Dsuh(:,:,k);
+
+                Q_k(s_col,s_col,k) = Q_k(s_col,s_col,k) + Ch(:,:,k)' * iS_Ch_k;
+                Q_k(s_col,su_col,k) = Q_k(s_col,su_col,k) + Ch(:,:,k)' * iS_Dsuh_k;
+                Q_k(su_col,s_col,k) = Q_k(su_col,s_col,k) + Dsuh(:,:,k)' * iS_Ch_k;
+                Q_k(su_col,su_col,k) = Q_k(su_col,su_col,k) + Dsuh(:,:,k)' * iS_Dsuh_k;
+                R_k(:,:,k) = R_k(:,:,k) + Dh(:,:,k)' * (iS_hk .* Dh(:,:,k));
+                Y_k(:,s_col,k) = Y_k(:,s_col,k) + Dh(:,:,k)' * iS_Ch_k;
+                Y_k(:,su_col,k) = Y_k(:,su_col,k) + Dh(:,:,k)' * iS_Dsuh_k;
+            elseif h_cnstr.use_s && h_cnstr.use_su
+
+                rse_k(s_col,k) = rse_k(s_col,k) + Ch(:,:,k)' * iS_ri_hat_hk;
+                rse_k(su_col,k) = rse_k(su_col,k) + Dsuh(:,:,k)' * iS_ri_hat_hk;
+
+                iS_Ch_k = iS_hk .* Ch(:,:,k);
+                iS_Dsuh_k = iS_hk .* Dsuh(:,:,k);
+
+                Q_k(s_col,s_col,k) = Q_k(s_col,s_col,k) + Ch(:,:,k)' * iS_Ch_k;
+                Q_k(s_col,su_col,k) = Q_k(s_col,su_col,k) + Ch(:,:,k)' * iS_Dsuh_k;
+                Q_k(su_col,s_col,k) = Q_k(su_col,s_col,k) + Dsuh(:,:,k)' * iS_Ch_k;
+                Q_k(su_col,su_col,k) = Q_k(su_col,su_col,k) + Dsuh(:,:,k)' * iS_Dsuh_k;
+            elseif h_cnstr.use_s && h_cnstr.use_u
+
+                rse_k(s_col,k) = rse_k(s_col,k) + Ch(:,:,k)' * iS_ri_hat_hk;
+                ru_k(:,k) = ru_k(:,k) + Dh(:,:,k)' * iS_ri_hat_hk;
+
+                iS_Ch_k = iS_hk .* Ch(:,:,k);
+
+                Q_k(s_col,s_col,k) = Q_k(s_col,s_col,k) + Ch(:,:,k)' * iS_Ch_k;
+                R_k(:,:,k) = R_k(:,:,k) + Dh(:,:,k)' * (iS_hk .* Dh(:,:,k));
+                Y_k(:,s_col,k) = Y_k(:,s_col,k) + Dh(:,:,k)' * iS_Ch_k;
+            elseif h_cnstr.use_su && h_cnstr.use_u
+
+                rse_k(su_col,k) = rse_k(su_col,k) + Dsuh(:,:,k)' * iS_ri_hat_hk;
+                ru_k(:,k) = ru_k(:,k) + Dh(:,:,k)' * iS_ri_hat_hk;
+
+                iS_Dsuh_k = iS_hk .* Dsuh(:,:,k);
+
+                Q_k(su_col,su_col,k) = Q_k(su_col,su_col,k) + Dsuh(:,:,k)' * iS_Dsuh_k;
+                R_k(:,:,k) = R_k(:,:,k) + Dh(:,:,k)' * (iS_hk .* Dh(:,:,k));
+                Y_k(:,su_col,k) = Y_k(:,su_col,k) + Dh(:,:,k)' * iS_Dsuh_k;
+            elseif h_cnstr.use_s
+
+                rse_k(s_col,k) = rse_k(s_col,k) + Ch(:,:,k)' * iS_ri_hat_hk;
+                Q_k(s_col,s_col,k) = Q_k(s_col,s_col,k) + Ch(:,:,k)' * (iS_hk .* Ch(:,:,k));
+            elseif h_cnstr.use_su
+
+                rse_k(su_col,k) = rse_k(su_col,k) + Dsuh(:,:,k)' * iS_ri_hat_hk;
+                Q_k(su_col,su_col,k) = Q_k(su_col,su_col,k) + Dsuh(:,:,k)' * (iS_hk .* Dsuh(:,:,k));
+            elseif h_cnstr.use_u
+
+                ru_k(:,k) = ru_k(:,k) + Dh(:,:,k)' * iS_ri_hat_hk;
+                R_k(:,:,k) = R_k(:,:,k) + Dh(:,:,k)' * (iS_hk .* Dh(:,:,k));
+            end
+        end
+
+        % k = N
+        if h_cnstr.use_ter
+            row_min = h_cnstr.min_ineqRow_ter;
+            row_max = h_cnstr.max_ineqRow_ter;
+
+            iS_ri_hat_hter = iS_ri_hat_ter(row_max) - iS_ri_hat_ter(row_min);
+            iS_hter = iS_ter(row_min) + iS_ter(row_max);
+
+            rse_ter(s_col) = rse_ter(s_col) + Ch_ter' * iS_ri_hat_hter;
+            Q_ter(s_col,s_col) = Q_ter(s_col,s_col) + Ch_ter' * (iS_hter .* Ch_ter);
+        end
+
+    elseif h_cnstr.min_limit
+
+        if h_cnstr.use_k0
+            row_min = h_cnstr.min_ineqRow_0;
+
+            ru_0 = ru_0 - Dh_0' * iS_ri_hat_0(row_min);
+            R_0 = R_0 + Dh_0' * (iS_0(row_min) .* Dh_0);
+        end
+
+        % k = 1,...,N-1
+        row_min = h_cnstr.min_ineqRow_k;
+        for k = 1:N-1
+
+            if h_cnstr.use_s && h_cnstr.use_su && h_cnstr.use_u
+
+                rse_k(s_col,k) = rse_k(s_col,k) - Ch(:,:,k)' * iS_ri_hat_k(row_min,k);
+                rse_k(su_col,k) = rse_k(su_col,k) - Dsuh(:,:,k)' * iS_ri_hat_k(row_min,k);
+                ru_k(:,k) = ru_k(:,k) - Dh(:,:,k)' * iS_ri_hat_k(row_min,k);
+
+                iS_Ch_k = iS_k(row_min,k) .* Ch(:,:,k);
+                iS_Dsuh_k = iS_k(row_min,k) .* Dsuh(:,:,k);
+
+                Q_k(s_col,s_col,k) = Q_k(s_col,s_col,k) + Ch(:,:,k)' * iS_Ch_k;
+                Q_k(s_col,su_col,k) = Q_k(s_col,su_col,k) + Ch(:,:,k)' * iS_Dsuh_k;
+                Q_k(su_col,s_col,k) = Q_k(su_col,s_col,k) + Dsuh(:,:,k)' * iS_Ch_k;
+                Q_k(su_col,su_col,k) = Q_k(su_col,su_col,k) + Dsuh(:,:,k)' * iS_Dsuh_k;
+                R_k(:,:,k) = R_k(:,:,k) + Dh(:,:,k)' * (iS_k(row_min,k) .* Dh(:,:,k));
+                Y_k(:,s_col,k) = Y_k(:,s_col,k) + Dh(:,:,k)' * iS_Ch_k;
+                Y_k(:,su_col,k) = Y_k(:,su_col,k) + Dh(:,:,k)' * iS_Dsuh_k;
+            elseif h_cnstr.use_s && h_cnstr.use_su
+
+                rse_k(s_col,k) = rse_k(s_col,k) - Ch(:,:,k)' * iS_ri_hat_k(row_min,k);
+                rse_k(su_col,k) = rse_k(su_col,k) - Dsuh(:,:,k)' * iS_ri_hat_k(row_min,k);
+
+                iS_Ch_k = iS_k(row_min,k) .* Ch(:,:,k);
+                iS_Dsuh_k = iS_k(row_min,k) .* Dsuh(:,:,k);
+
+                Q_k(s_col,s_col,k) = Q_k(s_col,s_col,k) + Ch(:,:,k)' * iS_Ch_k;
+                Q_k(s_col,su_col,k) = Q_k(s_col,su_col,k) + Ch(:,:,k)' * iS_Dsuh_k;
+                Q_k(su_col,s_col,k) = Q_k(su_col,s_col,k) + Dsuh(:,:,k)' * iS_Ch_k;
+                Q_k(su_col,su_col,k) = Q_k(su_col,su_col,k) + Dsuh(:,:,k)' * iS_Dsuh_k;
+            elseif h_cnstr.use_s && h_cnstr.use_u
+
+                rse_k(s_col,k) = rse_k(s_col,k) - Ch(:,:,k)' * iS_ri_hat_k(row_min,k);
+                ru_k(:,k) = ru_k(:,k) - Dh(:,:,k)' * iS_ri_hat_k(row_min,k);
+
+                iS_Ch_k = iS_k(row_min,k) .* Ch(:,:,k);
+
+                Q_k(s_col,s_col,k) = Q_k(s_col,s_col,k) + Ch(:,:,k)' * iS_Ch_k;
+                R_k(:,:,k) = R_k(:,:,k) + Dh(:,:,k)' * (iS_k(row_min,k) .* Dh(:,:,k));
+                Y_k(:,s_col,k) = Y_k(:,s_col,k) + Dh(:,:,k)' * iS_Ch_k;
+            elseif h_cnstr.use_su && h_cnstr.use_u
+
+                rse_k(su_col,k) = rse_k(su_col,k) - Dsuh(:,:,k)' * iS_ri_hat_k(row_min,k);
+                ru_k(:,k) = ru_k(:,k) - Dh(:,:,k)' * iS_ri_hat_k(row_min,k);
+
+                iS_Dsuh_k = iS_k(row_min,k) .* Dsuh(:,:,k);
+
+                Q_k(su_col,su_col,k) = Q_k(su_col,su_col,k) + Dsuh(:,:,k)' * iS_Dsuh_k;
+                R_k(:,:,k) = R_k(:,:,k) + Dh(:,:,k)' * (iS_k(row_min,k) .* Dh(:,:,k));
+                Y_k(:,su_col,k) = Y_k(:,su_col,k) + Dh(:,:,k)' * iS_Dsuh_k;
+            elseif h_cnstr.use_s
+
+                rse_k(s_col,k) = rse_k(s_col,k) - Ch(:,:,k)' * iS_ri_hat_k(row_min,k);
+                Q_k(s_col,s_col,k) = Q_k(s_col,s_col,k) + Ch(:,:,k)' * (iS_k(row_min,k) .* Ch(:,:,k));
+            elseif h_cnstr.use_su
+
+                rse_k(su_col,k) = rse_k(su_col,k) - Dsuh(:,:,k)' * iS_ri_hat_k(row_min,k);
+                Q_k(su_col,su_col,k) = Q_k(su_col,su_col,k) + Dsuh(:,:,k)' * (iS_k(row_min,k) .* Dsuh(:,:,k));
+            elseif h_cnstr.use_u
+
+                ru_k(:,k) = ru_k(:,k) - Dh(:,:,k)' * iS_ri_hat_k(row_min,k);
+                R_k(:,:,k) = R_k(:,:,k) + Dh(:,:,k)' * (iS_k(row_min,k) .* Dh(:,:,k));
+            end
+        end
+
+        % k = N
+        if h_cnstr.use_ter
+            row_min = h_cnstr.min_ineqRow_ter;
+
+            rse_ter(s_col) = rse_ter(s_col) - Ch_ter' * iS_ri_hat_ter(row_min);
+            Q_ter(s_col,s_col) = Q_ter(s_col,s_col) + Ch_ter' * (iS_ter(row_min) .* Ch_ter);
+        end
+
+    elseif h_cnstr.max_limit
+
+        if h_cnstr.use_k0
+            row_max = h_cnstr.max_ineqRow_0;
+
+            ru_0 = ru_0 + Dh_0' * iS_ri_hat_0(row_max);
+            R_0 = R_0 + Dh_0' * (iS_0(row_max) .* Dh_0);
+        end
+
+        % k = 1,...,N-1
+        row_max = h_cnstr.max_ineqRow_k;
+        for k = 1:N-1
+
+            if h_cnstr.use_s && h_cnstr.use_su && h_cnstr.use_u
+
+                rse_k(s_col,k) = rse_k(s_col,k) + Ch(:,:,k)' * iS_ri_hat_k(row_max,k);
+                rse_k(su_col,k) = rse_k(su_col,k) + Dsuh(:,:,k)' * iS_ri_hat_k(row_max,k);
+                ru_k(:,k) = ru_k(:,k) + Dh(:,:,k)' * iS_ri_hat_k(row_max,k);
+
+                iS_Ch_k = iS_k(row_max,k) .* Ch(:,:,k);
+                iS_Dsuh_k = iS_k(row_max,k) .* Dsuh(:,:,k);
+
+                Q_k(s_col,s_col,k) = Q_k(s_col,s_col,k) + Ch(:,:,k)' * iS_Ch_k;
+                Q_k(s_col,su_col,k) = Q_k(s_col,su_col,k) + Ch(:,:,k)' * iS_Dsuh_k;
+                Q_k(su_col,s_col,k) = Q_k(su_col,s_col,k) + Dsuh(:,:,k)' * iS_Ch_k;
+                Q_k(su_col,su_col,k) = Q_k(su_col,su_col,k) + Dsuh(:,:,k)' * iS_Dsuh_k;
+                R_k(:,:,k) = R_k(:,:,k) + Dh(:,:,k)' * (iS_k(row_max,k) .* Dh(:,:,k));
+                Y_k(:,s_col,k) = Y_k(:,s_col,k) + Dh(:,:,k)' * iS_Ch_k;
+                Y_k(:,su_col,k) = Y_k(:,su_col,k) + Dh(:,:,k)' * iS_Dsuh_k;
+            elseif h_cnstr.use_s && h_cnstr.use_su
+
+                rse_k(s_col,k) = rse_k(s_col,k) + Ch(:,:,k)' * iS_ri_hat_k(row_max,k);
+                rse_k(su_col,k) = rse_k(su_col,k) + Dsuh(:,:,k)' * iS_ri_hat_k(row_max,k);
+
+                iS_Ch_k = iS_k(row_max,k) .* Ch(:,:,k);
+                iS_Dsuh_k = iS_k(row_max,k) .* Dsuh(:,:,k);
+
+                Q_k(s_col,s_col,k) = Q_k(s_col,s_col,k) + Ch(:,:,k)' * iS_Ch_k;
+                Q_k(s_col,su_col,k) = Q_k(s_col,su_col,k) + Ch(:,:,k)' * iS_Dsuh_k;
+                Q_k(su_col,s_col,k) = Q_k(su_col,s_col,k) + Dsuh(:,:,k)' * iS_Ch_k;
+                Q_k(su_col,su_col,k) = Q_k(su_col,su_col,k) + Dsuh(:,:,k)' * iS_Dsuh_k;
+            elseif h_cnstr.use_s && h_cnstr.use_u
+
+                rse_k(s_col,k) = rse_k(s_col,k) + Ch(:,:,k)' * iS_ri_hat_k(row_max,k);
+                ru_k(:,k) = ru_k(:,k) + Dh(:,:,k)' * iS_ri_hat_k(row_max,k);
+
+                iS_Ch_k = iS_k(row_max,k) .* Ch(:,:,k);
+
+                Q_k(s_col,s_col,k) = Q_k(s_col,s_col,k) + Ch(:,:,k)' * iS_Ch_k;
+                R_k(:,:,k) = R_k(:,:,k) + Dh(:,:,k)' * (iS_k(row_max,k) .* Dh(:,:,k));
+                Y_k(:,s_col,k) = Y_k(:,s_col,k) + Dh(:,:,k)' * iS_Ch_k;
+            elseif h_cnstr.use_su && h_cnstr.use_u
+
+                rse_k(su_col,k) = rse_k(su_col,k) + Dsuh(:,:,k)' * iS_ri_hat_k(row_max,k);
+                ru_k(:,k) = ru_k(:,k) + Dh(:,:,k)' * iS_ri_hat_k(row_max,k);
+
+                iS_Dsuh_k = iS_k(row_max,k) .* Dsuh(:,:,k);
+
+                Q_k(su_col,su_col,k) = Q_k(su_col,su_col,k) + Dsuh(:,:,k)' * iS_Dsuh_k;
+                R_k(:,:,k) = R_k(:,:,k) + Dh(:,:,k)' * (iS_k(row_max,k) .* Dh(:,:,k));
+                Y_k(:,su_col,k) = Y_k(:,su_col,k) + Dh(:,:,k)' * iS_Dsuh_k;
+            elseif h_cnstr.use_s
+
+                rse_k(s_col,k) = rse_k(s_col,k) + Ch(:,:,k)' * iS_ri_hat_k(row_max,k);
+                Q_k(s_col,s_col,k) = Q_k(s_col,s_col,k) + Ch(:,:,k)' * (iS_k(row_max,k) .* Ch(:,:,k));
+            elseif h_cnstr.use_su
+
+                rse_k(su_col,k) = rse_k(su_col,k) + Dsuh(:,:,k)' * iS_ri_hat_k(row_max,k);
+                Q_k(su_col,su_col,k) = Q_k(su_col,su_col,k) + Dsuh(:,:,k)' * (iS_k(row_max,k) .* Dsuh(:,:,k));
+            elseif h_cnstr.use_u
+
+                ru_k(:,k) = ru_k(:,k) + Dh(:,:,k)' * iS_ri_hat_k(row_max,k);
+                R_k(:,:,k) = R_k(:,:,k) + Dh(:,:,k)' * (iS_k(row_max,k) .* Dh(:,:,k));
+            end
+        end
+
+        % k = N
+        if h_cnstr.use_ter
+            row_max = h_cnstr.max_ineqRow_ter;
+
+            rse_ter(s_col) = rse_ter(s_col) + Ch_ter' * iS_ri_hat_ter(row_max);
+            Q_ter(s_col,s_col) = Q_ter(s_col,s_col) + Ch_ter' * (iS_ter(row_max) .* Ch_ter);
+        end
+
+    end
+end
 
 end
