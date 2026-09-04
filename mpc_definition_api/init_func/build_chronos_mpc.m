@@ -1,11 +1,11 @@
-% INIT_INITIAL_GUESS Generates a feasible warm-start primal vector for the MPC solver.
+% BUILD_CHRONOS_MPC Initializes a feasible stage-local iterate for the MPC solver.
 %
-%   x0 = INIT_INITIAL_GUESS(mpc, s_prev, u_prev) calculates a strictly feasible 
-%   initial guess for the primal optimization vector using a system rollout.
+%   mpc = BUILD_CHRONOS_MPC(mpc, s_prev, u_prev) calculates a strictly feasible
+%   initial iterate using a system rollout.
 %   It mathematically guarantees that the initial guess respects input limits, 
 %   rate limits, and hard state constraints, preventing solver crashes.
 %
-%   x0 = INIT_INITIAL_GUESS(mpc, s_prev, u_prev, x_ref, d_in, dh_in) allows the 
+%   mpc = BUILD_CHRONOS_MPC(mpc, s_prev, u_prev, d_in, x_ref) allows the
 %   inclusion of reference trajectories and measured disturbances.
 %
 %   HOW IT WORKS:
@@ -29,7 +29,7 @@
 %       dh_in  - [ndh x 1] (Optional) Measured disturbance vector for custom constraints.
 %
 %   OUTPUTS:
-%       x0     - Primal vector [u_0; x_1; u_1; ... x_Nc; ... x_N; v] 
+%       mpc    - MPC structure with initialized stage-local primal fields.
 function mpc = build_chronos_mpc(mpc,s_prev,u_prev,d_in,x_ref)
 arguments
     mpc
@@ -54,7 +54,7 @@ end
     % preallocate fixed-size Riccati workspace for the online Newton solve
     mpc = preallocate_riccati(mpc);
 
-    % compute primal variables vector
+    % initialize stage-local primal variables
     len_d_in = size(d_in,2);
     if ~isempty(d_in) && len_d_in< mpc.N
         mpc.d(:,:) = fill_vec(mpc.d,d_in,1);
@@ -62,19 +62,19 @@ end
         mpc.d(:,:) = d_in;
     end 
 
-    x0 = rollstates(mpc,s_prev,u_prev,x_ref,mpc.d);
-    
+    mpc = rollstates(mpc,s_prev,u_prev,x_ref,mpc.d);
 
-    x0(mpc.g_index) = 1/mpc.t;
-    x0(mpc.v_index) = 1/mpc.t;
-    mpc = get_mpc_variables(mpc,x0,s_prev,u_prev);
-    mpc.x0 = x0;
+    mpc.g_0(:) = 1/mpc.t;
+    mpc.g_k(:,:) = 1/mpc.t;
+    mpc.g_ter(:) = 1/mpc.t;
+    mpc.v_0(:) = 1/mpc.t;
+    mpc.v_k(:,:) = 1/mpc.t;
+    mpc.v_ter(:) = 1/mpc.t;
+    mpc = get_mpc_variables(mpc,s_prev,u_prev);
     
 end
 
-function x0 = rollstates(mpc,s_prev,u_prev,x_ref,d_in)
-
-x0 = zeros(mpc.n,1);
+function mpc = rollstates(mpc,s_prev,u_prev,x_ref,d_in)
 
 x_k = s_prev;
 u_k_prev = u_prev;
@@ -142,13 +142,12 @@ if mpc.has_s_cnstr
     end
 end
 
-    % 5. Map to Primal Optimization Vector
-    % Indexing math for [u0; x1; u1; x2; ...]
-    x0(mpc.u_index_k(:,k)) = u_k;
-    if mpc.has_du && any(mpc.su_index_k(:,k))
-        x0(mpc.su_index_k(:,k)) = u_k_prev;
+    % 5. Store the stage-local iterate
+    mpc.u(:,k) = u_k;
+    if mpc.has_du
+        mpc.su(:,k) = u_k_prev;
     end
-    x0(mpc.s_index_k(:,k)) = x_next;
+    mpc.s(:,k) = x_next;
 
     % 6. Prepare for next step
     x_k = x_next;

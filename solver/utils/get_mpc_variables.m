@@ -1,43 +1,40 @@
-function mpc = get_mpc_variables(mpc,x,s_prev,u_prev)
+function mpc = get_mpc_variables(mpc,s_prev,u_prev)
 
-%states
-mpc = get_mpc_x(mpc,x);
-
-% control actions
-mpc = get_mpc_u(mpc,x);
+% terminal state
+mpc.s_ter(:) = mpc.s(:,mpc.N);
 
 % differential control action
 if mpc.has_du
-    mpc = get_mpc_diff_u(mpc,x,u_prev);
+    mpc.du = get_mpc_diff_u(mpc.du,mpc.u,mpc.su,u_prev,mpc.N);
 end
 
 % tracking outputs
-if mpc.ny || mpc.ny_0 || mpc.ny_ter
-    mpc = get_mpc_y(mpc,s_prev);
+if mpc.tracking_cost || mpc.has_y_cnstr
+    [mpc.y_0,mpc.y,mpc.y_ter,mpc.err_0,mpc.err,mpc.err_ter] = get_mpc_y( ...
+        mpc.y_0,mpc.y,mpc.y_ter,mpc.err_0,mpc.err,mpc.err_ter, ...
+        mpc.s,mpc.u,mpc.d,mpc.r_0,mpc.r,mpc.r_ter,s_prev,mpc.N, ...
+        mpc.tracking_cost,mpc.y_use_k0,mpc.y_use_s,mpc.y_use_u, ...
+        mpc.y_use_d,mpc.y_use_ter, ...
+        mpc.C_0,mpc.D_0,mpc.Dd_0,mpc.C,mpc.D,mpc.Dd,mpc.C_ter);
 end
 
 % general constraints
 if mpc.has_h_cnstr
-    mpc = get_mpc_h(mpc,s_prev,u_prev);
+    [mpc.h_0,mpc.h,mpc.h_ter] = get_mpc_h( ...
+        mpc.h_0,mpc.h,mpc.h_ter,mpc.s,mpc.u,mpc.su,mpc.dh,s_prev,u_prev,mpc.N, ...
+        mpc.h_cnstr.use_k0,mpc.h_cnstr.use_s,mpc.h_cnstr.use_u, ...
+        mpc.h_cnstr.use_su,mpc.h_cnstr.use_d,mpc.h_cnstr.use_ter, ...
+        mpc.Ch_0,mpc.Dh_0,mpc.Dsuh_0,mpc.Ddh_0,mpc.Ch,mpc.Dh, ...
+        mpc.Dsuh,mpc.Ddh,mpc.Ch_ter);
 end
 
 if mpc.quad_custom_cost || mpc.lin_custom_cost
-    % compute vector z
-    mpc = get_mpc_z(mpc,s_prev,u_prev);
-end
-
-% get slack variables 
-if any(mpc.ng_k)
-   mpc.g(:) = x(mpc.g_index);
-   mpc.g_0(:) = x(mpc.g_index_0);
-   mpc.g_k(:,:) = x(mpc.g_index_k);
-   mpc.g_ter(:) = x(mpc.g_index_ter);
-end
-if any(mpc.nv_k)
-   mpc.v(:) = x(mpc.v_index);
-   mpc.v_0(:) = x(mpc.v_index_0);
-   mpc.v_k(:,:) = x(mpc.v_index_k);
-   mpc.v_ter(:) = x(mpc.v_index_ter);
+    % custom cost vector
+    [mpc.z_0,mpc.z,mpc.z_ter] = get_mpc_z( ...
+        mpc.z_0,mpc.z,mpc.z_ter,mpc.s,mpc.u,mpc.su,mpc.dz,s_prev,u_prev,mpc.N, ...
+        mpc.z_use_k0,mpc.z_use_s,mpc.z_use_u,mpc.z_use_su, ...
+        mpc.z_use_d,mpc.z_use_ter,mpc.Cz_0,mpc.Dz_0,mpc.Dsuz_0, ...
+        mpc.Ddz_0,mpc.Cz,mpc.Dz,mpc.Dsuz,mpc.Ddz,mpc.Cz_ter);
 end
 
 end

@@ -4,9 +4,7 @@
 % Solve the current iteration of the MPC problem.
 %
 % In:
-%   - mpc: CHRONOS mpc structure.
-%   - x0: Nx+Nu column vector, initial guess solution for CHRONOS interior
-%   point iterative solver
+%   - mpc: CHRONOS MPC structure with the persistent stage-local iterate.
 %   - s_prev: nx column vector, last measured or estimated system state
 %   value
 %   - u_prev: nu column vector, control action applied to the system on the
@@ -42,8 +40,6 @@
 % Out:
 %   - u0: nu column vector, first step of the control action sequence
 %   computed as solution to the MPC problem
-%   - x0: Nx+Nu column vector, optimization variables solution vector to
-%   the MPC problem
 %   - iter: number of iterations required for the MPC optimization problem
 %   - iter_feas: number of iterations required for the step 0 feasibility
 %   starting point finder
@@ -51,8 +47,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [u0,iter,mpc] = mpc_solve(mpc,s_prev,u_prev,r_in,xN_ref_in,...
                                    d_in,dz_in,dh_in)
-
-x0 = mpc.x0;
 
 % handle input vector sizes
 len_r_in = size(r_in,2);
@@ -152,7 +146,7 @@ end
 continue_Newton = true;
 iter = 0;
 
-mpc = get_mpc_variables(mpc,x0,s_prev,u_prev);
+mpc = get_mpc_variables(mpc,s_prev,u_prev);
 
 lambda2 = 1;
 
@@ -229,50 +223,61 @@ while mpc.eps <= lambda2*0.5 && continue_Newton && iter < mpc.max_iter
                     mpc.h_cnstr,mpc.Dh_0,mpc.Ch,mpc.Dsuh,mpc.Dh,mpc.Ch_ter);
     end
 
-    [delta_x_prim,grad_J_x0] = stage2vec(mpc.delta_u,mpc.delta_se,mpc.delta_g_0,...
-                                mpc.delta_g_k,mpc.delta_g_ter,...
-                                mpc.delta_v_0,mpc.delta_v_k,mpc.delta_v_ter,...
-                                mpc.g_0,mpc.g_k,mpc.g_ter,...
-                                mpc.v_0,mpc.v_k,mpc.v_ter,...
-                                mpc.t,mpc.grad_qv_0,mpc.grad_qv_k,mpc.grad_qv_ter,...
-                                mpc.grad_u_f0_0,mpc.grad_u_f0_k,...
-                                mpc.grad_se_f0_k,mpc.grad_se_f0_ter,...
-                                mpc.u_index_k,mpc.se_index_k,...
-                                mpc.g_index_0,mpc.g_index_k,mpc.g_index_ter,...
-                                mpc.v_index_0,mpc.v_index_k,mpc.v_index_ter,...
-                                mpc.ng_k,mpc.nv_k,mpc.n,mpc.N);
-
-    % compute lambda^2
-    lambda2 = -grad_J_x0*delta_x_prim;
+    lambda2 = get_lambda2(mpc.delta_u,mpc.delta_se, ...
+                           mpc.delta_g_0,mpc.delta_g_k,mpc.delta_g_ter, ...
+                           mpc.delta_v_0,mpc.delta_v_k,mpc.delta_v_ter, ...
+                           mpc.g_0,mpc.g_k,mpc.g_ter,mpc.v_0,mpc.v_k,mpc.v_ter, ...
+                           mpc.grad_u_f0_0,mpc.grad_se_f0_k, ...
+                           mpc.grad_u_f0_k,mpc.grad_se_f0_ter, ...
+                           mpc.t,mpc.grad_qv_0,mpc.grad_qv_k,mpc.grad_qv_ter, ...
+                           mpc.ng_k,mpc.nv_k,mpc.N);
 
     % Feasibility line search
     l = 1;
-    xhat = x0+l*delta_x_prim;
+    g_0_hat = mpc.g_0+l*mpc.delta_g_0;
+    g_k_hat = mpc.g_k+l*mpc.delta_g_k;
+    g_ter_hat = mpc.g_ter+l*mpc.delta_g_ter;
+    v_0_hat = mpc.v_0+l*mpc.delta_v_0;
+    v_k_hat = mpc.v_k+l*mpc.delta_v_k;
+    v_ter_hat = mpc.v_ter+l*mpc.delta_v_ter;
 
-    feas = all(xhat(mpc.g_index)>0) &&...
-           all(xhat(mpc.v_index)>0);
+    feas = all(g_0_hat(:)>0) && all(g_k_hat(:)>0) && all(g_ter_hat(:)>0) && ...
+           all(v_0_hat(:)>0) && all(v_k_hat(:)>0) && all(v_ter_hat(:)>0);
 
-    if feas
-        x0 = xhat;
-    else
+    if ~feas
         while ~feas
             l = l*mpc.Beta;
 
-            xhat = x0+l*delta_x_prim;
+            g_0_hat = mpc.g_0+l*mpc.delta_g_0;
+            g_k_hat = mpc.g_k+l*mpc.delta_g_k;
+            g_ter_hat = mpc.g_ter+l*mpc.delta_g_ter;
+            v_0_hat = mpc.v_0+l*mpc.delta_v_0;
+            v_k_hat = mpc.v_k+l*mpc.delta_v_k;
+            v_ter_hat = mpc.v_ter+l*mpc.delta_v_ter;
 
-            feas = all(xhat(mpc.g_index)>0) &&...
-                   all(xhat(mpc.v_index)>0);
+            feas = all(g_0_hat(:)>0) && all(g_k_hat(:)>0) && all(g_ter_hat(:)>0) && ...
+                   all(v_0_hat(:)>0) && all(v_k_hat(:)>0) && all(v_ter_hat(:)>0);
         end
-        x0 = xhat;
         if l<mpc.min_l
             continue_Newton = false;
         end
     end
-    mpc = get_mpc_variables(mpc,x0,s_prev,u_prev);
+
+    mpc.g_0(:) = g_0_hat;
+    mpc.g_k(:,:) = g_k_hat;
+    mpc.g_ter(:) = g_ter_hat;
+    mpc.v_0(:) = v_0_hat;
+    mpc.v_k(:,:) = v_k_hat;
+    mpc.v_ter(:) = v_ter_hat;
+    mpc.u(:,:) = mpc.u+l*mpc.delta_u;
+    mpc.s(:,:) = mpc.s+l*mpc.delta_se(mpc.s_col,:);
+    if mpc.has_du
+        mpc.su(:,:) = mpc.su+l*mpc.delta_se(mpc.su_col,:);
+    end
+    mpc = get_mpc_variables(mpc,s_prev,u_prev);
     iter = iter+1;
 end
 
 u0 = mpc.u(:,1);
-mpc.x0(:) = x0;
 
 end
