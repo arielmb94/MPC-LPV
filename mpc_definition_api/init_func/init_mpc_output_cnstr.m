@@ -88,18 +88,6 @@ y_cnstr.min_row_v_0 = [];
 y_cnstr.min_row_v_k = [];
 y_cnstr.max_row_v_0 = [];
 y_cnstr.max_row_v_k = [];
-y_cnstr.g_min_index_0 = [];
-y_cnstr.g_min_index_k = [];
-y_cnstr.g_min_index_ter = [];
-y_cnstr.v_min_index_0 = [];
-y_cnstr.v_min_index_k = [];
-y_cnstr.v_min_index_ter = [];
-y_cnstr.g_max_index_0 = [];
-y_cnstr.g_max_index_k = [];
-y_cnstr.g_max_index_ter = [];
-y_cnstr.v_max_index_0 = [];
-y_cnstr.v_max_index_k = [];
-y_cnstr.v_max_index_ter = [];
 
 % Expand scalars to full local vectors if needed
 if isscalar(y_min), y_min = y_min * ones(mpc.ny, 1); end
@@ -121,9 +109,6 @@ if ~isempty(y_min)
         mpc.ng_k(3) = mpc.ng_k(3) + mpc.ny_ter;
         mpc.nv_k(3) = mpc.nv_k(3) + mpc.ny_ter;
     end
-
-    y_cnstr.g_min_index_k = [];
-    y_cnstr.v_min_index_k = [];
 
     y_full = zeros(mpc.ny, mpc.N);
     y_full = fill_vec(y_full, y_min, 1);
@@ -179,9 +164,6 @@ if ~isempty(y_max)
         mpc.ng_k(3) = mpc.ng_k(3) + mpc.ny_ter;
         mpc.nv_k(3) = mpc.nv_k(3) + mpc.ny_ter;
     end
-
-    y_cnstr.g_max_index_k = [];
-    y_cnstr.v_max_index_k = [];
 
     y_full = zeros(mpc.ny, mpc.N);
     y_full = fill_vec(y_full, y_max, 1);

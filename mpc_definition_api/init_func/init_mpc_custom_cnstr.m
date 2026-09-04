@@ -128,18 +128,6 @@ h_cnstr.min_row_v_0 = [];
 h_cnstr.min_row_v_k = [];
 h_cnstr.max_row_v_0 = [];
 h_cnstr.max_row_v_k = [];
-h_cnstr.g_min_index_0 = [];
-h_cnstr.g_min_index_k = [];
-h_cnstr.g_min_index_ter = [];
-h_cnstr.v_min_index_0 = [];
-h_cnstr.v_min_index_k = [];
-h_cnstr.v_min_index_ter = [];
-h_cnstr.g_max_index_0 = [];
-h_cnstr.g_max_index_k = [];
-h_cnstr.g_max_index_ter = [];
-h_cnstr.v_max_index_0 = [];
-h_cnstr.v_max_index_k = [];
-h_cnstr.v_max_index_ter = [];
 
 mpc.Ch_0 = [];
 mpc.Dh_0 = [];
@@ -271,9 +259,6 @@ if ~isempty(h_min)
         mpc.nv_k(3) = mpc.nv_k(3) + mpc.nh_ter;
     end
 
-    h_cnstr.g_min_index_k = [];
-    h_cnstr.v_min_index_k = [];
-
     h_min_full = zeros(mpc.nh, mpc.N);
     h_min_full = fill_vec(h_min_full, h_min, 1);
     h_cnstr.min = h_min_full(:,1:mpc.N-1);
@@ -328,9 +313,6 @@ if ~isempty(h_max)
         mpc.ng_k(3) = mpc.ng_k(3) + mpc.nh_ter;
         mpc.nv_k(3) = mpc.nv_k(3) + mpc.nh_ter;
     end
-
-    h_cnstr.g_max_index_k = [];
-    h_cnstr.v_max_index_k = [];
 
     h_max_full = zeros(mpc.nh, mpc.N);
     h_max_full = fill_vec(h_max_full, h_max, 1);

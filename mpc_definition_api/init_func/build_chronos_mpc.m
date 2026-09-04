@@ -39,11 +39,14 @@ arguments
     x_ref = []
 end
 
-    % get index maps for optimization variables
-    mpc = build_index(mpc);
+    % allocate stage-local optimization variables and solver workspace
+    mpc = build_optimization_variables(mpc);
     
     % init equality constraints
     mpc = genEqualities(mpc);
+
+    % assign constraints rows
+    mpc = assign_inequalities(mpc);
 
     % init soft slacks cost
     mpc = set_soft_cost_qv(mpc);

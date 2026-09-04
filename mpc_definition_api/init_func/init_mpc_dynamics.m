@@ -81,10 +81,6 @@ if ~isempty(Bd)
     mpc.Bd = fill_mat(mpc.Bd, Bd, 1);
 end
 
-mpc.Nx = mpc.N*mpc.nx;
-mpc.Nu = mpc.N*mpc.nu;
-mpc.Nd = mpc.N*mpc.nd;
-
 mpc.s = zeros(mpc.nx,mpc.N);
 mpc.s_ter = zeros(mpc.nx,1);
 mpc.su = zeros(mpc.nu,mpc.N);
