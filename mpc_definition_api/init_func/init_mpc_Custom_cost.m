@@ -168,6 +168,13 @@ end
 
 mpc.z_use_k0 = 0;
 mpc.z_use_ter = 0;
+mpc.Cz_0 = [];
+mpc.Dz_0 = [];
+mpc.Dsuz_0 = [];
+mpc.Ddz_0 = [];
+mpc.Cz_ter = [];
+mpc.z_rows_k0 = [];
+mpc.z_rows_ter = [];
 % at k = 0, only rows with Dz!=0 (with dependence on control action u) are
 % considered
 z_row_0 = find(~all(Dz(:,:,1)==0,2));
@@ -225,8 +232,19 @@ if any(Qz(:))
         Qz_ter = Qz(:,:,mpc.N);
     end
 
-    if mpc.z_use_k0, mpc.Qz_0 = Qz(mpc.z_rows_k0,mpc.z_rows_k0,1); end
-    if mpc.z_use_ter, mpc.Qz_ter = Qz_ter(mpc.z_rows_ter,mpc.z_rows_ter); end
+    if mpc.z_use_k0
+        mpc.Qz_0 = Qz(mpc.z_rows_k0,mpc.z_rows_k0,1);
+    else
+        mpc.Qz_0 = [];
+    end
+    if mpc.z_use_ter
+        mpc.Qz_ter = Qz_ter(mpc.z_rows_ter,mpc.z_rows_ter);
+    else
+        mpc.Qz_ter = [];
+    end
+else
+    mpc.Qz_0 = [];
+    mpc.Qz_ter = [];
 end
 
 % Linear cost matrix
@@ -243,8 +261,19 @@ if any(qz(:))
         qz_ter = qz(:,mpc.N);
     end
 
-    if mpc.z_use_k0, mpc.qz_0 = qz(mpc.z_rows_k0,1); end
-    if mpc.z_use_ter, mpc.qz_ter = qz_ter(mpc.z_rows_ter); end
+    if mpc.z_use_k0
+        mpc.qz_0 = qz(mpc.z_rows_k0,1);
+    else
+        mpc.qz_0 = [];
+    end
+    if mpc.z_use_ter
+        mpc.qz_ter = qz_ter(mpc.z_rows_ter);
+    else
+        mpc.qz_ter = [];
+    end
+else
+    mpc.qz_0 = [];
+    mpc.qz_ter = [];
 end
  
 end

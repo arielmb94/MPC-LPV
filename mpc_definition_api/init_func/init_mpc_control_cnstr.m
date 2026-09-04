@@ -49,6 +49,12 @@ u_cnstr.use_k0 = 0;
 u_cnstr.use_ter = 0;
 u_cnstr.rows_k0 = [];
 u_cnstr.rows_ter = [];
+u_cnstr.min_ineqRow_0 = [];
+u_cnstr.min_ineqRow_k = [];
+u_cnstr.max_ineqRow_0 = [];
+u_cnstr.max_ineqRow_k = [];
+u_cnstr.g_min_index_k = [];
+u_cnstr.g_max_index_k = [];
 
 if ~isempty(u_min)
 
@@ -63,6 +69,7 @@ if ~isempty(u_min)
 
 else
     u_cnstr.min_limit = 0;
+    u_cnstr.min = [];
 end
 
 if ~isempty(u_max)
@@ -77,6 +84,7 @@ if ~isempty(u_max)
     u_cnstr.max = fill_vec(u_cnstr.max, u_max, 1);
 else
     u_cnstr.max_limit = 0;
+    u_cnstr.max = [];
 end
 
 mpc.u_cnstr = u_cnstr;

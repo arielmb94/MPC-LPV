@@ -83,7 +83,12 @@ mpc.ny = ny;
 mpc.C = [];
 mpc.D = [];
 mpc.Dd = [];
+mpc.C_0 = [];
+mpc.D_0 = [];
+mpc.Dd_0 = [];
 mpc.C_ter = [];
+mpc.y_rows_k0 = [];
+mpc.y_rows_ter = [];
 mpc.y_use_s = 0;
 mpc.y_use_u = 0;
 mpc.y_use_d = 0;
@@ -149,6 +154,7 @@ if mpc.ny_0
     if mpc.y_use_u, mpc.D_0 = mpc.D(mpc.y_rows_k0,:,1); end
     if mpc.y_use_d, mpc.Dd_0 = mpc.Dd(mpc.y_rows_k0,:,1); end
 else
+    mpc.y_rows_k0 = [];
     mpc.y_use_k0 = 0;
 end
 

@@ -78,6 +78,29 @@ y_cnstr.use_s = mpc.y_use_s;
 y_cnstr.use_u = mpc.y_use_u;
 y_cnstr.use_d = mpc.y_use_d;
 
+y_cnstr.min_ineqRow_0 = [];
+y_cnstr.min_ineqRow_k = [];
+y_cnstr.min_ineqRow_ter = [];
+y_cnstr.max_ineqRow_0 = [];
+y_cnstr.max_ineqRow_k = [];
+y_cnstr.max_ineqRow_ter = [];
+y_cnstr.min_row_v_0 = [];
+y_cnstr.min_row_v_k = [];
+y_cnstr.max_row_v_0 = [];
+y_cnstr.max_row_v_k = [];
+y_cnstr.g_min_index_0 = [];
+y_cnstr.g_min_index_k = [];
+y_cnstr.g_min_index_ter = [];
+y_cnstr.v_min_index_0 = [];
+y_cnstr.v_min_index_k = [];
+y_cnstr.v_min_index_ter = [];
+y_cnstr.g_max_index_0 = [];
+y_cnstr.g_max_index_k = [];
+y_cnstr.g_max_index_ter = [];
+y_cnstr.v_max_index_0 = [];
+y_cnstr.v_max_index_k = [];
+y_cnstr.v_max_index_ter = [];
+
 % Expand scalars to full local vectors if needed
 if isscalar(y_min), y_min = y_min * ones(mpc.ny, 1); end
 if isscalar(y_max), y_max = y_max * ones(mpc.ny, 1); end
@@ -105,19 +128,41 @@ if ~isempty(y_min)
     y_full = zeros(mpc.ny, mpc.N);
     y_full = fill_vec(y_full, y_min, 1);
     y_cnstr.min = y_full(:,1:mpc.N-1);
-    if mpc.y_use_k0, y_cnstr.min_0 = y_full(mpc.y_rows_k0,1); end
-    if mpc.y_use_ter, y_cnstr.min_ter = y_full(mpc.y_rows_ter,mpc.N); end
+    if mpc.y_use_k0
+        y_cnstr.min_0 = y_full(mpc.y_rows_k0,1);
+    else
+        y_cnstr.min_0 = [];
+    end
+    if mpc.y_use_ter
+        y_cnstr.min_ter = y_full(mpc.y_rows_ter,mpc.N);
+    else
+        y_cnstr.min_ter = [];
+    end
 
     qv_min_full = zeros(mpc.ny, mpc.N);
     if ~isempty(qv_min)
         qv_min_full = fill_vec(qv_min_full, qv_min, 1);
     end
     y_cnstr.qv_min = qv_min_full(:,1:mpc.N-1);
-    if mpc.y_use_k0, y_cnstr.qv_min_0 = qv_min_full(mpc.y_rows_k0,1); end
-    if mpc.y_use_ter, y_cnstr.qv_min_ter = qv_min_full(mpc.y_rows_ter,mpc.N); end
+    if mpc.y_use_k0
+        y_cnstr.qv_min_0 = qv_min_full(mpc.y_rows_k0,1);
+    else
+        y_cnstr.qv_min_0 = [];
+    end
+    if mpc.y_use_ter
+        y_cnstr.qv_min_ter = qv_min_full(mpc.y_rows_ter,mpc.N);
+    else
+        y_cnstr.qv_min_ter = [];
+    end
 
 else
     y_cnstr.min_limit = 0;
+    y_cnstr.min = [];
+    y_cnstr.min_0 = [];
+    y_cnstr.min_ter = [];
+    y_cnstr.qv_min = [];
+    y_cnstr.qv_min_0 = [];
+    y_cnstr.qv_min_ter = [];
 end
 
 if ~isempty(y_max)
@@ -141,19 +186,41 @@ if ~isempty(y_max)
     y_full = zeros(mpc.ny, mpc.N);
     y_full = fill_vec(y_full, y_max, 1);
     y_cnstr.max = y_full(:,1:mpc.N-1);
-    if mpc.y_use_k0, y_cnstr.max_0 = y_full(mpc.y_rows_k0,1); end
-    if mpc.y_use_ter, y_cnstr.max_ter = y_full(mpc.y_rows_ter,mpc.N); end
+    if mpc.y_use_k0
+        y_cnstr.max_0 = y_full(mpc.y_rows_k0,1);
+    else
+        y_cnstr.max_0 = [];
+    end
+    if mpc.y_use_ter
+        y_cnstr.max_ter = y_full(mpc.y_rows_ter,mpc.N);
+    else
+        y_cnstr.max_ter = [];
+    end
 
     qv_max_full = zeros(mpc.ny, mpc.N);
     if ~isempty(qv_max)
         qv_max_full = fill_vec(qv_max_full, qv_max, 1);
     end
     y_cnstr.qv_max = qv_max_full(:,1:mpc.N-1);
-    if mpc.y_use_k0, y_cnstr.qv_max_0 = qv_max_full(mpc.y_rows_k0,1); end
-    if mpc.y_use_ter, y_cnstr.qv_max_ter = qv_max_full(mpc.y_rows_ter,mpc.N); end
+    if mpc.y_use_k0
+        y_cnstr.qv_max_0 = qv_max_full(mpc.y_rows_k0,1);
+    else
+        y_cnstr.qv_max_0 = [];
+    end
+    if mpc.y_use_ter
+        y_cnstr.qv_max_ter = qv_max_full(mpc.y_rows_ter,mpc.N);
+    else
+        y_cnstr.qv_max_ter = [];
+    end
 
 else
     y_cnstr.max_limit = 0;
+    y_cnstr.max = [];
+    y_cnstr.max_0 = [];
+    y_cnstr.max_ter = [];
+    y_cnstr.qv_max = [];
+    y_cnstr.qv_max_0 = [];
+    y_cnstr.qv_max_ter = [];
 end
 
 mpc.y_cnstr = y_cnstr;

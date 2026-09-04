@@ -116,6 +116,36 @@ h_cnstr.use_s = 0;
 h_cnstr.use_u = 0;
 h_cnstr.use_su = 0;
 h_cnstr.use_d = 0;
+h_cnstr.rows_k0 = [];
+h_cnstr.rows_ter = [];
+h_cnstr.min_ineqRow_0 = [];
+h_cnstr.min_ineqRow_k = [];
+h_cnstr.min_ineqRow_ter = [];
+h_cnstr.max_ineqRow_0 = [];
+h_cnstr.max_ineqRow_k = [];
+h_cnstr.max_ineqRow_ter = [];
+h_cnstr.min_row_v_0 = [];
+h_cnstr.min_row_v_k = [];
+h_cnstr.max_row_v_0 = [];
+h_cnstr.max_row_v_k = [];
+h_cnstr.g_min_index_0 = [];
+h_cnstr.g_min_index_k = [];
+h_cnstr.g_min_index_ter = [];
+h_cnstr.v_min_index_0 = [];
+h_cnstr.v_min_index_k = [];
+h_cnstr.v_min_index_ter = [];
+h_cnstr.g_max_index_0 = [];
+h_cnstr.g_max_index_k = [];
+h_cnstr.g_max_index_ter = [];
+h_cnstr.v_max_index_0 = [];
+h_cnstr.v_max_index_k = [];
+h_cnstr.v_max_index_ter = [];
+
+mpc.Ch_0 = [];
+mpc.Dh_0 = [];
+mpc.Dsuh_0 = [];
+mpc.Ddh_0 = [];
+mpc.Ch_ter = [];
 
 if ~isempty(Ch)
     h_cnstr.use_s = 1;
@@ -247,19 +277,41 @@ if ~isempty(h_min)
     h_min_full = zeros(mpc.nh, mpc.N);
     h_min_full = fill_vec(h_min_full, h_min, 1);
     h_cnstr.min = h_min_full(:,1:mpc.N-1);
-    if h_cnstr.use_k0, h_cnstr.min_0 = h_min_full(h_cnstr.rows_k0,1); end
-    if h_cnstr.use_ter, h_cnstr.min_ter = h_min_full(h_cnstr.rows_ter,mpc.N); end
+    if h_cnstr.use_k0
+        h_cnstr.min_0 = h_min_full(h_cnstr.rows_k0,1);
+    else
+        h_cnstr.min_0 = [];
+    end
+    if h_cnstr.use_ter
+        h_cnstr.min_ter = h_min_full(h_cnstr.rows_ter,mpc.N);
+    else
+        h_cnstr.min_ter = [];
+    end
 
     qv_min_full = zeros(mpc.nh, mpc.N);
     if ~isempty(qv_min)
         qv_min_full = fill_vec(qv_min_full, qv_min, 1);
     end
     h_cnstr.qv_min = qv_min_full(:,1:mpc.N-1);
-    if h_cnstr.use_k0, h_cnstr.qv_min_0 = qv_min_full(h_cnstr.rows_k0,1); end
-    if h_cnstr.use_ter, h_cnstr.qv_min_ter = qv_min_full(h_cnstr.rows_ter,mpc.N); end
+    if h_cnstr.use_k0
+        h_cnstr.qv_min_0 = qv_min_full(h_cnstr.rows_k0,1);
+    else
+        h_cnstr.qv_min_0 = [];
+    end
+    if h_cnstr.use_ter
+        h_cnstr.qv_min_ter = qv_min_full(h_cnstr.rows_ter,mpc.N);
+    else
+        h_cnstr.qv_min_ter = [];
+    end
    
 else
     h_cnstr.min_limit = 0;
+    h_cnstr.min = [];
+    h_cnstr.min_0 = [];
+    h_cnstr.min_ter = [];
+    h_cnstr.qv_min = [];
+    h_cnstr.qv_min_0 = [];
+    h_cnstr.qv_min_ter = [];
 end
 
 if ~isempty(h_max)
@@ -283,19 +335,41 @@ if ~isempty(h_max)
     h_max_full = zeros(mpc.nh, mpc.N);
     h_max_full = fill_vec(h_max_full, h_max, 1);
     h_cnstr.max = h_max_full(:,1:mpc.N-1);
-    if h_cnstr.use_k0, h_cnstr.max_0 = h_max_full(h_cnstr.rows_k0,1); end
-    if h_cnstr.use_ter, h_cnstr.max_ter = h_max_full(h_cnstr.rows_ter,mpc.N); end
+    if h_cnstr.use_k0
+        h_cnstr.max_0 = h_max_full(h_cnstr.rows_k0,1);
+    else
+        h_cnstr.max_0 = [];
+    end
+    if h_cnstr.use_ter
+        h_cnstr.max_ter = h_max_full(h_cnstr.rows_ter,mpc.N);
+    else
+        h_cnstr.max_ter = [];
+    end
 
     qv_max_full = zeros(mpc.nh, mpc.N);
     if ~isempty(qv_max)
         qv_max_full = fill_vec(qv_max_full, qv_max, 1);
     end
     h_cnstr.qv_max = qv_max_full(:,1:mpc.N-1);
-    if h_cnstr.use_k0, h_cnstr.qv_max_0 = qv_max_full(h_cnstr.rows_k0,1); end
-    if h_cnstr.use_ter, h_cnstr.qv_max_ter = qv_max_full(h_cnstr.rows_ter,mpc.N); end
+    if h_cnstr.use_k0
+        h_cnstr.qv_max_0 = qv_max_full(h_cnstr.rows_k0,1);
+    else
+        h_cnstr.qv_max_0 = [];
+    end
+    if h_cnstr.use_ter
+        h_cnstr.qv_max_ter = qv_max_full(h_cnstr.rows_ter,mpc.N);
+    else
+        h_cnstr.qv_max_ter = [];
+    end
 
 else
     h_cnstr.max_limit = 0;
+    h_cnstr.max = [];
+    h_cnstr.max_0 = [];
+    h_cnstr.max_ter = [];
+    h_cnstr.qv_max = [];
+    h_cnstr.qv_max_0 = [];
+    h_cnstr.qv_max_ter = [];
 end
 
 mpc.h_cnstr = h_cnstr;

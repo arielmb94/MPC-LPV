@@ -51,6 +51,12 @@ du_cnstr.use_k0 = 0;
 du_cnstr.use_ter = 0;
 du_cnstr.rows_k0 = [];
 du_cnstr.rows_ter = [];
+du_cnstr.min_ineqRow_0 = [];
+du_cnstr.min_ineqRow_k = [];
+du_cnstr.max_ineqRow_0 = [];
+du_cnstr.max_ineqRow_k = [];
+du_cnstr.g_min_index_k = [];
+du_cnstr.g_max_index_k = [];
 
 if ~isempty(du_min)
 
@@ -64,6 +70,7 @@ if ~isempty(du_min)
     du_cnstr.min = fill_vec(du_cnstr.min, du_min, 1);
 else
     du_cnstr.min_limit = 0;
+    du_cnstr.min = [];
 end
 
 if ~isempty(du_max)
@@ -78,6 +85,7 @@ if ~isempty(du_max)
     du_cnstr.max = fill_vec(du_cnstr.max, du_max, 1);    
 else
     du_cnstr.max_limit = 0;
+    du_cnstr.max = [];
 end
 
 mpc.du_cnstr = du_cnstr;

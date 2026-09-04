@@ -96,6 +96,12 @@ if mpc.nd
 end
 
 % Assume C = I*x
+mpc.D = [];
+mpc.Dd = [];
+mpc.C_0 = [];
+mpc.D_0 = [];
+mpc.Dd_0 = [];
+
 C = eye(mpc.nx);
 mpc.C = zeros(mpc.nx,mpc.nx,mpc.N-1);
 mpc.C = fill_mat(mpc.C, C, 1);

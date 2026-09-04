@@ -28,11 +28,4 @@ else
     mpc.Rdu(:,:,:) = Rdu(:,:,1:mpc.N);
 end
 
-for k = 1:mpc.N-1
-    ku = k+1;
-    mpc.gradRateCtrl_Rdu_k(:,:,k) = [-mpc.Rdu(:,:,ku);mpc.Rdu(:,:,ku)];
-    mpc.H_RateCtrl_k(:,:,k) = [mpc.Rdu(:,:,ku) -mpc.Rdu(:,:,ku);
-                               -mpc.Rdu(:,:,ku) mpc.Rdu(:,:,ku)];
-end
-
 end

@@ -1,12 +1,14 @@
-function mpc = update_mpc_beq(mpc,s_prev)
+function [beq_0,beq_k] = update_mpc_beq(beq_0,beq_k,A,Bd,d,s_prev,dyn_use_d,N)
 %% dynamics
 % k = 0
-mpc.beq_0(:) = -mpc.A(:,:,1)*s_prev;
+beq_0(:) = -A(:,:,1)*s_prev;
 
-if mpc.dyn_use_d
-    mpc.beq_0(:) = mpc.beq_0(:) - mpc.Bd(:,:,1)*mpc.d(:,1);
+if dyn_use_d
+    beq_0(:) = beq_0(:) - Bd(:,:,1)*d(:,1);
 
-    for k = 1:mpc.N-1
-        mpc.beq_k(:,k) = - mpc.Bd(:,:,k+1)*mpc.d(:,k+1);
+    for k = 1:N-1
+        beq_k(:,k) = -Bd(:,:,k+1)*d(:,k+1);
     end
+end
+
 end

@@ -71,6 +71,16 @@ s_cnstr.use_k0 = 0;
 s_cnstr.use_ter = 1;
 s_cnstr.rows_k0 = [];
 s_cnstr.rows_ter = 1:mpc.nx;
+s_cnstr.min_ineqRow_k = [];
+s_cnstr.min_ineqRow_ter = [];
+s_cnstr.max_ineqRow_k = [];
+s_cnstr.max_ineqRow_ter = [];
+s_cnstr.min_row_v_k = [];
+s_cnstr.max_row_v_k = [];
+s_cnstr.g_min_index_k = [];
+s_cnstr.v_min_index_k = [];
+s_cnstr.g_max_index_k = [];
+s_cnstr.v_max_index_k = [];
 
 if ~isempty(x_min)
 
@@ -95,6 +105,9 @@ if ~isempty(x_min)
     end
 else
     s_cnstr.min_limit = 0;
+    s_cnstr.min = [];
+    s_cnstr.qv_min = [];
+    s_cnstr.qv_min_ter = [];
 end
 
 if ~isempty(x_max)
@@ -120,6 +133,9 @@ if ~isempty(x_max)
     end
 else
     s_cnstr.max_limit = 0;
+    s_cnstr.max = [];
+    s_cnstr.qv_max = [];
+    s_cnstr.qv_max_ter = [];
 end
 
 mpc.s_cnstr = s_cnstr;

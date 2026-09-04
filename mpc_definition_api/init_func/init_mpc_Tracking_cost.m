@@ -60,7 +60,15 @@ else
     Qe_ter = Qe(:,:,mpc.N);
 end
 
-if mpc.y_use_k0, mpc.Qe_0 = Qe(mpc.y_rows_k0,mpc.y_rows_k0,1); end
-if mpc.y_use_ter, mpc.Qe_ter = Qe_ter(mpc.y_rows_ter,mpc.y_rows_ter); end
+if mpc.y_use_k0
+    mpc.Qe_0 = Qe(mpc.y_rows_k0,mpc.y_rows_k0,1);
+else
+    mpc.Qe_0 = [];
+end
+if mpc.y_use_ter
+    mpc.Qe_ter = Qe_ter(mpc.y_rows_ter,mpc.y_rows_ter);
+else
+    mpc.Qe_ter = [];
+end
 
 end
