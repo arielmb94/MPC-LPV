@@ -35,8 +35,6 @@ if ~isempty(A)
     else
         mpc.A(:,:,:) = A(:,:,1:mpc.N);
     end
-
-    mpc.A_kkt(mpc.s_col,mpc.s_col,:) = mpc.A(:,:,2:mpc.N);
 end
 
 if ~isempty(B)
@@ -47,9 +45,6 @@ if ~isempty(B)
     else
         mpc.B(:,:,:) = B(:,:,1:mpc.N);
     end
-
-    mpc.B_kkt_0(mpc.s_col,:) = mpc.B(:,:,1);
-    mpc.B_kkt(mpc.s_col,:,:) = mpc.B(:,:,2:mpc.N);
 end
 
 if ~isempty(Bd)   

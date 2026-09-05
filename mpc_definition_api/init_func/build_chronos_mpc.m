@@ -176,8 +176,14 @@ function mpc = preallocate_riccati(mpc)
     mpc.rp_hat_0 = zeros(mpc.nse,1);
     mpc.ru_hat_0 = zeros(mpc.nu,1);
 
-    mpc.QA_ric = zeros(mpc.nse,mpc.nse);
-    mpc.QB_ric = zeros(mpc.nse,mpc.nu);
+    mpc.QA_ric = zeros(mpc.nx,mpc.nx);
+    if mpc.has_du
+        mpc.QB_ric = [];
+        mpc.G_ric = zeros(mpc.nu,mpc.nx);
+    else
+        mpc.QB_ric = zeros(mpc.nx,mpc.nu);
+        mpc.G_ric = [];
+    end
     mpc.solve_rhs_ric = zeros(mpc.nu,mpc.nse+1);
     mpc.solve_result_ric = zeros(mpc.nu,mpc.nse+1);
 end
