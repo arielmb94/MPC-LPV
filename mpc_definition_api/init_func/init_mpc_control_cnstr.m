@@ -45,8 +45,8 @@ validate_column_vector(u_max, mpc.nu, 'u_max');
 if isscalar(u_min), u_min = u_min * ones(mpc.nu, 1); end
 if isscalar(u_max), u_max = u_max * ones(mpc.nu, 1); end
 
-u_cnstr.use_k0 = 0;
-u_cnstr.use_ter = 0;
+u_cnstr.use_k0 = [];
+u_cnstr.use_ter = [];
 u_cnstr.rows_k0 = [];
 u_cnstr.rows_ter = [];
 u_cnstr.min_ineqRow_0 = [];
@@ -64,7 +64,7 @@ if ~isempty(u_min)
     u_cnstr.min = fill_vec(u_cnstr.min, u_min, 1);
 
 else
-    u_cnstr.min_limit = 0;
+    u_cnstr.min_limit = [];
     u_cnstr.min = [];
 end
 
@@ -78,7 +78,7 @@ if ~isempty(u_max)
     u_cnstr.max = zeros(mpc.nu,mpc.N);
     u_cnstr.max = fill_vec(u_cnstr.max, u_max, 1);
 else
-    u_cnstr.max_limit = 0;
+    u_cnstr.max_limit = [];
     u_cnstr.max = [];
 end
 

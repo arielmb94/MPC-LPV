@@ -16,17 +16,18 @@
 %     mpc     - Updated CHRONOS MPC structure.
 function mpc = update_mpc_Tracking_cost(mpc,Qe)
 
-mpc.update_tracking = 1;
+if ~isempty(mpc.tracking_cost)
+    mpc.update_tracking = true;
 
-len_Q = size(Qe,3);
-if len_Q < mpc.N
+    len_Q = size(Qe,3);
     mpc.Qe(:,:,:) = fill_mat(mpc.Qe, Qe, 1);
-    if mpc.y_use_ter, mpc.Qe_ter(:,:) = mpc.Qe(mpc.y_rows_ter,mpc.y_rows_ter,mpc.N-1); end
-else
-    mpc.Qe(:,:,:) = Qe(:,:,1:mpc.N-1);
-    if mpc.y_use_ter, mpc.Qe_ter(:,:) = Qe(mpc.y_rows_ter,mpc.y_rows_ter,mpc.N); end
-end
+    if ~isempty(mpc.y_use_ter)
+        ter_stage = len_Q;
+        if ter_stage > mpc.N, ter_stage = mpc.N; end
+        mpc.Qe_ter(:,:) = Qe(mpc.y_rows_ter,mpc.y_rows_ter,ter_stage);
+    end
 
-if mpc.y_use_k0, mpc.Qe_0(:,:) = mpc.Qe(mpc.y_rows_k0,mpc.y_rows_k0,1); end
+    if ~isempty(mpc.y_use_k0), mpc.Qe_0(:,:) = Qe(mpc.y_rows_k0,mpc.y_rows_k0,1); end
+end
 
 end

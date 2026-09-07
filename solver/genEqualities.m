@@ -5,7 +5,11 @@ nu = mpc.nu;
 nse = mpc.nse;
 
 s_col = 1:nx;
-su_col = nx+1:nse;
+if ~isempty(mpc.has_du)
+    su_col = nx+1:nse;
+else
+    su_col = [];
+end
 u_col = nse+1:nse+nu;
 
 mpc.s_col = s_col;

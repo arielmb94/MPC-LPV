@@ -16,9 +16,11 @@
 %     mpc     - Updated CHRONOS MPC structure.
 function mpc = update_mpc_ter_ingredients(mpc,P)
 
-mpc.recompute_cost_hess = 1;
+if ~isempty(mpc.ter_ingredients)
+    mpc.recompute_cost_hess = 1;
 
-mpc.P(:,:) = P;
-mpc.P2(:,:) = 2*P;
+    mpc.P(:,:) = P;
+    mpc.P2(:,:) = 2*P;
+end
 
 end

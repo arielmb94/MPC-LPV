@@ -36,54 +36,36 @@
 %       mpc = update_mpc_custom_cnstr_vector(mpc, Ch, Dh, [], []);
 function mpc = update_mpc_custom_cnstr_vector(mpc,Ch,Dh,Dsuh,Ddh)
 
-if ~isempty(Ch)
+if ~isempty(Ch) && ~isempty(mpc.h_cnstr.use_s)
 
     len_Ch = size(Ch,3);
-    if len_Ch < mpc.N
-        mpc.Ch(:,:,:) = fill_mat(mpc.Ch, Ch, 1);
-        if mpc.h_cnstr.use_ter, mpc.Ch_ter(:,:) = mpc.Ch(mpc.h_cnstr.rows_ter,:,mpc.N-1); end
-    else
-        mpc.Ch(:,:,:) = Ch(:,:,1:mpc.N-1);
-        if mpc.h_cnstr.use_ter, mpc.Ch_ter(:,:) = Ch(mpc.h_cnstr.rows_ter,:,mpc.N); end
+    mpc.Ch(:,:,:) = fill_mat(mpc.Ch, Ch, 1);
+    if ~isempty(mpc.h_cnstr.use_ter)
+        ter_stage = len_Ch;
+        if ter_stage > mpc.N, ter_stage = mpc.N; end
+        mpc.Ch_ter(:,:) = Ch(mpc.h_cnstr.rows_ter,:,ter_stage);
     end
-    if mpc.h_cnstr.use_k0, mpc.Ch_0(:,:) = mpc.Ch(mpc.h_cnstr.rows_k0,:,1); end
+    if ~isempty(mpc.h_cnstr.use_k0), mpc.Ch_0(:,:) = Ch(mpc.h_cnstr.rows_k0,:,1); end
 
 end
 
-if ~isempty(Dh)
-
-    len_Dh = size(Dh,3);
-    if len_Dh < mpc.N-1
-        mpc.Dh(:,:,:) = fill_mat(mpc.Dh, Dh, 1);
-    else
-        mpc.Dh(:,:,:) = Dh(:,:,1:mpc.N-1);
-    end
-    if mpc.h_cnstr.use_k0
-        mpc.Dh_0(:,:) = mpc.Dh(mpc.h_cnstr.rows_k0,:,1);
+if ~isempty(Dh) && ~isempty(mpc.h_cnstr.use_u)
+    mpc.Dh(:,:,:) = fill_mat(mpc.Dh, Dh, 1);
+    if ~isempty(mpc.h_cnstr.use_k0)
+        mpc.Dh_0(:,:) = Dh(mpc.h_cnstr.rows_k0,:,1);
     end
 
 end
 
-if ~isempty(Dsuh)
-
-    len_Dsuh = size(Dsuh,3);
-    if len_Dsuh < mpc.N-1
-        mpc.Dsuh(:,:,:) = fill_mat(mpc.Dsuh, Dsuh, 1);
-    else
-        mpc.Dsuh(:,:,:) = Dsuh(:,:,1:mpc.N-1);
-    end
-    if mpc.h_cnstr.use_k0, mpc.Dsuh_0(:,:) = mpc.Dsuh(mpc.h_cnstr.rows_k0,:,1); end
+if ~isempty(Dsuh) && ~isempty(mpc.h_cnstr.use_su)
+    mpc.Dsuh(:,:,:) = fill_mat(mpc.Dsuh, Dsuh, 1);
+    if ~isempty(mpc.h_cnstr.use_k0), mpc.Dsuh_0(:,:) = Dsuh(mpc.h_cnstr.rows_k0,:,1); end
 
 end
 
-if ~isempty(Ddh)   
-    len_Ddh = size(Ddh,3);
-    if len_Ddh < mpc.N-1
-        mpc.Ddh(:,:,:) = fill_mat(mpc.Ddh, Ddh, 1);
-    else
-        mpc.Ddh(:,:,:) = Ddh(:,:,1:mpc.N-1);
-    end
-    if mpc.h_cnstr.use_k0, mpc.Ddh_0(:,:) = mpc.Ddh(mpc.h_cnstr.rows_k0,:,1); end
+if ~isempty(Ddh) && ~isempty(mpc.h_cnstr.use_d)
+    mpc.Ddh(:,:,:) = fill_mat(mpc.Ddh, Ddh, 1);
+    if ~isempty(mpc.h_cnstr.use_k0), mpc.Ddh_0(:,:) = Ddh(mpc.h_cnstr.rows_k0,:,1); end
 end
 
 end

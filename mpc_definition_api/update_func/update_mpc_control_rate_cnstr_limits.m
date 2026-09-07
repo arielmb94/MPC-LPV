@@ -24,26 +24,22 @@
 %       mpc = update_mpc_control_rate_cnstr_limits(mpc, du_min, []);
 function mpc = update_mpc_control_rate_cnstr_limits(mpc,min,max)
 
-if ~isempty(min)
+if ~isempty(min) && ~isempty(mpc.du_cnstr.min_limit)
 
     if isscalar(min)
         mpc.du_cnstr.min(:,:) = min;
-    elseif size(min,2) < mpc.N
-        mpc.du_cnstr.min(:,:) = fill_vec(mpc.du_cnstr.min, min, 1);
     else
-        mpc.du_cnstr.min(:,:) = min(:,1:mpc.N);
+        mpc.du_cnstr.min(:,:) = fill_vec(mpc.du_cnstr.min, min, 1);
     end
     
 end
 
-if ~isempty(max)
+if ~isempty(max) && ~isempty(mpc.du_cnstr.max_limit)
 
     if isscalar(max)
         mpc.du_cnstr.max(:,:) = max;
-    elseif size(max,2) < mpc.N
-        mpc.du_cnstr.max(:,:) = fill_vec(mpc.du_cnstr.max, max, 1);
     else
-        mpc.du_cnstr.max(:,:) = max(:,1:mpc.N);
+        mpc.du_cnstr.max(:,:) = fill_vec(mpc.du_cnstr.max, max, 1);
     end
 
 end

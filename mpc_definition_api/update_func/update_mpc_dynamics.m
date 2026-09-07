@@ -28,33 +28,15 @@
 function mpc = update_mpc_dynamics(mpc,A,B,Bd)
 
 if ~isempty(A)
-
-    len_A = size(A,3);
-    if len_A < mpc.N
-        mpc.A(:,:,:) = fill_mat(mpc.A, A, 1);
-    else
-        mpc.A(:,:,:) = A(:,:,1:mpc.N);
-    end
+    mpc.A(:,:,:) = fill_mat(mpc.A, A, 1);
 end
 
 if ~isempty(B)
-
-    len_Bd = size(B,3);
-    if len_Bd < mpc.N
-        mpc.B(:,:,:) = fill_mat(mpc.B, B, 1);
-    else
-        mpc.B(:,:,:) = B(:,:,1:mpc.N);
-    end
+    mpc.B(:,:,:) = fill_mat(mpc.B, B, 1);
 end
 
-if ~isempty(Bd)   
-
-    len_Bd = size(Bd,3);
-    if len_Bd < mpc.N
-        mpc.Bd(:,:,:) = fill_mat(mpc.Bd, Bd, 1);
-    else
-        mpc.Bd(:,:,:) = Bd(:,:,1:mpc.N);
-    end
+if ~isempty(Bd) && ~isempty(mpc.dyn_use_d)
+    mpc.Bd(:,:,:) = fill_mat(mpc.Bd, Bd, 1);
 end
 
 end

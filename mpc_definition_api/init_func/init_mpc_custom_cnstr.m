@@ -112,10 +112,10 @@ validate_column_vector(qv_max, mpc.nh, 'qv_max');
 % general constraints boolean
 mpc.has_h_cnstr = 1;
 
-h_cnstr.use_s = 0;
-h_cnstr.use_u = 0;
-h_cnstr.use_su = 0;
-h_cnstr.use_d = 0;
+h_cnstr.use_s = [];
+h_cnstr.use_u = [];
+h_cnstr.use_su = [];
+h_cnstr.use_d = [];
 h_cnstr.rows_k0 = [];
 h_cnstr.rows_ter = [];
 h_cnstr.min_ineqRow_0 = [];
@@ -192,8 +192,8 @@ if ~isempty(Ddh)
     end
 end
 
-h_cnstr.use_k0 = 0;
-h_cnstr.use_ter = 0;
+h_cnstr.use_k0 = [];
+h_cnstr.use_ter = [];
 % at k = 0, only rows with Dh!=0 (with dependence on control action u) are
 % considered
 h_row_0 = find(~all(Dh(:,:,1)==0,2));
@@ -203,18 +203,18 @@ if mpc.nh_0
     h_cnstr.rows_k0 = h_row_0;
     h_cnstr.use_k0 = 1;
 
-    if h_cnstr.use_s, mpc.Ch_0 = Ch(h_cnstr.rows_k0,:,1); end
-    if h_cnstr.use_u, mpc.Dh_0 = Dh(h_cnstr.rows_k0,:,1); end
-    if h_cnstr.use_su, mpc.Dsuh_0 = Dsuh(h_cnstr.rows_k0,:,1); end
-    if h_cnstr.use_d, mpc.Ddh_0 = Ddh(h_cnstr.rows_k0,:,1); end
+    if ~isempty(h_cnstr.use_s), mpc.Ch_0 = Ch(h_cnstr.rows_k0,:,1); end
+    if ~isempty(h_cnstr.use_u), mpc.Dh_0 = Dh(h_cnstr.rows_k0,:,1); end
+    if ~isempty(h_cnstr.use_su), mpc.Dsuh_0 = Dsuh(h_cnstr.rows_k0,:,1); end
+    if ~isempty(h_cnstr.use_d), mpc.Ddh_0 = Ddh(h_cnstr.rows_k0,:,1); end
 end
 
 % at k = N, only rows strictly dependent on s are considered
-if  h_cnstr.use_s
+if ~isempty(h_cnstr.use_s)
     strict_s_rows = any(Ch_ter~=0,2);
-    if h_cnstr.use_u, strict_s_rows = strict_s_rows & all(Dh_ter==0,2); end
-    if h_cnstr.use_su, strict_s_rows = strict_s_rows & all(Dsuh_ter==0,2); end
-    if h_cnstr.use_d, strict_s_rows = strict_s_rows & all(Ddh_ter==0,2); end
+    if ~isempty(h_cnstr.use_u), strict_s_rows = strict_s_rows & all(Dh_ter==0,2); end
+    if ~isempty(h_cnstr.use_su), strict_s_rows = strict_s_rows & all(Dsuh_ter==0,2); end
+    if ~isempty(h_cnstr.use_d), strict_s_rows = strict_s_rows & all(Ddh_ter==0,2); end
 
     h_row_ter = find(strict_s_rows);
     mpc.nh_ter = length(h_row_ter);
@@ -229,12 +229,12 @@ if mpc.nh_ter
 end
 
 % init h vector
-if h_cnstr.use_k0, mpc.h_0 = zeros(mpc.nh_0,1); else, mpc.h_0=[]; end
+if ~isempty(h_cnstr.use_k0), mpc.h_0 = zeros(mpc.nh_0,1); else, mpc.h_0=[]; end
 mpc.h = zeros(mpc.nh,mpc.N-1);
-if h_cnstr.use_ter, mpc.h_ter = zeros(mpc.nh_ter,1); else, mpc.h_ter=[]; end
+if ~isempty(h_cnstr.use_ter), mpc.h_ter = zeros(mpc.nh_ter,1); else, mpc.h_ter=[]; end
 
 % init dh disturbance vector
-if h_cnstr.use_d
+if ~isempty(h_cnstr.use_d)
     mpc.dh = zeros(mpc.ndh,mpc.N);
 end
 
@@ -248,13 +248,13 @@ if ~isempty(h_min)
 
     h_cnstr.min_limit = 1;
 
-    if h_cnstr.use_k0
+    if ~isempty(h_cnstr.use_k0)
         mpc.ng_k(1) = mpc.ng_k(1) + mpc.nh_0;
         mpc.nv_k(1) = mpc.nv_k(1) + mpc.nh_0;
     end
     mpc.ng_k(2) = mpc.ng_k(2) + mpc.nh;
     mpc.nv_k(2) = mpc.nv_k(2) + mpc.nh;
-    if h_cnstr.use_ter
+    if ~isempty(h_cnstr.use_ter)
         mpc.ng_k(3) = mpc.ng_k(3) + mpc.nh_ter;
         mpc.nv_k(3) = mpc.nv_k(3) + mpc.nh_ter;
     end
@@ -262,12 +262,12 @@ if ~isempty(h_min)
     h_min_full = zeros(mpc.nh, mpc.N);
     h_min_full = fill_vec(h_min_full, h_min, 1);
     h_cnstr.min = h_min_full(:,1:mpc.N-1);
-    if h_cnstr.use_k0
+    if ~isempty(h_cnstr.use_k0)
         h_cnstr.min_0 = h_min_full(h_cnstr.rows_k0,1);
     else
         h_cnstr.min_0 = [];
     end
-    if h_cnstr.use_ter
+    if ~isempty(h_cnstr.use_ter)
         h_cnstr.min_ter = h_min_full(h_cnstr.rows_ter,mpc.N);
     else
         h_cnstr.min_ter = [];
@@ -278,19 +278,19 @@ if ~isempty(h_min)
         qv_min_full = fill_vec(qv_min_full, qv_min, 1);
     end
     h_cnstr.qv_min = qv_min_full(:,1:mpc.N-1);
-    if h_cnstr.use_k0
+    if ~isempty(h_cnstr.use_k0)
         h_cnstr.qv_min_0 = qv_min_full(h_cnstr.rows_k0,1);
     else
         h_cnstr.qv_min_0 = [];
     end
-    if h_cnstr.use_ter
+    if ~isempty(h_cnstr.use_ter)
         h_cnstr.qv_min_ter = qv_min_full(h_cnstr.rows_ter,mpc.N);
     else
         h_cnstr.qv_min_ter = [];
     end
    
 else
-    h_cnstr.min_limit = 0;
+    h_cnstr.min_limit = [];
     h_cnstr.min = [];
     h_cnstr.min_0 = [];
     h_cnstr.min_ter = [];
@@ -303,13 +303,13 @@ if ~isempty(h_max)
 
     h_cnstr.max_limit = 1;
 
-    if h_cnstr.use_k0
+    if ~isempty(h_cnstr.use_k0)
         mpc.ng_k(1) = mpc.ng_k(1) + mpc.nh_0;
         mpc.nv_k(1) = mpc.nv_k(1) + mpc.nh_0;
     end
     mpc.ng_k(2) = mpc.ng_k(2) + mpc.nh;
     mpc.nv_k(2) = mpc.nv_k(2) + mpc.nh;
-    if h_cnstr.use_ter
+    if ~isempty(h_cnstr.use_ter)
         mpc.ng_k(3) = mpc.ng_k(3) + mpc.nh_ter;
         mpc.nv_k(3) = mpc.nv_k(3) + mpc.nh_ter;
     end
@@ -317,12 +317,12 @@ if ~isempty(h_max)
     h_max_full = zeros(mpc.nh, mpc.N);
     h_max_full = fill_vec(h_max_full, h_max, 1);
     h_cnstr.max = h_max_full(:,1:mpc.N-1);
-    if h_cnstr.use_k0
+    if ~isempty(h_cnstr.use_k0)
         h_cnstr.max_0 = h_max_full(h_cnstr.rows_k0,1);
     else
         h_cnstr.max_0 = [];
     end
-    if h_cnstr.use_ter
+    if ~isempty(h_cnstr.use_ter)
         h_cnstr.max_ter = h_max_full(h_cnstr.rows_ter,mpc.N);
     else
         h_cnstr.max_ter = [];
@@ -333,19 +333,19 @@ if ~isempty(h_max)
         qv_max_full = fill_vec(qv_max_full, qv_max, 1);
     end
     h_cnstr.qv_max = qv_max_full(:,1:mpc.N-1);
-    if h_cnstr.use_k0
+    if ~isempty(h_cnstr.use_k0)
         h_cnstr.qv_max_0 = qv_max_full(h_cnstr.rows_k0,1);
     else
         h_cnstr.qv_max_0 = [];
     end
-    if h_cnstr.use_ter
+    if ~isempty(h_cnstr.use_ter)
         h_cnstr.qv_max_ter = qv_max_full(h_cnstr.rows_ter,mpc.N);
     else
         h_cnstr.qv_max_ter = [];
     end
 
 else
-    h_cnstr.max_limit = 0;
+    h_cnstr.max_limit = [];
     h_cnstr.max = [];
     h_cnstr.max_0 = [];
     h_cnstr.max_ter = [];

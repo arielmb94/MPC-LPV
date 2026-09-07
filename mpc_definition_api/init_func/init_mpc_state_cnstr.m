@@ -67,7 +67,7 @@ if isscalar(x_max), x_max = x_max * ones(mpc.nx, 1); end
 if isscalar(qv_min), qv_min = qv_min * ones(mpc.nx, 1); end
 if isscalar(qv_max), qv_max = qv_max * ones(mpc.nx, 1); end
 
-s_cnstr.use_k0 = 0;
+s_cnstr.use_k0 = [];
 s_cnstr.use_ter = 1;
 s_cnstr.rows_k0 = [];
 s_cnstr.rows_ter = 1:mpc.nx;
@@ -97,7 +97,7 @@ if ~isempty(x_min)
         s_cnstr.qv_min_ter = qv_min(:,min(size(qv_min,2),mpc.N));
     end
 else
-    s_cnstr.min_limit = 0;
+    s_cnstr.min_limit = [];
     s_cnstr.min = [];
     s_cnstr.qv_min = [];
     s_cnstr.qv_min_ter = [];
@@ -122,7 +122,7 @@ if ~isempty(x_max)
         s_cnstr.qv_max_ter = qv_max(:,min(size(qv_max,2),mpc.N));
     end
 else
-    s_cnstr.max_limit = 0;
+    s_cnstr.max_limit = [];
     s_cnstr.max = [];
     s_cnstr.qv_max = [];
     s_cnstr.qv_max_ter = [];

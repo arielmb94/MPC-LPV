@@ -166,8 +166,8 @@ if ~isempty(Ddz)
 end
 
 
-mpc.z_use_k0 = 0;
-mpc.z_use_ter = 0;
+mpc.z_use_k0 = [];
+mpc.z_use_ter = [];
 mpc.Cz_0 = [];
 mpc.Dz_0 = [];
 mpc.Dsuz_0 = [];
@@ -184,18 +184,18 @@ if mpc.nz_0
     mpc.z_rows_k0 = z_row_0;
     mpc.z_use_k0 = 1;
 
-    if mpc.z_use_s, mpc.Cz_0 = Cz(mpc.z_rows_k0,:,1); end
-    if mpc.z_use_u, mpc.Dz_0 = Dz(mpc.z_rows_k0,:,1); end
-    if mpc.z_use_su, mpc.Dsuz_0 = Dsuz(mpc.z_rows_k0,:,1); end
-    if mpc.z_use_d, mpc.Ddz_0 = Ddz(mpc.z_rows_k0,:,1); end
+    if ~isempty(mpc.z_use_s), mpc.Cz_0 = Cz(mpc.z_rows_k0,:,1); end
+    if ~isempty(mpc.z_use_u), mpc.Dz_0 = Dz(mpc.z_rows_k0,:,1); end
+    if ~isempty(mpc.z_use_su), mpc.Dsuz_0 = Dsuz(mpc.z_rows_k0,:,1); end
+    if ~isempty(mpc.z_use_d), mpc.Ddz_0 = Ddz(mpc.z_rows_k0,:,1); end
 end
 
 % at k = N, only rows strictly dependent on s are considered
-if  mpc.z_use_s
+if ~isempty(mpc.z_use_s)
     strict_s_rows = any(Cz_ter~=0,2);
-    if mpc.z_use_u, strict_s_rows = strict_s_rows & all(Dz_ter==0,2); end
-    if mpc.z_use_su, strict_s_rows = strict_s_rows & all(Dsuz_ter==0,2); end
-    if mpc.z_use_d, strict_s_rows = strict_s_rows & all(Ddz_ter==0,2); end
+    if ~isempty(mpc.z_use_u), strict_s_rows = strict_s_rows & all(Dz_ter==0,2); end
+    if ~isempty(mpc.z_use_su), strict_s_rows = strict_s_rows & all(Dsuz_ter==0,2); end
+    if ~isempty(mpc.z_use_d), strict_s_rows = strict_s_rows & all(Ddz_ter==0,2); end
 
     z_row_ter = find(strict_s_rows);
     mpc.nz_ter = length(z_row_ter);
@@ -210,9 +210,9 @@ if mpc.nz_ter
 end
 
 % init z vector
-if mpc.z_use_k0, mpc.z_0 = zeros(mpc.nz_0,1); else, mpc.z_0=[]; end
+if ~isempty(mpc.z_use_k0), mpc.z_0 = zeros(mpc.nz_0,1); else, mpc.z_0=[]; end
 mpc.z = zeros(mpc.nz,mpc.N-1);
-if mpc.z_use_ter, mpc.z_ter = zeros(mpc.nz_ter,1); else, mpc.z_ter=[]; end
+if ~isempty(mpc.z_use_ter), mpc.z_ter = zeros(mpc.nz_ter,1); else, mpc.z_ter=[]; end
 % init d vector
 if mpc.ndz
     mpc.dz = zeros(mpc.ndz,mpc.N);
@@ -232,12 +232,12 @@ if any(Qz(:))
         Qz_ter = Qz(:,:,mpc.N);
     end
 
-    if mpc.z_use_k0
+    if ~isempty(mpc.z_use_k0)
         mpc.Qz_0 = Qz(mpc.z_rows_k0,mpc.z_rows_k0,1);
     else
         mpc.Qz_0 = [];
     end
-    if mpc.z_use_ter
+    if ~isempty(mpc.z_use_ter)
         mpc.Qz_ter = Qz_ter(mpc.z_rows_ter,mpc.z_rows_ter);
     else
         mpc.Qz_ter = [];
@@ -261,12 +261,12 @@ if any(qz(:))
         qz_ter = qz(:,mpc.N);
     end
 
-    if mpc.z_use_k0
+    if ~isempty(mpc.z_use_k0)
         mpc.qz_0 = qz(mpc.z_rows_k0,1);
     else
         mpc.qz_0 = [];
     end
-    if mpc.z_use_ter
+    if ~isempty(mpc.z_use_ter)
         mpc.qz_ter = qz_ter(mpc.z_rows_ter);
     else
         mpc.qz_ter = [];

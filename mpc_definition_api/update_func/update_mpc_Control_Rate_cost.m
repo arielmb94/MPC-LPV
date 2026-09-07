@@ -19,13 +19,9 @@
 %     mpc     - Updated CHRONOS MPC structure.
 function mpc = update_mpc_Control_Rate_cost(mpc,Rdu)
 
-mpc.recompute_cost_hess = 1;
-
-len_Rdu = size(Rdu,3);
-if len_Rdu < mpc.N
+if ~isempty(mpc.controlrate_cost)
+    mpc.recompute_cost_hess = 1;
     mpc.Rdu(:,:,:) = fill_mat(mpc.Rdu, Rdu, 1);
-else
-    mpc.Rdu(:,:,:) = Rdu(:,:,1:mpc.N);
 end
 
 end

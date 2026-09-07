@@ -24,26 +24,22 @@
 %       mpc = update_mpc_control_cnstr_limits(mpc, u_min, u_max);
 function mpc = update_mpc_control_cnstr_limits(mpc,min,max)
 
-if ~isempty(min)
+if ~isempty(min) && ~isempty(mpc.u_cnstr.min_limit)
 
     if isscalar(min)
         mpc.u_cnstr.min(:,:) = min;
-    elseif size(min,2) < mpc.N
-        mpc.u_cnstr.min(:,:) = fill_vec(mpc.u_cnstr.min, min, 1);
     else
-        mpc.u_cnstr.min(:,:) = min(:,1:mpc.N);
+        mpc.u_cnstr.min(:,:) = fill_vec(mpc.u_cnstr.min, min, 1);
     end
     
 end
 
-if ~isempty(max)
+if ~isempty(max) && ~isempty(mpc.u_cnstr.max_limit)
 
     if isscalar(max)
         mpc.u_cnstr.max(:,:) = max;
-    elseif size(max,2) < mpc.N
-        mpc.u_cnstr.max(:,:) = fill_vec(mpc.u_cnstr.max, max, 1);
     else
-        mpc.u_cnstr.max(:,:) = max(:,1:mpc.N);
+        mpc.u_cnstr.max(:,:) = fill_vec(mpc.u_cnstr.max, max, 1);
     end
 
 end

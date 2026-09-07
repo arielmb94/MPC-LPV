@@ -1,14 +1,8 @@
-function [beq_0,beq_k] = update_mpc_beq(beq_0,beq_k,A,Bd,d,s_prev,dyn_use_d,N)
-%% dynamics
-% k = 0
-beq_0(:) = -A(:,:,1)*s_prev;
+function mpc = update_mpc_beq(mpc,s_prev,A,dyn_use_d)
 
-if dyn_use_d
-    beq_0(:) = beq_0(:) - Bd(:,:,1)*d(:,1);
+mpc.beq_0(:) = -A*s_prev;
 
-    for k = 1:N-1
-        beq_k(:,k) = -Bd(:,:,k+1)*d(:,k+1);
-    end
+if ~isempty(dyn_use_d)
+    mpc = beq_disturbance_wrapper(mpc);
 end
-
 end

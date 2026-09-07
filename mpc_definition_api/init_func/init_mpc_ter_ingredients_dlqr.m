@@ -73,7 +73,11 @@ if isscalar(Qx), Qx = Qx * eye(mpc.nx); end
 if isscalar(Ru), Ru = Ru * eye(mpc.nu); end
 
 mpc.ter_ingredients = 1;
-mpc.xN_ref_is_y = xN_ref_is_y;
+if xN_ref_is_y
+    mpc.xN_ref_is_y = 1;
+else
+    mpc.xN_ref_is_y = [];
+end
 
 [K,P] = dlqr(mpc.A(:,:,mpc.N),mpc.B(:,:,mpc.N),Qx,Ru);
 

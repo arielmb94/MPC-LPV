@@ -36,71 +36,52 @@
 %       mpc = update_mpc_Custom_cost_vector(mpc, Cz, Dz, [], []);
 function mpc = update_mpc_Custom_cost_vector(mpc,Cz,Dz,Dsuz,Ddz)
 
-if ~isempty(Cz)
-    if mpc.quad_custom_cost
-        mpc.update_customcost_quad = 1;
+if ~isempty(Cz) && ~isempty(mpc.z_use_s)
+    if ~isempty(mpc.quad_custom_cost)
+        mpc.update_customcost_quad = true;
     end
-    if mpc.lin_custom_cost
-        mpc.update_customcost_lin = 1;
+    if ~isempty(mpc.lin_custom_cost)
+        mpc.update_customcost_lin = true;
     end
 
     len_Cz = size(Cz,3);
-    if len_Cz < mpc.N
-        mpc.Cz(:,:,:) = fill_mat(mpc.Cz, Cz, 1);
-        if mpc.z_use_ter, mpc.Cz_ter(:,:) = mpc.Cz(mpc.z_rows_ter,:,mpc.N-1); end
-    else
-        mpc.Cz(:,:,:) = Cz(:,:,1:mpc.N-1);
-        if mpc.z_use_ter, mpc.Cz_ter(:,:) = Cz(mpc.z_rows_ter,:,mpc.N); end
+    mpc.Cz(:,:,:) = fill_mat(mpc.Cz, Cz, 1);
+    if ~isempty(mpc.z_use_ter)
+        ter_stage = len_Cz;
+        if ter_stage > mpc.N, ter_stage = mpc.N; end
+        mpc.Cz_ter(:,:) = Cz(mpc.z_rows_ter,:,ter_stage);
     end
-    if mpc.z_use_k0, mpc.Cz_0(:,:) = mpc.Cz(mpc.z_rows_k0,:,1); end
+    if ~isempty(mpc.z_use_k0), mpc.Cz_0(:,:) = Cz(mpc.z_rows_k0,:,1); end
 
 end
 
-if ~isempty(Dz)
-    if mpc.quad_custom_cost
+if ~isempty(Dz) && ~isempty(mpc.z_use_u)
+    if ~isempty(mpc.quad_custom_cost)
         mpc.update_customcost_quad = 1;
     end
-    if mpc.lin_custom_cost
+    if ~isempty(mpc.lin_custom_cost)
         mpc.update_customcost_lin = 1;
     end
-
-    len_Dz = size(Dz,3);
-    if len_Dz < mpc.N-1
-        mpc.Dz(:,:,:) = fill_mat(mpc.Dz, Dz, 1);
-    else
-        mpc.Dz(:,:,:) = Dz(:,:,1:mpc.N-1);
-    end
-    if mpc.z_use_k0
-        mpc.Dz_0(:,:) = mpc.Dz(mpc.z_rows_k0,:,1);
+    mpc.Dz(:,:,:) = fill_mat(mpc.Dz, Dz, 1);
+    if ~isempty(mpc.z_use_k0)
+        mpc.Dz_0(:,:) = Dz(mpc.z_rows_k0,:,1);
     end
 end
 
-if ~isempty(Dsuz)
-    if mpc.quad_custom_cost
-        mpc.update_customcost_quad = 1;
+if ~isempty(Dsuz) && ~isempty(mpc.z_use_su)
+    if ~isempty(mpc.quad_custom_cost)
+        mpc.update_customcost_quad = true;
     end
-    if mpc.lin_custom_cost
-        mpc.update_customcost_lin = 1;
+    if ~isempty(mpc.lin_custom_cost)
+        mpc.update_customcost_lin = true;
     end
-    
-    len_Dsuz = size(Dsuz,3);
-    if len_Dsuz < mpc.N-1
-        mpc.Dsuz(:,:,:) = fill_mat(mpc.Dsuz, Dsuz, 1);
-    else
-        mpc.Dsuz(:,:,:) = Dsuz(:,:,1:mpc.N-1);
-    end
-    if mpc.z_use_k0, mpc.Dsuz_0(:,:) = mpc.Dsuz(mpc.z_rows_k0,:,1); end
+    mpc.Dsuz(:,:,:) = fill_mat(mpc.Dsuz, Dsuz, 1);
+    if ~isempty(mpc.z_use_k0), mpc.Dsuz_0(:,:) = Dsuz(mpc.z_rows_k0,:,1); end
 end
 
-if ~isempty(Ddz)   
-
-    len_Ddz = size(Ddz,3);
-    if len_Ddz < mpc.N-1
-        mpc.Ddz(:,:,:) = fill_mat(mpc.Ddz, Ddz, 1);
-    else
-        mpc.Ddz(:,:,:) = Ddz(:,:,1:mpc.N-1);
-    end
-    if mpc.z_use_k0, mpc.Ddz_0(:,:) = mpc.Ddz(mpc.z_rows_k0,:,1); end
+if ~isempty(Ddz) && ~isempty(mpc.z_use_d)
+    mpc.Ddz(:,:,:) = fill_mat(mpc.Ddz, Ddz, 1);
+    if ~isempty(mpc.z_use_k0), mpc.Ddz_0(:,:) = Ddz(mpc.z_rows_k0,:,1); end
 end
 
 end

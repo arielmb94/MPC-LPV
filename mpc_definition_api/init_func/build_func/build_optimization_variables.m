@@ -2,7 +2,7 @@ function mpc = build_optimization_variables(mpc)
 % BUILD_OPTIMIZATION_VARIABLES Allocate the fixed stage-local solver workspace.
 
 N = mpc.N;
-nse = mpc.nx + mpc.has_du*mpc.nu;
+nse = mpc.nx + double(~isempty(mpc.has_du))*mpc.nu;
 ng_0 = mpc.ng_k(1);
 ng_k = mpc.ng_k(2);
 ng_ter = mpc.ng_k(3);
@@ -18,7 +18,7 @@ mpc.n = mpc.nvar + ng_0 + (N-1)*ng_k + ng_ter + ...
 mpc.s = zeros(mpc.nx,N);
 mpc.s_ter = zeros(mpc.nx,1);
 mpc.u = zeros(mpc.nu,N);
-if mpc.has_du
+if ~isempty(mpc.has_du)
     mpc.su = zeros(mpc.nu,N);
     mpc.du = zeros(mpc.nu,N);
 else

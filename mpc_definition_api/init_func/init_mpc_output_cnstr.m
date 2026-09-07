@@ -99,13 +99,13 @@ if ~isempty(y_min)
 
     y_cnstr.min_limit = 1;
     
-    if mpc.y_use_k0
+    if ~isempty(mpc.y_use_k0)
         mpc.ng_k(1) = mpc.ng_k(1) + mpc.ny_0;
         mpc.nv_k(1) = mpc.nv_k(1) + mpc.ny_0;
     end
     mpc.ng_k(2) = mpc.ng_k(2) + mpc.ny;
     mpc.nv_k(2) = mpc.nv_k(2) + mpc.ny;
-    if mpc.y_use_ter
+    if ~isempty(mpc.y_use_ter)
         mpc.ng_k(3) = mpc.ng_k(3) + mpc.ny_ter;
         mpc.nv_k(3) = mpc.nv_k(3) + mpc.ny_ter;
     end
@@ -113,12 +113,12 @@ if ~isempty(y_min)
     y_full = zeros(mpc.ny, mpc.N);
     y_full = fill_vec(y_full, y_min, 1);
     y_cnstr.min = y_full(:,1:mpc.N-1);
-    if mpc.y_use_k0
+    if ~isempty(mpc.y_use_k0)
         y_cnstr.min_0 = y_full(mpc.y_rows_k0,1);
     else
         y_cnstr.min_0 = [];
     end
-    if mpc.y_use_ter
+    if ~isempty(mpc.y_use_ter)
         y_cnstr.min_ter = y_full(mpc.y_rows_ter,mpc.N);
     else
         y_cnstr.min_ter = [];
@@ -129,19 +129,19 @@ if ~isempty(y_min)
         qv_min_full = fill_vec(qv_min_full, qv_min, 1);
     end
     y_cnstr.qv_min = qv_min_full(:,1:mpc.N-1);
-    if mpc.y_use_k0
+    if ~isempty(mpc.y_use_k0)
         y_cnstr.qv_min_0 = qv_min_full(mpc.y_rows_k0,1);
     else
         y_cnstr.qv_min_0 = [];
     end
-    if mpc.y_use_ter
+    if ~isempty(mpc.y_use_ter)
         y_cnstr.qv_min_ter = qv_min_full(mpc.y_rows_ter,mpc.N);
     else
         y_cnstr.qv_min_ter = [];
     end
 
 else
-    y_cnstr.min_limit = 0;
+    y_cnstr.min_limit = [];
     y_cnstr.min = [];
     y_cnstr.min_0 = [];
     y_cnstr.min_ter = [];
@@ -154,13 +154,13 @@ if ~isempty(y_max)
 
     y_cnstr.max_limit = 1;
     
-    if mpc.y_use_k0
+    if ~isempty(mpc.y_use_k0)
         mpc.ng_k(1) = mpc.ng_k(1) + mpc.ny_0;
         mpc.nv_k(1) = mpc.nv_k(1) + mpc.ny_0;
     end
     mpc.ng_k(2) = mpc.ng_k(2) + mpc.ny;
     mpc.nv_k(2) = mpc.nv_k(2) + mpc.ny;
-    if mpc.y_use_ter
+    if ~isempty(mpc.y_use_ter)
         mpc.ng_k(3) = mpc.ng_k(3) + mpc.ny_ter;
         mpc.nv_k(3) = mpc.nv_k(3) + mpc.ny_ter;
     end
@@ -168,12 +168,12 @@ if ~isempty(y_max)
     y_full = zeros(mpc.ny, mpc.N);
     y_full = fill_vec(y_full, y_max, 1);
     y_cnstr.max = y_full(:,1:mpc.N-1);
-    if mpc.y_use_k0
+    if ~isempty(mpc.y_use_k0)
         y_cnstr.max_0 = y_full(mpc.y_rows_k0,1);
     else
         y_cnstr.max_0 = [];
     end
-    if mpc.y_use_ter
+    if ~isempty(mpc.y_use_ter)
         y_cnstr.max_ter = y_full(mpc.y_rows_ter,mpc.N);
     else
         y_cnstr.max_ter = [];
@@ -184,19 +184,19 @@ if ~isempty(y_max)
         qv_max_full = fill_vec(qv_max_full, qv_max, 1);
     end
     y_cnstr.qv_max = qv_max_full(:,1:mpc.N-1);
-    if mpc.y_use_k0
+    if ~isempty(mpc.y_use_k0)
         y_cnstr.qv_max_0 = qv_max_full(mpc.y_rows_k0,1);
     else
         y_cnstr.qv_max_0 = [];
     end
-    if mpc.y_use_ter
+    if ~isempty(mpc.y_use_ter)
         y_cnstr.qv_max_ter = qv_max_full(mpc.y_rows_ter,mpc.N);
     else
         y_cnstr.qv_max_ter = [];
     end
 
 else
-    y_cnstr.max_limit = 0;
+    y_cnstr.max_limit = [];
     y_cnstr.max = [];
     y_cnstr.max_0 = [];
     y_cnstr.max_ter = [];

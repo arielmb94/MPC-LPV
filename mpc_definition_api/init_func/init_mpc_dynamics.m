@@ -87,7 +87,7 @@ mpc.su = zeros(mpc.nu,mpc.N);
 mpc.u = zeros(mpc.nu,mpc.N);
 mpc.du = zeros(mpc.nu,mpc.N);
 
-if mpc.nd
+if ~isempty(mpc.dyn_use_d)
     mpc.d = zeros(mpc.nd,mpc.N);
 end
 
@@ -107,14 +107,14 @@ mpc.ny = mpc.nx;
 mpc.ny_0 = 0;
 mpc.ny_ter = mpc.nx;
 
-mpc.y_use_k0 = 0;
+mpc.y_use_k0 = [];
 mpc.y_rows_k0 = [];
 mpc.y_use_ter = 1;
 mpc.y_rows_ter = 1:mpc.nx; 
 
 mpc.y_use_s = 1;
-mpc.y_use_u = 0;
-mpc.y_use_d = 0;
+mpc.y_use_u = [];
+mpc.y_use_d = [];
 
 % init y, reference and error vectors
 mpc.r_0 = zeros(mpc.ny_0,1);

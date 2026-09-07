@@ -25,65 +25,53 @@
 %       mpc = update_mpc_custom_cnstr_limits(mpc, h_min, h_max);
 function mpc = update_mpc_custom_cnstr_limits(mpc, min, max)
 
-if ~isempty(min)
+if ~isempty(min) && ~isempty(mpc.h_cnstr.min_limit)
     if isscalar(min)
         % In-place scalar expansion across pre-allocated buffers
         mpc.h_cnstr.min(:, :) = min;
 
-        if mpc.h_cnstr.use_k0
+        if ~isempty(mpc.h_cnstr.use_k0)
             mpc.h_cnstr.min_0(:) = min;
         end
-        if mpc.h_cnstr.use_ter
+        if ~isempty(mpc.h_cnstr.use_ter)
             mpc.h_cnstr.min_ter(:) = min;
         end
     else
 
-        if mpc.h_cnstr.use_k0
+        if ~isempty(mpc.h_cnstr.use_k0)
             mpc.h_cnstr.min_0(:) = min(mpc.h_cnstr.rows_k0, 1);
         end
 
-        if size(min, 2) < mpc.N
-            mpc.h_cnstr.min(:, :) = fill_vec(mpc.h_cnstr.min, min, 1);
-        else
-            mpc.h_cnstr.min(:, :) = min(:, 1:mpc.N-1);
-        end
-        if mpc.h_cnstr.use_ter
-            if size(min, 2) < mpc.N
-                mpc.h_cnstr.min_ter(:) = min(mpc.h_cnstr.rows_ter, size(min, 2));
-            else
-                mpc.h_cnstr.min_ter(:) = min(mpc.h_cnstr.rows_ter, mpc.N);
-            end
+        mpc.h_cnstr.min(:, :) = fill_vec(mpc.h_cnstr.min, min, 1);
+        if ~isempty(mpc.h_cnstr.use_ter)
+            ter_col = size(min, 2);
+            if ter_col > mpc.N, ter_col = mpc.N; end
+            mpc.h_cnstr.min_ter(:) = min(mpc.h_cnstr.rows_ter, ter_col);
         end
     end
 end
 
-if ~isempty(max)
+if ~isempty(max) && ~isempty(mpc.h_cnstr.max_limit)
     if isscalar(max)
         mpc.h_cnstr.max(:, :) = max;
 
-        if mpc.h_cnstr.use_k0
+        if ~isempty(mpc.h_cnstr.use_k0)
             mpc.h_cnstr.max_0(:) = max;
         end
-        if mpc.h_cnstr.use_ter
+        if ~isempty(mpc.h_cnstr.use_ter)
             mpc.h_cnstr.max_ter(:) = max;
         end
     else
 
-        if mpc.h_cnstr.use_k0
+        if ~isempty(mpc.h_cnstr.use_k0)
             mpc.h_cnstr.max_0(:) = max(mpc.h_cnstr.rows_k0, 1);
         end
 
-        if size(max, 2) < mpc.N
-            mpc.h_cnstr.max(:, :) = fill_vec(mpc.h_cnstr.max, max, 1);
-        else
-            mpc.h_cnstr.max(:, :) = max(:, 1:mpc.N-1);
-        end
-        if mpc.h_cnstr.use_ter
-            if size(max, 2) < mpc.N
-                mpc.h_cnstr.max_ter(:) = max(mpc.h_cnstr.rows_ter, size(max, 2));
-            else
-                mpc.h_cnstr.max_ter(:) = max(mpc.h_cnstr.rows_ter, mpc.N);
-            end
+        mpc.h_cnstr.max(:, :) = fill_vec(mpc.h_cnstr.max, max, 1);
+        if ~isempty(mpc.h_cnstr.use_ter)
+            ter_col = size(max, 2);
+            if ter_col > mpc.N, ter_col = mpc.N; end
+            mpc.h_cnstr.max_ter(:) = max(mpc.h_cnstr.rows_ter, ter_col);
         end
     end
 end

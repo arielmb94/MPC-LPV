@@ -47,8 +47,8 @@ validate_column_vector(du_max, mpc.nu, 'du_max');
 if isscalar(du_min), du_min = du_min * ones(mpc.nu, 1); end
 if isscalar(du_max), du_max = du_max * ones(mpc.nu, 1); end
 
-du_cnstr.use_k0 = 0;
-du_cnstr.use_ter = 0;
+du_cnstr.use_k0 = [];
+du_cnstr.use_ter = [];
 du_cnstr.rows_k0 = [];
 du_cnstr.rows_ter = [];
 du_cnstr.min_ineqRow_0 = [];
@@ -65,7 +65,7 @@ if ~isempty(du_min)
     du_cnstr.min = zeros(mpc.nu,mpc.N);
     du_cnstr.min = fill_vec(du_cnstr.min, du_min, 1);
 else
-    du_cnstr.min_limit = 0;
+    du_cnstr.min_limit = [];
     du_cnstr.min = [];
 end
 
@@ -79,7 +79,7 @@ if ~isempty(du_max)
     du_cnstr.max = zeros(mpc.nu,mpc.N);
     du_cnstr.max = fill_vec(du_cnstr.max, du_max, 1);    
 else
-    du_cnstr.max_limit = 0;
+    du_cnstr.max_limit = [];
     du_cnstr.max = [];
 end
 
