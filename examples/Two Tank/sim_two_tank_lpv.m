@@ -1,6 +1,6 @@
 %% Call the mpc problem initialization script
 
-two_tank_init
+two_tank_init_w_discretization
 mpc.max_iter = 3;
 %% Define simulation duration and reference parameters
 
